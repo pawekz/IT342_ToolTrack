@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ToolTrack.iml" filepath="$PROJECT_DIR$/ToolTrack.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backend/tooltrack.iml" filepath="$PROJECT_DIR$/backend/tooltrack.iml" />
     </modules>
   </component>
 </project>
