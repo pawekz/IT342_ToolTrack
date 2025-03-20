@@ -15,8 +15,8 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(oauth -> oauth.anyRequest().authenticated())
-                .oauth2Login(oauth2login -> oauth2login.defaultSuccessUrl("/home", true))
-                .formLogin(formLogin-> formLogin.defaultSuccessUrl("/secured", true) )
+                .oauth2Login(oauth2login -> oauth2login.defaultSuccessUrl("http://localhost:8080/user-info", true))
+                .formLogin(formLogin-> formLogin.defaultSuccessUrl("/", true) )
                 .logout(logout-> logout.logoutSuccessUrl("/"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .build();
