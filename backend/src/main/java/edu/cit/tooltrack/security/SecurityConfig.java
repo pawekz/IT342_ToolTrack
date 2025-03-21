@@ -2,6 +2,7 @@ package edu.cit.tooltrack.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -12,13 +13,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain defaultSecurityChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeHttpRequests(oauth -> oauth.anyRequest().authenticated())
-                .oauth2Login(oauth2login -> oauth2login.defaultSuccessUrl("http://localhost:8080/user-info", true))
-                .formLogin(formLogin-> formLogin.defaultSuccessUrl("/", true) )
-                .logout(logout-> logout.logoutSuccessUrl("/"))
-                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable) // ✅ Correct way to disable CSRF
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/public/**").permitAll() // ✅ Correct method
+                        .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("http://localhost:5173/home", true))
+                .logout(logout -> logout.logoutSuccessUrl("/"))
                 .build();
     }
 }
