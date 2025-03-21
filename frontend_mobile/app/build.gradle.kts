@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "edu.cit.tooltrack"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "edu.cit.tooltrack"
