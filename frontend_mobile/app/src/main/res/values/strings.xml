@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ToolTrack</string>
+    <string name="hello">Hello Test</string>
 </resources>
