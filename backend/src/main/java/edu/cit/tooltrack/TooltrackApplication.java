@@ -12,18 +12,21 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class TooltrackApplication {
 
-	static {
-		// Specify the .env file path manually
-		Dotenv dotenv = Dotenv.configure()
-				.directory("./backend")
-				.load();
-
-		dotenv.entries().forEach(entry ->
-				System.setProperty(entry.getKey(), entry.getValue())
-		);
-	}
+//	static {
+//		// Specify the .env file path manually
+//		Dotenv dotenv = Dotenv.configure()
+//				.directory(System.getProperty("user.dir"))
+//				.ignoreIfMissing()
+//				.load();
+//
+//		dotenv.entries().forEach(entry ->
+//				System.setProperty(entry.getKey(), entry.getValue())
+//		);
+//	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(TooltrackApplication.class, args);
+		// Debugging - Print an environment variable
+//		System.out.println("DB URL: " + System.getProperty("DB_URL"));
 	}
 }
