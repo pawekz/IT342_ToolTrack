@@ -1,5 +1,6 @@
 package edu.cit.tooltrack.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,12 +19,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int user_id;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "user_id")
     private List<ToolTransaction> toolTransaction_userid;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "created_by")
     private List<ToolTransaction> toolTransaction_created_by;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "user_id")
     private List<Notifications> notifications;
 
