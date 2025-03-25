@@ -22,9 +22,8 @@ public class UserAuthController {
 
     @Operation(summary = "Allow Google login", description = "uses the google api for login")
     @GetMapping("/googlelogin")
-    public void initiateGoogleLogin(
-            HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorize/google");
+    public void initiateGoogleLogin(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/oauth2/authorization/google"); // Fix the redirect path
     }
 
     @Operation(summary = "google api test", description = "this test the google api works")
