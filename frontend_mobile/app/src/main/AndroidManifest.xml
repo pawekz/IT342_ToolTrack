@@ -12,15 +12,34 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ToolTrack"
         tools:targetApi="31">
+
+        <!-- Intro Activity -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".IntroActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Login Activity -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+
+        <!-- Signup Activity -->
+        <activity
+            android:name=".SignupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
