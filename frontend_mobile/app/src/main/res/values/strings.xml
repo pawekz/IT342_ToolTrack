@@ -1,4 +1,26 @@
 <resources>
     <string name="app_name">ToolTrack</string>
     <string name="hello">Hello Test</string>
+
+    <!-- Intro Slides -->
+    <string name="intro_title_1">ToolTrack</string>
+    <string name="intro_description_1">Effortlessly manage and track borrowed items with ToolTrack.\nKeep records, monitor availability, and never lose track\nof who borrowed what. Simplify your borrow\nprocess today!</string>
+
+    <string name="intro_title_2">Seamless Borrowing</string>
+    <string name="intro_description_2">Makes Borrowing seamless and organized - whether it\'s for\nschool, office. Find what you need, reserve it, and\nreturn in on time.</string>
+
+    <string name="intro_title_3">Productivity-Focused</string>
+    <string name="intro_description_3">No more lost or forgotten borrowed items! ToolTrack keeps\neverything organized so you can focused\non what matters.</string>
+
+    <!-- Login and Signup -->
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login_with_google">Login with Google</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="name">Full Name</string>
 </resources>
