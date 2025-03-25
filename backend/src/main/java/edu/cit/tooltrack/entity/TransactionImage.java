@@ -1,11 +1,15 @@
 package edu.cit.tooltrack.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.tools.Tool;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "transaction_images")
 public class TransactionImage {

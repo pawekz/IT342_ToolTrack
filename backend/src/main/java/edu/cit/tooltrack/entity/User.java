@@ -1,11 +1,15 @@
 package edu.cit.tooltrack.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.List;
 
+@Getter
+@Setter
 @Entity
 @Table(name="users")
 public class User {
