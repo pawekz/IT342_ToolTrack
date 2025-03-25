@@ -1,5 +1,7 @@
 package edu.cit.tooltrack.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,9 +21,11 @@ public class ToolItems {
     private int tool_id;
 
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "tool_id")
     private List<ToolTransaction> toolTransaction;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "fk_tool_items_category")
     private ToolCategory category_id;

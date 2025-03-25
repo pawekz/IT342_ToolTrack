@@ -1,5 +1,6 @@
 package edu.cit.tooltrack.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class TransactionImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int image_id;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "fk_transaction_images_transaction")
     private ToolTransaction transaction_id;
