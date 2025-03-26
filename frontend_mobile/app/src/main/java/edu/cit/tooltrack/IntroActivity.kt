@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,10 +19,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
+import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.google.accompanist.pager.rememberPagerState
+
+
 
 class IntroActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +38,7 @@ class IntroActivity : ComponentActivity() {
 
         setContent {
             ToolTrackTheme {
-                IntroScreen(
+                introScreen(
                     onDoneClick = {
                         // Navigate to LoginActivity when intro is complete
                         startActivity(Intent(this, LoginActivity::class.java))
@@ -42,9 +50,10 @@ class IntroActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
+@Preview
+@PreviewParameter(IntroSlidePreviewProvider::class)
 @Composable
-fun IntroScreen(onDoneClick: () -> Unit) {
+fun introScreen(onDoneClick: () -> Unit = {}) {
     val pagerState = rememberPagerState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -52,20 +61,21 @@ fun IntroScreen(onDoneClick: () -> Unit) {
         IntroSlide(
             title = stringResource(id = R.string.intro_title_1),
             description = stringResource(id = R.string.intro_description_1),
-            backgroundColor = colorResource(id = R.color.intro_color_1),
-            imageRes = R.drawable.ic_launcher_foreground
+            backgroundColor = colorResource(id = R.color.white_tooltrack),
+            imageRes = R.drawable.tooltrack_slide_1
+
         ),
         IntroSlide(
             title = stringResource(id = R.string.intro_title_2),
             description = stringResource(id = R.string.intro_description_2),
-            backgroundColor = colorResource(id = R.color.intro_color_2),
-            imageRes = R.drawable.ic_launcher_foreground
+            backgroundColor = colorResource(id = R.color.white_tooltrack),
+            imageRes = R.drawable.tooltrack_slide_2
         ),
         IntroSlide(
             title = stringResource(id = R.string.intro_title_3),
             description = stringResource(id = R.string.intro_description_3),
-            backgroundColor = colorResource(id = R.color.intro_color_3),
-            imageRes = R.drawable.ic_launcher_foreground
+            backgroundColor = colorResource(id = R.color.white_tooltrack),
+            imageRes = R.drawable.tooltrack_slide_3
         )
     )
 
@@ -93,14 +103,14 @@ fun IntroScreen(onDoneClick: () -> Unit) {
                     // Image
                     Box(
                         modifier = Modifier
-                            .size(180.dp)
-                            .background(Color(0xFF2196F3)),
+                            .size(240.dp)
+                            .background(Color(0xFFFFFF)),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = painterResource(id = slide.imageRes),
-                            contentDescription = null,
-                            modifier = Modifier.size(180.dp)
+                            contentDescription = "woman with tools",
+                            modifier = Modifier.size(300.dp)
                         )
                     }
 
@@ -111,7 +121,7 @@ fun IntroScreen(onDoneClick: () -> Unit) {
                         text = slide.title,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = Color.Black,
                         textAlign = TextAlign.Center
                     )
 
@@ -121,7 +131,7 @@ fun IntroScreen(onDoneClick: () -> Unit) {
                     Text(
                         text = slide.description,
                         fontSize = 16.sp,
-                        color = Color.White,
+                        color = colorResource(id = R.color.intro_slide_decription),
                         textAlign = TextAlign.Center
                     )
 
@@ -135,45 +145,29 @@ fun IntroScreen(onDoneClick: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(bottom = 48.dp)
         ) {
-            // Page indicators
-            HorizontalPagerIndicator(
-                pagerState = pagerState,
+            // Navigation buttons - centered
+            Column(
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(bottom = 32.dp),
-                activeColor = Color.White,
-                inactiveColor = colorResource(id = R.color.white_50)
-            )
-
-            // Navigation buttons
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Skip button (invisible on last page)
-                if (pagerState.currentPage < introSlides.size - 1) {
-                    TextButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(introSlides.size - 1)
-                            }
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("SKIP")
-                    }
-                } else {
-                    // Empty spacer to maintain layout
-                    Spacer(modifier = Modifier.width(64.dp))
-                }
+                // Page indicators
+                HorizontalPagerIndicator(
+                    pagerState = pagerState,
+                    pageCount = introSlides.size,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    activeColor = colorResource(id = R.color.green_tooltrack),
+                    inactiveColor = colorResource(id = R.color.lightgreen_tooltrack),
+                    indicatorWidth = 8.dp,
+                    indicatorHeight = 8.dp,
+                    spacing = 8.dp
+                )
 
-                // Next/Done button
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Next/Done button with specific styling
                 Button(
                     onClick = {
                         if (pagerState.currentPage < introSlides.size - 1) {
@@ -184,13 +178,20 @@ fun IntroScreen(onDoneClick: () -> Unit) {
                             onDoneClick()
                         }
                     },
+                    modifier = Modifier
+                        .width(213.dp)
+                        .height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
+                        containerColor = colorResource(id = R.color.green_tooltrack),
+                        contentColor = colorResource(id = R.color.white_tooltrack)
+                    ),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(
-                        text = if (pagerState.currentPage < introSlides.size - 1) "NEXT" else "GET STARTED"
+                        text = if (pagerState.currentPage < introSlides.size - 1) "NEXT" else "GET STARTED",
+                        color = colorResource(id = R.color.white_tooltrack),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -204,3 +205,14 @@ data class IntroSlide(
     val backgroundColor: Color,
     val imageRes: Int
 )
+
+class IntroSlidePreviewProvider : PreviewParameterProvider<IntroSlide> {
+    override val values = sequenceOf(
+        IntroSlide(
+            title = "Welcome to ToolTrack",
+            description = "The easiest way to manage your tools",
+            backgroundColor = Color(474747),
+            imageRes = R.drawable.tooltrack_slide_1
+        )
+    )
+}
