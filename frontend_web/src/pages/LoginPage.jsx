@@ -43,10 +43,10 @@ const LoginPage = () => {
         {/* Google Login Button */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full bg-white border border-gray-300 text-gray-600 py-3 rounded-md shadow-md hover:bg-gray-100 flex items-center justify-center space-x-2 cursor-pointer"
+          className="w-full bg-white border border-gray-300 text-gray-600 py-3 rounded-md shadow-md hover:bg-gray-100 flex items-center justify-center space-x-2 cursor-pointer mb-15"
         >
           <Icon icon="flat-color-icons:google" width="22" height="22" />
-          <span>Continue with Google</span>
+          <span>Login with Google</span>
         </button>
 
         {/* Manual Login Form */}
