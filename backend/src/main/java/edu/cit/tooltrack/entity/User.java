@@ -19,15 +19,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int user_id;
 
-    @JsonManagedReference
+    @JsonManagedReference("toolTransaction_userid")
     @OneToMany(mappedBy = "user_id")
     private List<ToolTransaction> toolTransaction_userid;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "created_by")
-    private List<ToolTransaction> toolTransaction_created_by;
-
-    @JsonManagedReference
+    @JsonManagedReference("notifications")
     @OneToMany(mappedBy = "user_id")
     private List<Notifications> notifications;
 

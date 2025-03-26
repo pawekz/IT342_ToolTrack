@@ -19,7 +19,7 @@ public class TransactionImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int image_id;
 
-    @JsonBackReference
+    @JsonBackReference("toolTransaction_image")
     @ManyToOne
     @JoinColumn(name = "fk_transaction_images_transaction")
     private ToolTransaction transaction_id;

@@ -20,21 +20,21 @@ public class ToolTransaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int transaction_id;
 
-    @JsonManagedReference
+    @JsonManagedReference("toolTransaction_image")
     @OneToMany(mappedBy = "transaction_id")
     private List<TransactionImage> transactionImage;
 
-    @JsonBackReference
-    @ManyToOne
-    @JoinColumn(name = "fk_tool_transactions_created_by")
-    private User created_by;
+//    @JsonBackReference("toolTransaction_userid")
+//    @ManyToOne
+//    @JoinColumn(name = "fk_tool_transactions_created_by")
+//    private User created_by;
 
-    @JsonBackReference
+    @JsonBackReference("toolTransaction_toolId")
     @ManyToOne
     @JoinColumn(name = "fk_tool_transactions_tool")
     private ToolItems tool_id;
 
-    @JsonBackReference
+    @JsonBackReference("toolTransaction_userid")
     @ManyToOne
     @JoinColumn(name = "fk_tool_transactions_user")
     private User user_id;

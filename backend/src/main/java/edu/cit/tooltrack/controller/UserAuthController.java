@@ -76,7 +76,6 @@ public class UserAuthController {
     )
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @Parameter(description = "Login request containing email and password", required = true)
             @RequestBody LoginRequest loginRequest) {
         // Check if user exists
         if(userService.isEmailValid(loginRequest) && userService.isPasswordValid(loginRequest)) {
@@ -85,5 +84,7 @@ public class UserAuthController {
             return ResponseEntity.ok(userResponse);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Incorrect Credentials"));
+
+
     }
 }
