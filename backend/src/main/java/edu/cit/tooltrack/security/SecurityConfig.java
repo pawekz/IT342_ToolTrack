@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/googlelogin").permitAll()
                         .requestMatchers("/addUser").permitAll()
                         .requestMatchers("updateUser").permitAll()
+                        .requestMatchers("getAllUsers").permitAll()
                         .requestMatchers("/deleteUser/{email}").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2

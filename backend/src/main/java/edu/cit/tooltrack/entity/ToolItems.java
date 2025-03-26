@@ -21,11 +21,11 @@ public class ToolItems {
     private int tool_id;
 
 
-    @JsonManagedReference
+    @JsonManagedReference("toolTransaction_toolId")
     @OneToMany(mappedBy = "tool_id")
     private List<ToolTransaction> toolTransaction;
 
-    @JsonBackReference
+    @JsonBackReference("toolItem_category")
     @ManyToOne
     @JoinColumn(name = "fk_tool_items_category")
     private ToolCategory category_id;

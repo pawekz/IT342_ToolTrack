@@ -18,7 +18,7 @@ public class ToolCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int category_id;
 
-    @JsonManagedReference
+    @JsonManagedReference("toolItem_category")
     @OneToMany(mappedBy = "category_id")
     private List<ToolItems> toolItems;
 

@@ -7,6 +7,7 @@ import edu.cit.tooltrack.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.NameNotFoundException;
 import java.sql.Timestamp;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+@Transactional
 @Service
 public class UserService {
 
@@ -58,6 +60,7 @@ public class UserService {
 
 
     public UserResponseDTO addUser(User user){
+        //no checking for if user already existed
         user.setIs_active(1);
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
          userRepository.save(user);
@@ -65,16 +68,17 @@ public class UserService {
     }
 
     @SuppressWarnings("finally")
-    public UserResponseDTO editUser(User newdata) {
-        User user = userRepository.findByEmail(newdata.getEmail());
+    public UserResponseDTO editUser(User newdata){
+        User user = null;
         try {
+            user = userRepository.findByEmail(newdata.getEmail());
             user.setEmail(newdata.getEmail());
             user.setFirst_name(newdata.getFirst_name());
             user.setLast_name(newdata.getLast_name());
             user.setPassword_hash(newdata.getPassword_hash());
             user.setUpdated_at(Timestamp.valueOf(LocalDateTime.now()));
         }catch (NoSuchElementException error) {
-            throw new NameNotFoundException("User" + newdata.getEmail() + "not found");
+            return null;
         } finally {
              userRepository.save(user);
              return new UserResponseDTO(user.getEmail(), user.getFirst_name(), user.getLast_name());
@@ -90,7 +94,7 @@ public class UserService {
             userRepository.deleteByEmail(email);
             msg = "User Record successfully deleted";
         }else {
-            msg = email + "NOT found";
+            msg = "User not found";
         }
         return msg;
     }

@@ -15,7 +15,7 @@ public class Notifications {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int notification_id;
 
-    @JsonBackReference
+    @JsonBackReference("notifications")
     @ManyToOne
     @JoinColumn(name = "fk_notifications_user")
     private User user_id;
