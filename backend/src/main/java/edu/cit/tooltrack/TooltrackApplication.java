@@ -15,7 +15,5 @@ public class TooltrackApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(TooltrackApplication.class, args);
-		// Debugging - Print an environment variable
-//		System.out.println("DB URL: " + System.getProperty("DB_URL"));
 	}
 }

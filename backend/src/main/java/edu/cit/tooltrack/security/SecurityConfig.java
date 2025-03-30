@@ -32,10 +32,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/googlelogin").permitAll()
-                        .requestMatchers("/addUser").permitAll()
-                        .requestMatchers("updateUser").permitAll()
-                        .requestMatchers("getAllUsers").permitAll()
-                        .requestMatchers("/deleteUser/{email}").permitAll()
+                        .requestMatchers("/swagger-ui/index.html#/").permitAll()
+                        .requestMatchers("/tool/*").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler((request, response, authentication) -> {
