@@ -88,12 +88,16 @@ public class UserService {
     //delete
     @SuppressWarnings({ "unused" })
     public String deleteUser(String email) {
+        System.out.println("email: " + email);
         String msg="";
+        User user = userRepository.findByEmail(email);
 
-        if(userRepository.findByEmail(email)!=null) {
-            userRepository.deleteByEmail(email);
+        if(user != null) {
+            userRepository.delete(user);
             msg = "User Record successfully deleted";
+            System.out.println(user);
         }else {
+            System.out.println(user);
             msg = "User not found";
         }
         return msg;

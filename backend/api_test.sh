@@ -23,7 +23,7 @@ create_user() {
     last_name=$3   # Third argument is assigned to LAST_NAME
     password_hash=$4
 
-	echo "Testing GET /addUser"
+	echo "Testing POST /addUser"
 
 	# Send POST request and capture the HTTP response and body
 	RESPONSE=$(curl -s -w "\nHTTP Status: %{http_code}\n" -X POST "$BASE_URL/addUser" \
@@ -38,7 +38,7 @@ create_user() {
    	echo "RESULT: $RESPONSE"
 	# Check for HTTP Status Codes and print relevant messages
         HTTP_CODE=$(echo "$RESPONSE" | tail -n 1 | awk '{print $3}')
-    
+
         if [ "$HTTP_CODE" -eq 201 ]; then
            echo "Success: User created."
         elif [ "$HTTP_CODE" -eq 400 ]; then
