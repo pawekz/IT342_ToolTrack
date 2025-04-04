@@ -1,4 +1,4 @@
-package edu.cit.tooltrack.Utils;
+package edu.cit.tooltrack.utils;
 
 
 import edu.cit.tooltrack.dto.S3DataDTO;
@@ -7,9 +7,6 @@ import edu.cit.tooltrack.entity.ToolItems;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;

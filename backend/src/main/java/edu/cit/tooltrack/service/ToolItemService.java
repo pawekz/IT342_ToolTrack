@@ -1,7 +1,6 @@
 package edu.cit.tooltrack.service;
 
-import edu.cit.tooltrack.Utils.ToolItemDataExtractor;
-import edu.cit.tooltrack.dto.S3DataDTO;
+import edu.cit.tooltrack.utils.ToolItemDataExtractor;
 import edu.cit.tooltrack.dto.UploadToolItemDTO;
 import edu.cit.tooltrack.entity.ToolCategory;
 import edu.cit.tooltrack.entity.ToolItems;
@@ -9,9 +8,6 @@ import edu.cit.tooltrack.repository.ToolCategoryRepository;
 import edu.cit.tooltrack.repository.ToolItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.Objects;
 
 
 
