@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -35,25 +36,18 @@ public class JwtService {
                 .compact();
     }
 
-    public static Claims validateToken(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(generateKeyFromBase64())
-                    .build().parseSignedClaims(token).getPayload();
-            return claims;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private static SecretKey generateKeyFromBase64() {
-        byte[] decode = Decoders.BASE64.decode(JwtService.SECRET_KEY);
-        return Keys.hmacShaKeyFor(decode);
+    public String extractUserName(String token) {
+        return extractClaims(token, Claims::getSubject);
     }
 
     private <T> T extractClaims(String token, Function<Claims,T> claimResolver) {
         Claims claims = extractClaims(token);
         return claimResolver.apply(claims);
+    }
+
+    private static SecretKey generateKeyFromBase64() {
+        byte[] decode = Decoders.BASE64.decode(JwtService.SECRET_KEY);
+        return Keys.hmacShaKeyFor(decode);
     }
 
     private Claims extractClaims(String token) {
@@ -63,6 +57,11 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String userName = extractUserName(token);
+        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
     private boolean isTokenExpired(String token) {

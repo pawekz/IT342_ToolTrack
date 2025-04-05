@@ -4,9 +4,15 @@ import edu.cit.tooltrack.dto.LoginRequest;
 import edu.cit.tooltrack.dto.UserResponseDTO;
 import edu.cit.tooltrack.entity.User;
 import edu.cit.tooltrack.repository.UserRepository;
+import edu.cit.tooltrack.security.jwt.CustomUserDetails;
 import edu.cit.tooltrack.security.jwt.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -42,29 +48,26 @@ public class UserService {
         return user != null;
     }
 
-    public Boolean isEmailValid(LoginRequest loginRequest){
+    public UserResponseDTO verifyUser(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail());
-        return Objects.equals(user.getEmail(), loginRequest.getEmail());
+        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+        return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
     }
 
-    public Boolean isPasswordValid(LoginRequest loginRequest){
-        User user = userRepository.findByEmail(loginRequest.getEmail());
-        return Objects.equals(user.getPassword_hash(), loginRequest.getPassword());
+    public UserResponseDTO register(User user) {
+        user.setIs_active(1);
+        user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
+        user.setRole(User.Role.user);
+
+        String encodedPassword = passwordEncoder.encode(user.getPassword_hash());
+        user.setPassword_hash(encodedPassword);
+        // Save the user to the database
+        User savedUser = userRepository.save(user);
+        return new UserResponseDTO(savedUser.getEmail(), savedUser.getRole() ,savedUser.getFirst_name(), savedUser.getLast_name());
     }
 
-    public UserResponseDTO verifyUser(LoginRequest loginRequest){
-        // Fetch user by email
-        User user = userRepository.findByEmail(loginRequest.getEmail());
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-        boolean passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash());
-        if (passwordMatches) {
-            return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
-        } else {
-            return null; // Invalid credentials
-        }
-    }
 
     public List<User> getAllUsers(){
         return userRepository.findAll();
@@ -90,12 +93,6 @@ public class UserService {
     public Boolean isGoogleSignedIn(OAuth2User oAuth2User){
         User user = userRepository.findByEmail(oAuth2User.getAttributes().get("email").toString());
         return user != null;
-    }
-
-    public User register(User user) {
-        user.setPassword_hash(passwordEncoder
-                .encode(user.getPassword_hash()));
-        return userRepository.save(user);
     }
 
     public UserResponseDTO addUser(User user){
@@ -141,5 +138,5 @@ public class UserService {
         }
         return msg;
     }
-
+    
 }

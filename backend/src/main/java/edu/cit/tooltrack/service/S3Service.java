@@ -2,12 +2,14 @@ package edu.cit.tooltrack.service;
 
 import edu.cit.tooltrack.dto.S3DataDTO;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -37,24 +39,30 @@ public class S3Service {
         }
     }
 
-    // Upload Image
-    public String uploadImage(S3DataDTO s3DataDTO) {
-            // Decode Base64 to byte array
-            byte[] imageBytes = decodeBase64(s3DataDTO.getImageBase64());
-            System.out.println(s3DataDTO.getImageName());
+    public String uploadFile(MultipartFile file) {
+        try {
+            String s3Key = BUCKET_KEY + file.getOriginalFilename();
 
-            // Create S3 PutObjectRequest
             PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(BUCKET_NAME)
-                    .key(BUCKET_KEY + s3DataDTO.getImageName())
-                    .contentType(getContentType(s3DataDTO.getImageName())) // Set content type
+                    .bucket(BUCKET_NAME) // Your bucket name
+                    .key(s3Key) // Unique file path (the key)
+                    .contentType(file.getContentType())
                     .build();
 
-            // Upload file to S3
-            s3.putObject(request, RequestBody.fromBytes(imageBytes));
+            // Step 3: Upload the file to S3
+            s3.putObject(request, RequestBody.fromBytes(file.getBytes()));
 
-            System.out.println("Image uploaded successfully: " + s3DataDTO.getImageName());
-            return s3DataDTO.getImageName(); // Return the S3 key (filename)
+            // Step 4: Get the Object URL using AWS SDK's S3Utilities
+            S3Utilities s3Utilities = s3.utilities();
+            String objectUrl = s3Utilities.getUrl(builder ->
+                    builder.bucket(BUCKET_NAME).key(s3Key)
+            ).toString();
+
+            return objectUrl;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while uploading the file to S3: " + e.getMessage(), e);
+        }
     }
 
     public String getImage(String s3Key) {
