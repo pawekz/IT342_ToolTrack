@@ -8,6 +8,9 @@ import edu.cit.tooltrack.repository.ToolCategoryRepository;
 import edu.cit.tooltrack.repository.ToolItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.tools.Tool;
 
 
 
@@ -26,37 +29,22 @@ public class ToolItemService {
     private ToolCategoryRepository toolCategoryRepository;
     @Autowired
     private S3Service s3Service;
-    @Autowired
-    private ToolItemDataExtractor toolItemDataExtractor;
 
-    public String addToolItem(UploadToolItemDTO toolItemDTO) {
-        //filter the data and extract
-        ToolCategory category =  toolCategoryRepository.findByName("Handtools");
-        ToolItems toolItem = new ToolItems();
-        toolItem.setName(toolItemDTO.getToolItem().getName());
-        toolItem.setSerial_number(toolItemDTO.getToolItem().getSerial_number());
-        toolItem.setQr_code(toolItemDTO.getToolItem().getQr_code());
-        toolItem.setLocation(toolItemDTO.getToolItem().getLocation());
-        toolItem.setDescription(toolItemDTO.getToolItem().getDescription());
-        toolItem.setDate_acquired(toolItemDTO.getToolItem().getDate_acquired());
+    public ToolItems addToolItem(UploadToolItemDTO toolItemDTO) {
         try {
-            this.toolItemDataExtractor.ExtractData(toolItemDTO);
-            s3Service.uploadImage(toolItemDataExtractor.getS3DataDTO());
-
-            if(toolItemDTO.getToolCategory() == "Handtools") {
-                toolItem.setCategory_id(toolCategoryRepository.findByName("Handtools"));
-                System.out.println("Handtools if done ");
-                toolItemRepository.save(toolItem);
-                System.out.println("Handtools! save");
-            }else{
-                toolItem.setCategory_id(toolCategoryRepository.findByName("PowerTools"));
-                toolItemRepository.save(toolItem);
-            }
-            System.out.println("File Upload Successfully");
-            return "File Upload Successfully";
+            toolItemDTO.getToolItem().setCategory_id(toolCategoryRepository.findByName(toolItemDTO.getToolCategory()));
+            return toolItemRepository.save(toolItemDTO.getToolItem());
         }catch (Exception error){
             System.out.println(error.getMessage());
-            return "File Upload Unsuccessfull";
+            return null;
+        }
+    }
+
+    public String uploadImage(MultipartFile file) {
+        try{
+            return s3Service.uploadFile(file);
+        }catch (Exception error){
+            return null;
         }
     }
 

@@ -59,7 +59,7 @@ public class UserService {
     public UserResponseDTO register(User user) {
         user.setIs_active(1);
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
-        user.setRole(User.Role.user);
+        user.setRole("staff");
 
         String encodedPassword = passwordEncoder.encode(user.getPassword_hash());
         user.setPassword_hash(encodedPassword);
@@ -84,7 +84,7 @@ public class UserService {
         user.setFirst_name(oAuth2User.getAttributes().get("given_name").toString());
         user.setLast_name(oAuth2User.getAttributes().get("family_name").toString());
         user.setEmail(oAuth2User.getAttributes().get("email").toString());
-        user.setRole(User.Role.user);
+        user.setRole("staff");
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
         userRepository.save(user);
         return new UserResponseDTO(user.getEmail(), user.getRole() ,user.getFirst_name(), user.getLast_name());

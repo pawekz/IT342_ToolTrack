@@ -19,7 +19,7 @@ public class CustomUserDetails implements UserDetails{
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("USER"));
+        return Collections.singleton(new SimpleGrantedAuthority("staff"));
     }
 
     @Override
@@ -40,7 +40,7 @@ public class CustomUserDetails implements UserDetails{
         return user.getLast_name();
     }
 
-    public User.Role getUserRole(){
+    public String getUserRole(){
         return user.getRole();
     }
 

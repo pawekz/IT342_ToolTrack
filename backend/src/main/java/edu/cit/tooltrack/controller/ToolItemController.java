@@ -1,7 +1,7 @@
 package edu.cit.tooltrack.controller;
 
-
 import edu.cit.tooltrack.dto.UploadToolItemDTO;
+import edu.cit.tooltrack.entity.ToolItems;
 import edu.cit.tooltrack.service.ToolItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,18 +11,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
-@CrossOrigin("")
 @RestController
-@RequestMapping("/test")
-public class DraftController {
-
+@RequestMapping("/toolitem")
+@CrossOrigin(origins = "http://localhost:5173")
+public class ToolItemController {
     @Autowired
-    private ToolItemService toolItemService;
-
-    @GetMapping("/test")
-    public String getDrafts(){
-        return "hello nitwitt";
-    }
+    ToolItemService toolItemService;
 
     @PostMapping("/uploadImage")
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
@@ -34,8 +28,14 @@ public class DraftController {
         }
     }
 
-    @GetMapping("/{imageName}")
-    public String getImageTool(@PathVariable String imageName){
-        return toolItemService.getToolImage(imageName);
+    @PostMapping("/addTool")
+    public ResponseEntity<?> addTool(@RequestBody UploadToolItemDTO toolItemDTO) {
+        ToolItems addedTool = toolItemService.addToolItem(toolItemDTO);
+        if (addedTool != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(addedTool);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item Addition Unsuccessful"));
+        }
     }
+
 }

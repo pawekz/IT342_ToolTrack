@@ -39,7 +39,7 @@ public class S3Service {
         }
     }
 
-    public String uploadFile(MultipartFile file) {
+    public String uploadFile(MultipartFile file){
         try {
             String s3Key = BUCKET_KEY + file.getOriginalFilename();
 
@@ -59,8 +59,8 @@ public class S3Service {
             ).toString();
 
             return objectUrl;
-
         } catch (Exception e) {
+            System.out.println("Error occurred while uploading the file to S3:");
             throw new RuntimeException("Error occurred while uploading the file to S3: " + e.getMessage(), e);
         }
     }

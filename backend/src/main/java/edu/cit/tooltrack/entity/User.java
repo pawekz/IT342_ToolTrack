@@ -34,14 +34,14 @@ public class User {
     private String email;
     private String password_hash;
     private Boolean isGoogle;
-    private Role role;
+    private String role;
     private String image_url;
     private int is_active;
     private Timestamp created_at;
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 
-    public enum Role {
-        admin, staff, user
-    }
+//    public enum Role {
+//        admin, staff
+//    }
 
 }

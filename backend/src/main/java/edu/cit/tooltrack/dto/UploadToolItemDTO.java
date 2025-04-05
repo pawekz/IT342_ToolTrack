@@ -14,6 +14,4 @@ public class UploadToolItemDTO {
     @Autowired
     private ToolItems toolItem;
     private String toolCategory;
-    private String imageBase64;
-    private String originalFileName;
 }

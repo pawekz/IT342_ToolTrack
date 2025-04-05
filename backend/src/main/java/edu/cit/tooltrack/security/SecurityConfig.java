@@ -57,38 +57,39 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/googlelogin").permitAll()
                         .requestMatchers("/swagger-ui/index.html#/").permitAll()
-                        .requestMatchers("/tool/*").permitAll()
+                        .requestMatchers("/test/*").permitAll()
                         .requestMatchers("/register", "/login").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler((request, response, authentication) -> {
-                            // Extract details from the authenticated user
-                            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-
-                            if(userService.isGoogleSignedIn(oauth2User)) {
-                                user = userService.getUserData(oauth2User.getAttributes().get("email").toString());
-                            }
-                            else{
-                                user = userService.addGoogleUser(oauth2User);
-                            }
-                            System.out.println(user.getFirst_name());
-                            // Generate a JWT for the authenticated user
-                            String jwtToken = JwtService.generateToken(user);
-                            List<SimpleGrantedAuthority> authorities = Collections.singletonList(
-                                    new SimpleGrantedAuthority(user.getRole().toString()) // Example: "ROLE_USER" or "ROLE_ADMIN"
-                            );
-
-                            UsernamePasswordAuthenticationToken authenticationToken =
-                                    new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
-                            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                            response.sendRedirect("http://localhost:5173/oauth-success?token=" + jwtToken);
-                        }))
+//                .oauth2Login(oauth2 -> oauth2
+//                        .successHandler((request, response, authentication) -> {
+//                            // Extract details from the authenticated user
+//                            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+//
+//                            if(userService.isGoogleSignedIn(oauth2User)) {
+//                                user = userService.getUserData(oauth2User.getAttributes().get("email").toString());
+//                            }
+//                            else{
+//                                user = userService.addGoogleUser(oauth2User);
+//                            }
+//                            System.out.println(user.getFirst_name());
+//                            // Generate a JWT for the authenticated user
+//                            String jwtToken = JwtService.generateToken(user);
+//                            List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+//                                    new SimpleGrantedAuthority(user.getRole().toString()) // Example: "ROLE_USER" or "ROLE_ADMIN"
+//                            );
+//
+//                            UsernamePasswordAuthenticationToken authenticationToken =
+//                                    new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
+//                            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+//                            response.sendRedirect("http://localhost:5173/oauth-success?token=" + jwtToken);
+//                        }))
                 .build();
     }
 

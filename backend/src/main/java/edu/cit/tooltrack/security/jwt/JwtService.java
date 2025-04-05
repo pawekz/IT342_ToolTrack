@@ -45,6 +45,10 @@ public class JwtService {
         return claimResolver.apply(claims);
     }
 
+    public String extractRole(String token) {
+        return extractClaims(token, claims -> claims.get("role", String.class));
+    }
+
     private static SecretKey generateKeyFromBase64() {
         byte[] decode = Decoders.BASE64.decode(JwtService.SECRET_KEY);
         return Keys.hmacShaKeyFor(decode);
