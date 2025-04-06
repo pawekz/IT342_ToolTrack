@@ -28,6 +28,11 @@ public class ToolItemController {
         }
     }
 
+    @GetMapping("/{imageName}")
+    public String getImageTool(@PathVariable String imageName){
+        return toolItemService.getToolImage(imageName);
+    }
+
     @PostMapping("/addTool")
     public ResponseEntity<?> addTool(@RequestBody UploadToolItemDTO toolItemDTO) {
         ToolItems addedTool = toolItemService.addToolItem(toolItemDTO);
