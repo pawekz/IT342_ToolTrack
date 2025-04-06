@@ -22,7 +22,7 @@ import java.util.Base64;
 public class S3Service {
 
     private final String BUCKET_NAME = "academics-bucket"; // Change this
-    private final String BUCKET_KEY = "System-Integ/Tool_Images/";
+    private final String BUCKET_KEY = "System-Integ/";
     private S3Client s3;
 
     private S3Service() {
@@ -39,9 +39,9 @@ public class S3Service {
         }
     }
 
-    public String uploadFile(MultipartFile file){
+    public String uploadFile(MultipartFile file, String FolderPath){
         try {
-            String s3Key = BUCKET_KEY + file.getOriginalFilename();
+            String s3Key = BUCKET_KEY + FolderPath + file.getOriginalFilename();
 
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(BUCKET_NAME) // Your bucket name

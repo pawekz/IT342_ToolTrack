@@ -42,7 +42,7 @@ public class ToolItemService {
 
     public String uploadImage(MultipartFile file) {
         try{
-            return s3Service.uploadFile(file);
+            return s3Service.uploadFile(file, "Tool_Images/");
         }catch (Exception error){
             return null;
         }
