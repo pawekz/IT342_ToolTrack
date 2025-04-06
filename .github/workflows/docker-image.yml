@@ -36,5 +36,4 @@ jobs:
         context: ./backend
         file: ./backend/Dockerfile.backend
         push: true
-        tags: your-dockerhub-username/tooltrack-backend:latest
-      
+        tags: ${{ secrets.DOCKER_USERNAME }}/tooltrack-backend:latest
