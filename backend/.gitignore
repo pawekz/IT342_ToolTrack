@@ -7,7 +7,7 @@ target/
 
 ### environments ###
 .env
-dockerfile
+### Dockerfile (temporary)
 docker-compose.yml
 
 ### STS ###
