@@ -4,6 +4,8 @@ package edu.cit.tooltrack.controller;
 import edu.cit.tooltrack.dto.LoginRequest;
 import edu.cit.tooltrack.dto.UserResponseDTO;
 import edu.cit.tooltrack.entity.User;
+import edu.cit.tooltrack.security.jwt.CustomUserDetails;
+import edu.cit.tooltrack.security.jwt.JwtService;
 import edu.cit.tooltrack.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,13 +14,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "User Authentication API", description = "Endpoints for user authentication")
@@ -26,6 +34,7 @@ import java.util.Map;
 @RestController
 public class UserAuthController {
 
+    @Autowired
     private UserService userService;
 
     private Map<String, Object> data;
@@ -45,18 +54,32 @@ public class UserAuthController {
     }
 
 
-//    @Operation(summary = "google api test", description = "this test the google api works")
-//    @GetMapping("/user-info")
-//    public Map<String, Object> getUser (@AuthenticationPrincipal OAuth2User principal){
-//        data = principal.getAttributes();
-//        return principal.getAttributes();
-//    }
-//    @PostMapping
-//    public UserResponseDTO login(@RequestBody LoginRequest loginRequest){
-//        if(userService.isUserExist(loginRequest.getEmail()));
-//
-//        return userService.getUserData(loginRequest.getEmail());
-//    }
+    @Operation(summary = "gets the user data thats from google api and returns token",
+            description = "after the user gets authenticated by google, to get his token after login in to google it must send a requet to this endpoint to fetch the token")
+    @GetMapping("/user-info")
+    public String getUser(@AuthenticationPrincipal OAuth2User principal){
+
+        if (principal == null) {
+            return "Error: User is not authenticated, principal is null";
+        }
+        UserResponseDTO user;
+
+        if(userService.isGoogleSignedIn(principal)) {
+            user = userService.getUserData(principal.getAttributes().get("email").toString());
+            System.out.println(user.getEmail());
+        }
+        else{
+            user = userService.addGoogleUser(principal);
+        }
+
+        // Add user to the SecurityContext
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(user, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+//        return JwtService.generateToken(user);
+        return "Name: " + user.getFirst_name() + " " + user.getLast_name() + " and Email: " + user.getEmail();
+    }
 
     @Operation(
             summary = "Normal login",
@@ -78,13 +101,22 @@ public class UserAuthController {
     public ResponseEntity<?> login(
             @RequestBody LoginRequest loginRequest) {
         // Check if user exists
-        if(userService.isEmailValid(loginRequest) && userService.isPasswordValid(loginRequest)) {
-            // Retrieve user data and return it in the response
-            UserResponseDTO userResponse = userService.getUserData(loginRequest.getEmail());
-            return ResponseEntity.ok(userResponse);
+        try {
+            UserResponseDTO userDetails = userService.verifyUser(loginRequest);
+            return ResponseEntity.ok().body(JwtService.generateToken(userDetails));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Credentials"));
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Incorrect Credentials"));
+    }
 
-
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody User user) {
+        try {
+            UserResponseDTO userResponse = userService.register(user);
+            String token = JwtService.generateToken(userResponse);
+            return ResponseEntity.status(HttpStatus.CREATED).body(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + e.getMessage());
+        }
     }
 }

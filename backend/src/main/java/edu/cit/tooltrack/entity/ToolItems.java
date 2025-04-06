@@ -49,7 +49,6 @@ public class ToolItems {
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 
 
-
     @PrePersist //before it save to db this will run first to ensue the variables will not be empty
     protected void onCreate() {
         this.created_at = Timestamp.valueOf(LocalDateTime.now());

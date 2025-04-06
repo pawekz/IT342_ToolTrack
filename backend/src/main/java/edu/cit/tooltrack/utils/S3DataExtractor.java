@@ -1,4 +1,4 @@
-package edu.cit.tooltrack.Utils;
+package edu.cit.tooltrack.utils;
 
 
 import org.springframework.stereotype.Component;
