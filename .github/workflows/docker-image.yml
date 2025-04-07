@@ -3,8 +3,6 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
-  #pull_request: disabled, assume that it is working
-    #branches: [ "main" ]
 
 jobs:
 
@@ -12,11 +10,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    #steps:
-    #- uses: actions/checkout@v4
-    #- name: Build the Docker image
-      #run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -38,7 +31,6 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USER }}/tooltrack-backend:latest
 
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -51,9 +43,9 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Automatic Tagging of Releases
-    id: increment-git-tag
-    run: |
-      bash ./build/git_update.sh -v major
+      id: increment-git-tag
+      run: |
+        bash ./git_update.sh -v major
 
     - name: Build, Tag, and Push the Image to Amazon ECR
       id: build-image
