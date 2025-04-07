@@ -34,6 +34,6 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./backend
-        file: ./backend/Dockerfile.backend
+        file: ./backend/DockerfileBackend
         push: true
         tags: ${{ secrets.DOCKER_USER }}/tooltrack-backend:latest
