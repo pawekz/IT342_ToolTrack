@@ -27,7 +27,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./backend
-        file: ./backend/DockerfileBackend
+        file: ./backend/Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_USER }}/tooltrack-backend:latest
 
@@ -52,3 +52,4 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
