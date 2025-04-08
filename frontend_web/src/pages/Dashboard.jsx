@@ -1,33 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
+  // Uncomment this when authentication is in place
+  /*
   useEffect(() => {
-    // Fetch stored user session
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      navigate("/login"); // Redirect to login if not authenticated
+      navigate("/login");
     }
   }, [navigate]);
+  */
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold">Welcome, {user?.name}!</h1>
-      <p className="text-gray-600">You are now logged in.</p>
-      <button
-        onClick={() => {
-          localStorage.removeItem("user");
-          navigate("/login");
-        }}
-        className="mt-5 px-4 py-2 bg-red-500 text-white rounded-lg"
-      >
-        Logout
-      </button>
+    <div className="min-h-screen flex bg-gray-100">
+      <Sidebar />
+      <div className="flex-1 p-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+          <div className="bg-white rounded-xl p-6 shadow">
+            <h3 className="text-sm font-medium text-gray-600">Total Users</h3>
+            <p className="text-3xl font-bold mt-2">10 <span className="text-green-500 text-sm">↑</span></p>
+            <p className="text-sm text-gray-500">Increase compared to last week</p>
+            <a href="#" className="text-sm text-teal-500 mt-2 inline-block">User Report →</a>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow">
+            <h3 className="text-sm font-medium text-gray-600">Total Number of Tools</h3>
+            <p className="text-3xl font-bold mt-2">56</p>
+            <a href="#" className="text-sm text-teal-500 mt-4 inline-block">All Tools →</a>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow">
+            <h3 className="text-sm font-medium text-gray-600">Number of Tools borrowed</h3>
+            <p className="text-3xl font-bold mt-2">27</p>
+            <a href="#" className="text-sm text-teal-500 mt-4 inline-block">All Tools →</a>
+          </div>
+        </div>
+
+        {/* Graph Container (Empty for now) */}
+        <div className="bg-white rounded-xl p-6 shadow h-[300px]">
+          <h3 className="text-sm font-medium text-gray-600 mb-2">Average Borrowing</h3>
+        </div>
+      </div>
     </div>
   );
 };
