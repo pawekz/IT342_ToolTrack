@@ -18,4 +18,4 @@ ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/wait-for-it.sh", "db:3306", "-t", "15", "--", "java", "-jar", "app.jar"]
