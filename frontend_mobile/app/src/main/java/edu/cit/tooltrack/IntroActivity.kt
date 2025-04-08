@@ -1,6 +1,8 @@
 package edu.cit.tooltrack
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,32 +30,46 @@ import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-
+import androidx.core.content.edit
 
 
 class IntroActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
 
-        setContent {
-            ToolTrackTheme {
-                introScreen(
-                    onDoneClick = {
-                        // Navigate to LoginActivity when intro is complete
-                        startActivity(Intent(this, LoginActivity::class.java))
-                        finish()
+    val sharedPreferences: SharedPreferences = getSharedPreferences("ToolTrackPrefs", Context.MODE_PRIVATE)
+    val hasSeenIntro = sharedPreferences.getBoolean("hasSeenIntro", false)
+
+    if (hasSeenIntro) {
+        // If the user has already seen the intro, navigate to LoginActivity
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+        return
+    }
+    setContent {
+        ToolTrackTheme {
+            IntroScreen(
+                onDoneClick = {
+                    // Save the preference when the intro is completed
+                    sharedPreferences.edit {
+                        putBoolean("hasSeenIntro", true)
                     }
-                )
-            }
+
+                    // Navigate to LoginActivity
+                    startActivity(Intent(this, LoginActivity::class.java))
+                    finish()
+                }
+            )
         }
     }
 }
 
+
 @Preview
 @PreviewParameter(IntroSlidePreviewProvider::class)
 @Composable
-fun introScreen(onDoneClick: () -> Unit = {}) {
+fun IntroScreen(onDoneClick: () -> Unit = {}) {
     val pagerState = rememberPagerState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -104,7 +120,7 @@ fun introScreen(onDoneClick: () -> Unit = {}) {
                     Box(
                         modifier = Modifier
                             .size(240.dp)
-                            .background(Color(0xFFFFFF)),
+                            .background(Color(0xFFFFFFFF)),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -215,4 +231,5 @@ class IntroSlidePreviewProvider : PreviewParameterProvider<IntroSlide> {
             imageRes = R.drawable.tooltrack_slide_1
         )
     )
+}
 }
