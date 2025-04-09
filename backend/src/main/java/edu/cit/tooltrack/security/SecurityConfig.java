@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/googlelogin").permitAll()
-                        .requestMatchers("/swagger-ui/index.html#/").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/test/*").permitAll()
                         .requestMatchers("/register", "/login").permitAll()
                         .anyRequest().authenticated())
