@@ -28,37 +28,11 @@ public class DraftController {
         return "hello nitwitt";
     }
 
-//    //upload the tool image
-    @PostMapping("/uploadImage")
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-        String imageUrl = qrcodeService.uploadImage(file);
-        if(imageUrl != null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("imageUrl", imageUrl));
-        }else{
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "File Upload Unsuccessfull"));
-        }
-    }
 
-//    @GetMapping("/{imageName}")
+    //    @GetMapping("/{imageName}")
 //    public String getImageTool(@PathVariable String imageName){
 //        return toolItemService.getToolImage(imageName);
 //    }
 
-    //generate a qr image
-    //return: image format
-    @PostMapping("/qrcode/{toolId}")
-    public ResponseEntity<byte[]> createQRAsMultipart(@PathVariable("toolId") String toolId) {
-        try {
-            byte[] qrCodeData = qrcodeService.createQR("tool_id: " + toolId);
-            // Set headers for multipart response (e.g., Content-Disposition)
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + toolId + "_qrcode.png");
-            headers.add(HttpHeaders.CONTENT_TYPE, "image/png");
-            return new ResponseEntity<>(qrCodeData, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-        }
-    }
 
 }
