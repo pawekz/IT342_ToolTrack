@@ -28,26 +28,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    /*
-    @Operation(
-            summary = "Normal login",
-            description = "Authenticates a user using email and password. If credentials are valid, returns user data; otherwise, returns an error message.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "User login request containing email and password",
-                    required = true
-            ),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Successful login, returns user data",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = UserResponseDTO.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid credentials",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(example = "{ \"error\": \"Incorrect Credentials\" }")))
-            }
-    )
-     */
-
-
     @Operation(
             summary = "Retrieve all users",
             description = "Fetches a list of all registered users.")

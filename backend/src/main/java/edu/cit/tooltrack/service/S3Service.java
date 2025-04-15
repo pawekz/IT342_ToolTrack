@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.File;
 import java.util.Base64;
 
 
@@ -39,18 +40,18 @@ public class S3Service {
         }
     }
 
-    public String uploadFile(MultipartFile file, String FolderPath){
+    public String upload(File file, String FolderPath, String fileName) {
         try {
-            String s3Key = BUCKET_KEY + FolderPath + file.getOriginalFilename();
+            String s3Key = BUCKET_KEY + FolderPath + java.util.UUID.randomUUID() + "_" + fileName;
 
             PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(BUCKET_NAME) // Your bucket name
-                    .key(s3Key) // Unique file path (the key)
-                    .contentType(file.getContentType())
+                    .bucket(BUCKET_NAME)
+                    .key(s3Key)
+                    .contentType(getContentType(fileName))
                     .build();
 
             // Step 3: Upload the file to S3
-            s3.putObject(request, RequestBody.fromBytes(file.getBytes()));
+            s3.putObject(request, RequestBody.fromFile(file));
 
             // Step 4: Get the Object URL using AWS SDK's S3Utilities
             S3Utilities s3Utilities = s3.utilities();
@@ -60,7 +61,7 @@ public class S3Service {
 
             return objectUrl;
         } catch (Exception e) {
-            System.out.println("Error occurred while uploading the file to S3:");
+            System.out.println("Error occurred while uploading the file to S3: " + e.getMessage());
             throw new RuntimeException("Error occurred while uploading the file to S3: " + e.getMessage(), e);
         }
     }
