@@ -44,4 +44,6 @@ public class QRController {
         }
     }
 
+    //get QR Image
+
 }

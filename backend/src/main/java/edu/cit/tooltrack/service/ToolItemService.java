@@ -8,6 +8,7 @@ import edu.cit.tooltrack.repository.ToolCategoryRepository;
 import edu.cit.tooltrack.repository.ToolItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.tools.Tool;
@@ -29,22 +30,29 @@ public class ToolItemService {
     private ToolCategoryRepository toolCategoryRepository;
     @Autowired
     private S3Service s3Service;
+    @Autowired
+    private ImageChunkUploader imageChunkUploader;
 
     public ToolItems addToolItem(UploadToolItemDTO toolItemDTO) {
         try {
             toolItemDTO.getToolItem().setCategory_id(toolCategoryRepository.findByName(toolItemDTO.getToolCategory()));
-            return toolItemRepository.save(toolItemDTO.getToolItem());
+            toolItemRepository.save(toolItemDTO.getToolItem());
+            return toolItemRepository.findLatestToolItem();
         }catch (Exception error){
             System.out.println(error.getMessage());
             return null;
         }
     }
 
-    public String uploadImage(MultipartFile file) {
-        try{
-            return s3Service.uploadFile(file, "Tool_Images/");
-        }catch (Exception error){
-            return null;
+    public String uploadImage(MultipartFile file,
+                              String fileName,
+                              int chunkIndex,
+                              int totalChunks) {
+        try {
+            return imageChunkUploader.uploadChunk(file, fileName, chunkIndex, totalChunks);
+        } catch (Exception error) {
+            error.printStackTrace();
+            return "An error occurred while uploading the image.";
         }
     }
 

@@ -29,37 +29,50 @@ public class ToolItemController {
             description = "Accepts an image file and uploads it to the server. Returns the URL of the uploaded image if successful.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Multipart file containing the image to upload",
-                    required = true,
-                    content = @Content(
-                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(type = "object",
-                                    properties = {
-                                            @SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary"))
-                                    }
-                            )
+                    required = true
+//                    content = @Content(
+//                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+//                            schema = @Schema(type = "object",
+//                                    properties = {
+//                                            @SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary"))
+//                                    }
+//                            )
+//                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Image uploaded successfully",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "File upload unsuccessful",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
                     )
-            )
+            }
     )
-    @PostMapping("/uploadImage")
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-        String imageUrl = toolItemService.uploadImage(file);
-        if (imageUrl != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("imageUrl", imageUrl));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "File Upload Unsuccessful"));
-        }
-    }
+//    @PostMapping("/uploadImage")
+//    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+//        String imageUrl = toolItemService.uploadImage(file);
+//        if (imageUrl != null) {
+//            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("imageUrl", imageUrl));
+//        } else {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "File Upload Unsuccessful"));
+//        }
+//    }
 
     @GetMapping("/getImage/{imageName}")
     public String getImageTool(@PathVariable String imageName){
         return toolItemService.getToolImage(imageName);
     }
 
+
     @PostMapping("/addTool")
     public ResponseEntity<?> addTool(@RequestBody UploadToolItemDTO toolItemDTO) {
-        ToolItems addedTool = toolItemService.addToolItem(toolItemDTO);
-        if (addedTool != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(addedTool);
+        ToolItems latestToolId = toolItemService.addToolItem(toolItemDTO);
+        if (latestToolId != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("toolId", latestToolId.getTool_id()));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item Addition Unsuccessful"));
         }
