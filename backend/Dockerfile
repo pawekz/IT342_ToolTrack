@@ -20,6 +20,7 @@ ENV SPRING_PROFILES_ACTIVE=prod
 
 # Expose port
 EXPOSE 8080
+ENV WEBSITES_PORT=8080
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
