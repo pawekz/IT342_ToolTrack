@@ -8,4 +8,9 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  preview: {
+    host: '0.0.0.0',
+    port: 4173,
+    allowedHosts: ['tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net']
+  }
 })
