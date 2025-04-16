@@ -61,7 +61,7 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            az container create --resource-group tooltrack --name tooltrack-frontend --image tooltrack.azurecr.io/tooltrack-frontend:latest --dns-name-label tooltrack-frontend --ports 3000 --registry-username ${{ secrets.ACR_USERNAME }} --registry-password ${{ secrets.ACR_PASSWORD }} --environment-variables NODE_ENV=production NODE_OPTIONS="--max-old-space-size=4096" --os-type Linux --cpu 1 --memory 1
+            az container create --resource-group tooltrack --name tooltrack-frontend --image tooltrack.azurecr.io/tooltrack-frontend:latest --dns-name-label tooltrack-frontend --ports 3000 --registry-username ${{ secrets.ACR_USERNAME }} --registry-password ${{ secrets.ACR_PASSWORD }} --environment-variables NODE_ENV=production NODE_OPTIONS="--max-old-space-size=4096" PORT=80 --os-type Linux --cpu 1 --memory 1 
 
       - name: Get Frontend URL
         id: get-url
