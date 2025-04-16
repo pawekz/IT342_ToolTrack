@@ -4,8 +4,6 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Copy SSL Certificate
-COPY DigiCertGlobalRootCA.crt.pem ./DigiCertGlobalRootCA.crt.pem
 
 # Run stage
 FROM eclipse-temurin:21-jre-alpine
@@ -13,6 +11,9 @@ WORKDIR /app
 
 # Copy JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
+
+# Copy SSL Certificate
+COPY DigiCertGlobalRootCA.crt.pem /app/DigiCertGlobalRootCA.crt.pem
 
 # Set environment variables
 ENV SPRING_PROFILES_ACTIVE=prod
