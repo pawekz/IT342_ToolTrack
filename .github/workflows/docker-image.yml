@@ -55,13 +55,13 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            az container create --resource-group tooltrack --name tooltrack-backend --image tooltrack.azurecr.io/tooltrack-backend:latest --dns-name-label tooltrack-backend --ports 8080 --registry-username ${{ secrets.ACR_USERNAME }} --registry-password ${{ secrets.ACR_PASSWORD }} --environment-variables SPRING_PROFILES_ACTIVE=prod
+            az container create --resource-group tooltrack --name tooltrack-backend --image tooltrack.azurecr.io/tooltrack-backend:latest --dns-name-label tooltrack-backend --ports 8080 --registry-username ${{ secrets.ACR_USERNAME }} --registry-password ${{ secrets.ACR_PASSWORD }} --environment-variables SPRING_PROFILES_ACTIVE=prod --os-type Linux
 
       - name: Deploy Frontend Container
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            az container create --resource-group tooltrack --name tooltrack-frontend --image tooltrack.azurecr.io/tooltrack-frontend:latest --dns-name-label tooltrack-frontend --ports 3000 --registry-username ${{ secrets.ACR_USERNAME }} --registry-password ${{ secrets.ACR_PASSWORD }} --environment-variables NODE_ENV=production NODE_OPTIONS="--max-old-space-size=4096"
+            az container create --resource-group tooltrack --name tooltrack-frontend --image tooltrack.azurecr.io/tooltrack-frontend:latest --dns-name-label tooltrack-frontend --ports 3000 --registry-username ${{ secrets.ACR_USERNAME }} --registry-password ${{ secrets.ACR_PASSWORD }} --environment-variables NODE_ENV=production NODE_OPTIONS="--max-old-space-size=4096" --os-type Linux
 
       - name: Get Frontend URL
         id: get-url
