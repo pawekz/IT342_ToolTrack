@@ -80,6 +80,32 @@ jobs:
             # Restart the web app to apply changes
             az webapp restart --name tooltrack-frontend --resource-group tooltrack
 
+      - name: Deploy Backend to Web App
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            # Configure Web App to use Docker container
+            az webapp config container set --name tooltrack-backend --resource-group tooltrack \
+              --container-image-name tooltrack.azurecr.io/tooltrack-backend:latest \
+              --container-registry-url https://tooltrack.azurecr.io \
+              --container-registry-user ${{ secrets.ACR_USERNAME }} \
+              --container-registry-password ${{ secrets.ACR_PASSWORD }}
+            
+            # Configure continuous deployment
+            az webapp deployment container config --name tooltrack-backend --resource-group tooltrack --enable-cd true
+            
+            # Set database and OAuth environment variables
+            az webapp config appsettings set --name tooltrack-backend --resource-group tooltrack --settings \
+              MYSQL_DATABASE="tooltrack" \
+              MYSQL_USERNAME="yourusername@tooltracksqlserver" \
+              MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
+              GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+              GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+              WEBSITES_PORT=8080
+            
+            # Restart the web app to apply changes
+            az webapp restart --name tooltrack-backend --resource-group tooltrack      
+
       - name: Get Backend URL
         id: get-backend-url
         uses: azure/CLI@v1

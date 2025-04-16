@@ -4,6 +4,9 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
+# Copy SSL Certificate
+COPY DigiCertGlobalRootCA.crt.pem ./DigiCertGlobalRootCA.crt.pem
+
 # Run stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
