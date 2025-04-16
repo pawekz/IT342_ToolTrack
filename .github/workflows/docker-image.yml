@@ -63,20 +63,20 @@ jobs:
           inlineScript: |
             # Configure Web App to use Docker container
             az webapp config container set --name tooltrack-frontend --resource-group tooltrack \
-              --docker-custom-image-name tooltrack.azurecr.io/tooltrack-frontend:latest \
-              --docker-registry-server-url https://tooltrack.azurecr.io \
-              --docker-registry-server-user ${{ secrets.ACR_USERNAME }} \
-              --docker-registry-server-password ${{ secrets.ACR_PASSWORD }}
-            
+              --container-image-name tooltrack.azurecr.io/tooltrack-frontend:latest \
+              --container-registry-url https://tooltrack.azurecr.io \
+              --container-registry-user ${{ secrets.ACR_USERNAME }} \
+              --container-registry-password ${{ secrets.ACR_PASSWORD }}
+
             # Configure continuous deployment
             az webapp deployment container config --name tooltrack-frontend --resource-group tooltrack --enable-cd true
-            
+
             # Set app settings for proper port binding
             az webapp config appsettings set --name tooltrack-frontend --resource-group tooltrack --settings WEBSITES_PORT=4173
-            
+
             # Set startup command to ensure Vite binds to all network interfaces
-            az webapp config set --name tooltrack-frontend --resource-group tooltrack --startup-command "npm run preview -- --host 0.0.0.0"
-            
+            az webapp config set --name tooltrack-frontend --resource-group tooltrack --startup-file "npm run preview -- --host 0.0.0.0"
+
             # Restart the web app to apply changes
             az webapp restart --name tooltrack-frontend --resource-group tooltrack
 
