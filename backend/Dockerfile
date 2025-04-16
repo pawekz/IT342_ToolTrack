@@ -15,6 +15,9 @@ COPY --from=build /app/target/*.jar app.jar
 # Copy SSL Certificate
 COPY DigiCertGlobalRootCA.crt.pem /app/DigiCertGlobalRootCA.crt.pem
 
+# Create a symlink for backward compatibility
+RUN ln -s /app/DigiCertGlobalRootCA.crt.pem ./DigiCertGlobalRootCA.crt.pem
+
 # Set environment variables
 ENV SPRING_PROFILES_ACTIVE=prod
 
