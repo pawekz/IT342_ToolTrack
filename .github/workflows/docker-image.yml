@@ -82,7 +82,7 @@ jobs:
       with:
         inlineScript: |
           FQDN=$(az container show --resource-group tooltrack --name tooltrack-frontend --query ipAddress.fqdn -o tsv)
-          echo "::set-output name=frontend_url::http://$FQDN:3000"
+          echo "frontend_url=http://$FQDN:3000" >> $GITHUB_OUTPUT
 
     - name: Output Frontend URL
       run: echo "Frontend is now accessible at ${{ steps.get-url.outputs.frontend_url }}"
