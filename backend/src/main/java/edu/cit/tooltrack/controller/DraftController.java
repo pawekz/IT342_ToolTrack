@@ -46,6 +46,10 @@ public class DraftController {
                     .body(Map.of("message", "An error occurred: " + e.getMessage()));
         }
     }
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("OK");
+    }
 
     // Chunked upload method
     @PostMapping("/uploadChunk")
