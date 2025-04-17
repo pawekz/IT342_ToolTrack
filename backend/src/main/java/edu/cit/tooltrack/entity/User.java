@@ -19,14 +19,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int user_id;
 
-    @JsonManagedReference("toolTransaction_userid")
+    @JsonManagedReference("toolTransaction")
     @OneToMany(mappedBy = "user_id")
-    private List<ToolTransaction> toolTransaction_userid;
+    private List<ToolTransaction> transactions;
 
     @JsonManagedReference("notifications")
     @OneToMany(mappedBy = "user_id")
     private List<Notifications> notifications;
 
+    @JsonManagedReference("returnTransaction")
+    @OneToMany(mappedBy = "user_id")
+    private List<ReturnTransaction> returnTransaction_image;
 
     private BigInteger employee_id;
     private String first_name;

@@ -1,5 +1,6 @@
 package edu.cit.tooltrack.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,9 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -27,39 +26,35 @@ public class ImageChunkUploader {
     private static final String UPLOAD_DIR = "backend/uploads/"; // Directory to store uploaded files
     private static final ConcurrentHashMap<String, Long> uploadedSizes = new ConcurrentHashMap<>();
 
-
-    public String uploadChunk(MultipartFile file, String fileName, int chunkIndex, int totalChunks) {
+    public String uploadChunk(String name, long size, int currentChunkIndex, int totalChunks, HttpServletRequest request) throws IOException {
         File uploadDir = new File(UPLOAD_DIR);
-        if (!uploadDir.exists() && !uploadDir.mkdirs()) {
-            throw new RuntimeException("Failed to create upload directory");
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
         }
 
-        try {
-            Path filePath = Path.of(UPLOAD_DIR, fileName);
+        File outputFile = new File(uploadDir, name);
 
-            try (OutputStream outputStream = Files.newOutputStream(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-                outputStream.write(file.getBytes());
+        try (InputStream inputStream = request.getInputStream();
+            FileOutputStream fos = new FileOutputStream(outputFile, true)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
             }
-
-            uploadedSizes.merge(fileName, (long) file.getSize(), Long::sum);
-
-            //TRUE if last chucked is sent
-            if (chunkIndex == totalChunks - 1) {
-                long fileSize = Files.size(filePath);
-                if (!uploadedSizes.get(fileName).equals(fileSize)) {
-                    throw new RuntimeException("File reconstruction failed due to size mismatch");
-                }
-                String image_url = s3Service.upload(filePath.toFile(), "Tool_Images/", fileName);
-                uploadedSizes.remove(fileName);
-                return image_url;
-            }
-
-            return "Chunk " + chunkIndex + " uploaded successfully";
-
-        } catch (IOException e) {
-            throw new RuntimeException("An error occurred while uploading chunk: " + e.getMessage(), e);
         }
+
+        if (currentChunkIndex == totalChunks - 1) {
+            // Final chunk received, upload to S3 and delete local file
+            String imageUrl = s3Service.upload(outputFile,"Tool_Images/" , name);
+            // Clean up local file after upload
+//            outputFile.delete();
+
+            return imageUrl;
+        }
+
+        return null; // Waiting for more chunks
     }
+
 
     // Method to abort the file upload and clean up resources
     public String abortUpload(String fileName) {

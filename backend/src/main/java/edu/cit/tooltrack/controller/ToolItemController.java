@@ -2,6 +2,7 @@ package edu.cit.tooltrack.controller;
 
 import edu.cit.tooltrack.dto.UploadToolItemDTO;
 import edu.cit.tooltrack.entity.ToolItems;
+import edu.cit.tooltrack.service.ImageChunkUploader;
 import edu.cit.tooltrack.service.ToolItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,45 +23,26 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ToolItemController {
     @Autowired
-    ToolItemService toolItemService;
+    private ToolItemService toolItemService;
+    @Autowired
+    private ImageChunkUploader imageChunkUploader;
 
-    @Operation(
-            summary = "Upload an image",
-            description = "Accepts an image file and uploads it to the server. Returns the URL of the uploaded image if successful.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Multipart file containing the image to upload",
-                    required = true
-//                    content = @Content(
-//                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-//                            schema = @Schema(type = "object",
-//                                    properties = {
-//                                            @SchemaProperty(name = "file", schema = @Schema(type = "string", format = "binary"))
-//                                    }
-//                            )
-//                    )
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            description = "Image uploaded successfully",
-                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "File upload unsuccessful",
-                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
-                    )
-            }
-    )
-//    @PostMapping("/uploadImage")
-//    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-//        String imageUrl = toolItemService.uploadImage(file);
+    @PostMapping("/uploadImage")
+    public ResponseEntity<?> uploadImage(
+            @RequestParam("uploadId") String uploadId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("fileName") String fileName,
+            @RequestParam("chunkIndex") int chunkIndex,
+            @RequestParam("totalChunks") int totalChunks)
+    {
+//        String imageUrl = imageChunkUploader.uploadChunk(file,uploadId ,fileName, chunkIndex, totalChunks, "Tool_Images/");
 //        if (imageUrl != null) {
 //            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("imageUrl", imageUrl));
 //        } else {
 //            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "File Upload Unsuccessful"));
 //        }
-//    }
+        return null;
+    }
 
     @GetMapping("/getImage/{imageName}")
     public String getImageTool(@PathVariable String imageName){
