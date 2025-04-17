@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import SidebarLayout from "../components/SidebarLayout";
 import ToolModal from "../components/ToolModal";
 import Hammer from "../assets/hammer.jpg";
 
@@ -51,8 +51,12 @@ const ToolManagement = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-100">
-      <Sidebar />
+      <SidebarLayout />
+      
       <div className="flex-1 p-6">
+
+        <div className="h-16 md:hidden" /> {/* Spacer for mobile view */}
+
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-800">Tool Management</h1>
           <button

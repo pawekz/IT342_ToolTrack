@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import SidebarLayout from "../components/SidebarLayout";
 
 const Dashboard = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
@@ -20,8 +21,10 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-100">
-      <Sidebar />
+      <SidebarLayout />
       <div className="flex-1 p-6">
+
+      <div className="h-16 md:hidden" /> {/* Spacer for mobile view */}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 

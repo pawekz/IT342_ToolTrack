@@ -1,5 +1,5 @@
 import React from 'react';
-import Sidebar from '../components/Sidebar';
+import SidebarLayout from "../components/SidebarLayout";
 import { CheckCircle, XCircle, Pencil, MoreVertical } from 'lucide-react';
 
 const users = [
@@ -32,9 +32,10 @@ const users = [
 const UserManagement = () => {
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+      <SidebarLayout />
 
       <div className="flex-1 p-6 overflow-auto">
+      <div className="h-16 md:hidden" /> {/* Spacer for mobile view */}
         {/* Top header section */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-semibold text-gray-900">User Management</h2>

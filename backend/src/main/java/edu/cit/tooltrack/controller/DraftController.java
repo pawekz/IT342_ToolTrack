@@ -41,6 +41,10 @@ public class DraftController {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("OK");
+    }
 
 
     @PostMapping("/upload")
