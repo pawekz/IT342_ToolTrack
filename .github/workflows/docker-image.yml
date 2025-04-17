@@ -104,10 +104,10 @@ jobs:
             
             # Set database and OAuth environment variables
             az webapp config appsettings set --name tooltrack-backend --resource-group tooltrack --settings \
-            MYSQL_DATABASE="tooltrack" \
-            MYSQL_USERNAME="tooltrackadmin@tooltracksqlserver" \
+            MYSQL_DATABASE="${{ secrets.MYSQL_DATABASE }}" \
+            MYSQL_USERNAME="${{ secrets.MYSQL_USERNAME }}" \
             MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
-            MYSQL_SERVER="tooltracksqlserver.mysql.database.azure.com" \
+            MYSQL_SERVER="${{ secrets.MYSQL_SERVER }}" \
             GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
             GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             WEBSITES_PORT=8080
