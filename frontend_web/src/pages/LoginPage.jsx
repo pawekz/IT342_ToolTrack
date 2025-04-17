@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -8,9 +8,9 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleGoogleLogin = () => {
-    window.location.href = `http://${import.meta.env.VITE_BackendHostname}:8080/googlelogin`;
-  };
+  const [googleApiReady, setGoogleApiReady] = useState(false)
+  const [googleApiLoading, setGoogleApiLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +30,73 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error("Login error:", error);
+    }
+  };
+
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      setGoogleApiReady(true)
+      setGoogleApiLoading(false)
+    }
+    script.onerror = () => {
+      console.error('Google Identity Services script failed to load')
+      setGoogleApiLoading(false)
+      setError('Failed to load Google login service')
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
+
+  const handleGoogleLogin = async () => {
+    if (!googleApiReady) {
+      console.error('Google API is not ready');
+      setError('Google login service is not available');
+      return;
+    }
+  
+    try {
+      const client = google.accounts.oauth2.initCodeClient({
+        client_id: import.meta.env.VITE_CLIENT_GOOGLE_ID, // Ensure this is correctly set in your .env file
+        scope: 'profile email',
+        ux_mode: 'popup', // This ensures a popup is used
+        callback: async (response) => {
+          if (response.error) {
+            console.error('Google login error:', response.error);
+            setError('Google login failed');
+            return;
+          }
+  
+          try {
+            console.log('Authorization code:', response.code);
+  
+            // Optionally, send the authorization code to your backend for further processing
+            const profileResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: {
+                Authorization: `Bearer ${response.code}`, // Replace with your backend token exchange logic
+              },
+            });
+  
+            const profile = await profileResponse.json();
+            console.log('Google Profile:', profile);
+  
+            // Handle the profile data (e.g., store it in localStorage or send it to your backend)
+          } catch (err) {
+            console.error('Error fetching Google profile:', err);
+          }
+        },
+      });
+  
+      // Open the popup
+      client.requestCode();
+    } catch (err) {
+      console.error('Error initializing Google login:', err);
     }
   };
 

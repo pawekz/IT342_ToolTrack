@@ -5,6 +5,8 @@ const chunkSize = 5 * 1024 * 1024; // 5MB
 
 const ChunkedImageUploader = () => {
 
+  const [error, setError] = useState(null);
+
   const [toolName, setToolName] = useState("");
   const [location, setLocation] = useState("");
   const [condition, setCondition] = useState("");
@@ -26,6 +28,12 @@ const ChunkedImageUploader = () => {
     setImages(prev => [...prev, ...withPreview]);
   };
 
+  useEffect(() => {
+    if (error) {
+      alert(error);
+    }
+  }, [error]);
+
   const handleDrop = (e) => {
     e.preventDefault();
     const dropped = Array.from(e.dataTransfer.files);
@@ -38,6 +46,10 @@ const ChunkedImageUploader = () => {
     }));
     setImages(prev => [...prev, ...withPreview]);
   };
+
+  useEffect(() => {
+    alert("This is a test file only")
+  },[])
 
   const handleDeleteImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
@@ -54,101 +66,95 @@ const ChunkedImageUploader = () => {
       const buffer = await blob.arrayBuffer();
   
       const params = new URLSearchParams();
-      params.set('name', file.name); // keep this as filename
+      params.set('name', file.name);
       params.set('size', file.size);
       params.set('currentChunkIndex', i);
       params.set('totalChunks', totalChunks);
   
-      const res = await axios.post(`http://localhost:8080/test/upload?${params.toString()}`, buffer, {
-        headers: { 'Content-Type': 'application/octet-stream' },
-      });
-  
-      setImages((prev) => {
-        const updated = [...prev];
-        updated[index].progress = Math.floor(((i + 1) / totalChunks) * 100);
-        return updated;
-      });
-  
-      if (res.data?.imageUrl) {
-        const imageUrl = res.data.imageUrl;
-  
-        // Update local image object
-        setImages((prev) => {
-          const updated = [...prev];
-          updated[index].finalFilename = imageUrl;
-          return updated;
+      try {
+        const res = await axios.post(`http://localhost:8080/test/upload?${params.toString()}`, buffer, {
+          headers: { 'Content-Type': 'application/octet-stream' },
         });
   
-        // Return the image URL after the last chunk is uploaded
-        if (i === totalChunks - 1) {
-          return imageUrl;
-        }
-      }
-    }
-    throw new Error(`Failed to upload image at index ${index}`);
-  };
+        if (res.status === 200) {
+          // Update progress after each successful chunk
+          setImages((prev) => {
+            const updated = [...prev];
+            updated[index].progress = Math.floor(((i + 1) / totalChunks) * 100);
+            return updated;
+          });
   
+          // Only return image URL after last chunk
+          if (res.data?.imageUrl) {
+            const imageUrl = res.data.imageUrl;
+  
+            setImages((prev) => {
+              const updated = [...prev];
+              updated[index].finalFilename = imageUrl;
+              return updated;
+            });
+  
+            return imageUrl;
+          }
+        } else {
+          throw new Error("Upload failed with status: " + res.status);
+        }
+      } catch (err) {
+        console.error("Chunk upload error:", err);
+        throw new Error("Upload failed");
+      }
+    }  
+    throw new Error("Image URL not returned"); // fallback safety
+  };
+    
 
   const handleNextClick = async () => {
     setIsUploading(true);
     const uploadedUrls = [];
   
-    try {
-      for (let i = 0; i < images.length; i++) {
-        // Mark current image as uploading
-        setImages(prev => {
-          const updated = [...prev];
-          updated[i].status = 'uploading';
-          return updated;
-        });
+    for (let i = 0; i < images.length; i++) {
+      // Mark image as uploading
+      setImages(prev => {
+        const updated = [...prev];
+        updated[i].status = 'uploading';
+        return updated;
+      });
   
-        // Upload and get final image URL
+      try {
         const imageUrl = await uploadImageInChunks(images[i], i);
         if (imageUrl) {
           uploadedUrls.push(imageUrl);
-        } else {
-           throw new Error(`Image ${i + 1} failed to upload properly.`);
         }
+      } catch (err) {
+        console.error(err);
+        setError(`Upload failed for image ${i + 1}`);
       }
+    }
   
-      // Update state (optional: for UI or debug purposes)
-      setCollectedUrls(uploadedUrls);
-      // Verify all images were uploaded
-      if (uploadedUrls.length !== images.length) {
-        throw new Error("Some images failed to upload.");
-      }
+    setCollectedUrls(uploadedUrls);
+    console.log("Uploaded URLs:", uploadedUrls);
   
-      // Prepare tool payload
-      const toolPayload = {
-        name: toolName,
-        location,
-        condition,
-        description
-      };
+    const toolPayload = {
+      name: toolName,
+      location,
+      condition,
+      description
+    };
   
-      console.log("Tool Payload:", );
+    //upload the tool with image urls
+    const response = await axios.post("http://localhost:8080/test/addTool", {
+      toolItem: toolPayload,
+      images: uploadedUrls,
+      toolCategory: "Hardware"
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
   
-      // Submit payload
-      const response = await axios.post("http://localhost:8080/test/addTool", {
-        toolItem: toolPayload,
-        images: uploadedUrls,
-        toolCategory: "Hardware"
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-  
-      if (response.status === 200) {
-        alert("Tool added successfully!");
-      }
-  
-    } catch (error) {
-      console.error("Upload stopped due to an error:", error);
-      alert("Upload failed. Please check your connection or server.");
-    } finally {
-      setIsUploading(false);
+    if (response.status === 200) {
+      alert("Tool added successfully!");
     }
   };
-  
+    
 
   useEffect(() => {
    
