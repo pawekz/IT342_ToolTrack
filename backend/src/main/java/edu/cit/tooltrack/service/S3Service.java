@@ -40,9 +40,9 @@ public class S3Service {
         }
     }
 
-    public String upload(File file, String FolderPath, String fileName) {
+    public String upload(File file, String folderPath, String fileName) {
         try {
-            String s3Key = BUCKET_KEY + FolderPath + java.util.UUID.randomUUID() + "_" + fileName;
+            String s3Key = BUCKET_KEY + folderPath + java.util.UUID.randomUUID() + "_" + fileName;
 
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(BUCKET_NAME)
@@ -66,17 +66,21 @@ public class S3Service {
         }
     }
 
-    public String getImage(String s3Key) {
+    public String getImage(String s3Key, String imagePath) {
         try {
+            String fullS3Key = BUCKET_KEY + imagePath + "/" + s3Key;
+
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(BUCKET_NAME)
-                    .key(BUCKET_KEY + s3Key)
+                    .key(fullS3Key)
                     .build();
 
-            ResponseBytes<GetObjectResponse> objectBytes = s3.getObjectAsBytes(getObjectRequest);
-            byte[] imageBytes = objectBytes.asByteArray();
+            S3Utilities s3Utilities = s3.utilities();
+            String objectUrl = s3Utilities.getUrl(builder ->
+                    builder.bucket(BUCKET_NAME).key(fullS3Key)
+            ).toString();
 
-            return Base64.getEncoder().encodeToString(imageBytes); // Encode to Base64
+            return objectUrl; // Return the URL of the image
         } catch (Exception e) {
             System.err.println("Error fetching image: " + e.getMessage());
             return null; // Or handle error appropriately

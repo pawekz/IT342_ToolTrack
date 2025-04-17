@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ToolItemRepository extends JpaRepository<ToolItems, Integer> {
 
-    @Query(value = "SELECT tool_id FROM tool_items ORDER BY tool_id DESC LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT * FROM tool_items ORDER BY tool_id DESC LIMIT 1", nativeQuery = true)
     ToolItems findLatestToolItem();
 
 }

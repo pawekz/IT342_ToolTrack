@@ -1,160 +1,259 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const CHUNK_SIZE = 1024 * 1024; // 1MB
+const chunkSize = 5 * 1024 * 1024; // 5MB
 
-const ChunkUploader = () => {
-  const [file, setFile] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("");
+const ChunkedImageUploader = () => {
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setProgress(0);
-    setStatus("");
+  const [toolName, setToolName] = useState("");
+  const [location, setLocation] = useState("");
+  const [condition, setCondition] = useState("");
+  const [description, setDescription] = useState("");
+  const[collectedUrls, setCollectedUrls] = useState([]);
+  
+  const [images, setImages] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileSelect = (e) => {
+    const selected = Array.from(e.target.files);
+    const withPreview = selected.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      status: 'pending',
+      progress: 0,
+      finalFilename: null
+    }));
+    setImages(prev => [...prev, ...withPreview]);
   };
 
-  const uploadFileInChunks = async () => {
-    if (!file) return;
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const dropped = Array.from(e.dataTransfer.files);
+    const withPreview = dropped.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      status: 'pending',
+      progress: 0,
+      finalFilename: null
+    }));
+    setImages(prev => [...prev, ...withPreview]);
+  };
+
+  const handleDeleteImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImageInChunks = async (image, index) => {
+    const file = image.file;
+    const totalChunks = Math.ceil(file.size / chunkSize);
   
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const fileName = file.name;
+    for (let i = 0; i < totalChunks; i++) {
+      const from = i * chunkSize;
+      const to = Math.min(from + chunkSize, file.size);
+      const blob = file.slice(from, to);
+      const buffer = await blob.arrayBuffer();
   
-    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-      const start = chunkIndex * CHUNK_SIZE;
-      const end = Math.min(start + CHUNK_SIZE, file.size);
-      const chunk = file.slice(start, end);
+      const params = new URLSearchParams();
+      params.set('name', file.name); // keep this as filename
+      params.set('size', file.size);
+      params.set('currentChunkIndex', i);
+      params.set('totalChunks', totalChunks);
   
-      const formData = new FormData();
-      formData.append('file', chunk);
-      formData.append('fileName', fileName);
-      formData.append('chunkIndex', chunkIndex);
-      formData.append('totalChunks', totalChunks);
+      const res = await axios.post(`http://localhost:8080/test/upload?${params.toString()}`, buffer, {
+        headers: { 'Content-Type': 'application/octet-stream' },
+      });
   
-      try {
-        const response = await fetch("http://localhost:8080/test/uploadChunk", {
-          method: "POST",
-          body: formData,
+      setImages((prev) => {
+        const updated = [...prev];
+        updated[index].progress = Math.floor(((i + 1) / totalChunks) * 100);
+        return updated;
+      });
+  
+      if (res.data?.imageUrl) {
+        const imageUrl = res.data.imageUrl;
+  
+        // Update local image object
+        setImages((prev) => {
+          const updated = [...prev];
+          updated[index].finalFilename = imageUrl;
+          return updated;
         });
   
-        const result = await response.json();
-  
-        if (!response.ok) {
-          throw new Error(result.message || `Chunk ${chunkIndex} failed`);
+        // Return the image URL after the last chunk is uploaded
+        if (i === totalChunks - 1) {
+          return imageUrl;
         }
-  
-        setProgress(((chunkIndex + 1) / totalChunks) * 100);
-        setStatus(`Chunk ${chunkIndex + 1} of ${totalChunks} uploaded successfully`);
-      } catch (err) {
-        setStatus(`Upload failed: ${err.message}`);
-        return;
       }
     }
-  
-    setStatus("Upload complete!");
+    throw new Error(`Failed to upload image at index ${index}`);
   };
+  
+
+  const handleNextClick = async () => {
+    setIsUploading(true);
+    const uploadedUrls = [];
+  
+    try {
+      for (let i = 0; i < images.length; i++) {
+        // Mark current image as uploading
+        setImages(prev => {
+          const updated = [...prev];
+          updated[i].status = 'uploading';
+          return updated;
+        });
+  
+        // Upload and get final image URL
+        const imageUrl = await uploadImageInChunks(images[i], i);
+        if (imageUrl) {
+          uploadedUrls.push(imageUrl);
+        } else {
+           throw new Error(`Image ${i + 1} failed to upload properly.`);
+        }
+      }
+  
+      // Update state (optional: for UI or debug purposes)
+      setCollectedUrls(uploadedUrls);
+      // Verify all images were uploaded
+      if (uploadedUrls.length !== images.length) {
+        throw new Error("Some images failed to upload.");
+      }
+  
+      // Prepare tool payload
+      const toolPayload = {
+        name: toolName,
+        location,
+        condition,
+        description
+      };
+  
+      console.log("Tool Payload:", );
+  
+      // Submit payload
+      const response = await axios.post("http://localhost:8080/test/addTool", {
+        toolItem: toolPayload,
+        images: uploadedUrls,
+        toolCategory: "Hardware"
+      }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+  
+      if (response.status === 200) {
+        alert("Tool added successfully!");
+      }
+  
+    } catch (error) {
+      console.error("Upload stopped due to an error:", error);
+      alert("Upload failed. Please check your connection or server.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+
+  useEffect(() => {
+   
+  }, [collectedUrls]);
+  
 
   return (
-    <div style={styles.container}>
-      <h3 style={styles.header}>Chunked Upload Test</h3>
-      
-      <label htmlFor="fileInput" style={styles.label}>Select a file to upload:</label>
-      <input
-        id="fileInput"
-        type="file"
-        onChange={handleFileChange}
-        style={styles.fileInput}
-      />
-      
-      <button
-        onClick={uploadFileInChunks}
-        disabled={!file}
-        style={{
-          ...styles.button,
-          backgroundColor: file ? '#007BFF' : '#ccc',
-          cursor: file ? 'pointer' : 'not-allowed',
-        }}
-      >
-        Upload in Chunks
-      </button>
-      
-      {progress > 0 && (
-        <div style={styles.progressBarContainer}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+        <button className="absolute top-4 right-4 text-red-500 hover:text-red-700 text-xl">&times;</button>
+
+        {/* Preview and Dropzone */}
+        <div className="flex space-x-2 overflow-x-auto mb-4">
+          {images.map((img, idx) => (
+            <div key={idx} className="relative w-16 h-16 rounded overflow-hidden border group">
+              <img src={img.preview} alt="preview" className="object-cover w-full h-full" />
+              {img.status === 'uploading' && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white text-xs">
+                  Uploading
+                  <div className="w-full h-1 mt-1 bg-gray-200">
+                    <div
+                      className="h-1 bg-green-500"
+                      style={{ width: `${img.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+              <button
+                className="absolute top-0 right-0 m-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs hidden group-hover:block"
+                onClick={() => handleDeleteImage(idx)}
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+
           <div
-            style={{
-              ...styles.progressBar,
-              width: `${progress}%`,
-            }}
+            className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer"
+            onClick={() => document.getElementById('fileInput').click()}
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
           >
-            {Math.round(progress)}%
+            <span className="text-gray-400 text-2xl">+</span>
+            <input
+              id="fileInput"
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+            />
           </div>
         </div>
-      )}
 
-      {status && <p style={styles.status}>{status}</p>}
+        {/* Form Fields */}
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Tool Name"
+            value={toolName}
+            onChange={(e) => setToolName(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <select
+            value={condition}
+            onChange={(e) => setCondition(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="">Condition</option>
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+            <option value="DAMAGED">Damaged</option>
+          </select>
+
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md resize-none h-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          ></textarea>
+        </div>
+
+
+        {/* Submit Button */}
+        <div className="mt-6">
+          <button
+            className="w-full bg-teal-500 text-white py-2 rounded-md hover:bg-teal-600 transition disabled:opacity-50"
+            onClick={handleNextClick}
+            disabled={isUploading || images.length === 0}
+          >
+            {isUploading ? 'Uploading...' : 'Next'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
-const styles = {
-  container: {
-    padding: '24px',
-    maxWidth: '500px',
-    margin: '0 auto',
-    fontFamily: 'Arial, sans-serif',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    backgroundColor: '#f9f9f9',
-  },
-  header: {
-    textAlign: 'center',
-    color: '#333',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '8px',
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  fileInput: {
-    display: 'block',
-    marginBottom: '16px',
-    padding: '8px',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    width: '100%',
-  },
-  button: {
-    display: 'block',
-    width: '100%',
-    padding: '10px',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    marginTop: '8px',
-  },
-  progressBarContainer: {
-    marginTop: '16px',
-    width: '100%',
-    backgroundColor: '#e0e0e0',
-    borderRadius: '4px',
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '20px',
-    backgroundColor: '#28a745',
-    color: '#fff',
-    textAlign: 'center',
-    lineHeight: '20px',
-    fontSize: '14px',
-  },
-  status: {
-    marginTop: '16px',
-    textAlign: 'center',
-    color: '#555',
-  },
-};
-
-export default ChunkUploader;
+export default ChunkedImageUploader;

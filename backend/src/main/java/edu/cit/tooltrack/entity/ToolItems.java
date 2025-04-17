@@ -27,7 +27,7 @@ public class ToolItems {
 
     @JsonBackReference("toolItem_category")
     @ManyToOne
-    @JoinColumn(name = "fk_tool_items_category")
+    @JoinColumn(name = "fk_category")
     private ToolCategory category_id;
 
     private String name;
@@ -44,7 +44,11 @@ public class ToolItems {
     private String description;
 
     private Date date_acquired;
-    private String image_url;
+
+    @JsonManagedReference("toolItem_image")
+    @OneToMany(mappedBy = "tool_item")
+    private List<ToolImages> images; // foreign key to the tool_images
+
     private Timestamp created_at;
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 
