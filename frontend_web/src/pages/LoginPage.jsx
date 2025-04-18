@@ -12,6 +12,11 @@ const LoginPage = () => {
   const [googleApiLoading, setGoogleApiLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  //test database connection - remove after testing
+  const [testUser, setTestUser] = useState(null);
+  const [testError, setTestError] = useState(null);
+  //test database connection - remove after testing
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -53,6 +58,29 @@ const LoginPage = () => {
       document.body.removeChild(script)
     }
   }, [])
+
+  //function to test database connection - remove after testing
+  useEffect(() => {
+    // Function to test database connection
+    const testDbConnection = async () => {
+      try {
+        // Determine which API URL to use based on environment
+        const apiUrl = process.env.NODE_ENV === 'production'
+            ? 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/dbconnect'
+            : 'http://localhost:8080/test/dbconnect';
+
+        const response = await axios.get(apiUrl);
+        setTestUser(response.data);
+      } catch (err) {
+        console.error("Database connection test error:", err);
+        setTestError(err.response?.data?.error || "Failed to connect to database");
+      }
+    };
+
+    // Call the test function
+    testDbConnection();
+  }, []);
+  //test database connection - remove after testing
 
   const handleGoogleLogin = async () => {
     if (!googleApiReady) {
@@ -105,6 +133,25 @@ const LoginPage = () => {
       <Navbar />
       <div className="bg-white p-10 rounded-xl shadow-md w-[28rem] mt-10">
         <h2 className="text-3xl font-bold text-center mb-3">Welcome</h2>
+
+        {/* Database Connection Test - REMOVE AFTER TESTING */}
+        {testUser && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+              <h3 className="font-bold text-center">Database Connection Test</h3>
+              <div className="flex flex-col items-center">
+                <p><span className="font-semibold">Name:</span> {testUser.first_name} {testUser.last_name}</p>
+                <p><span className="font-semibold">Email:</span> {testUser.email}</p>
+              </div>
+            </div>
+        )}
+        {testError && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+              <h3 className="font-bold text-center">Database Connection Test Failed</h3>
+              <p className="text-center">{testError}</p>
+            </div>
+        )}
+        {/* Database Connection Test - REMOVE AFTER TESTING */}
+
         <p className="text-gray-600 text-center mb-6">Login to your account</p>
 
         {/* Google Login Button */}
