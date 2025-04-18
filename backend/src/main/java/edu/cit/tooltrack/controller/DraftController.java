@@ -7,6 +7,11 @@ import edu.cit.tooltrack.service.ImageChunkUploader;
 import edu.cit.tooltrack.service.QRcodeService;
 import edu.cit.tooltrack.service.ToolItemService;
 import edu.cit.tooltrack.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,12 +19,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/test")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net"})
 public class DraftController {
 
     @Autowired
@@ -76,5 +82,41 @@ public class DraftController {
         }
     }
 
+    /**
+     * Test endpoint to fetch the first user from the database
+     * This endpoint is for testing purposes only and should be removed after testing is confirmed
+     */
+    @Operation(
+            summary = "Test database connection",
+            description = "Fetches the first user from the database to test the connection.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved first user",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "404", description = "No users found",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Map.class)))
+    })
+    @GetMapping("/dbconnect")
+    public ResponseEntity<?> testDatabaseConnection() {
+        // Get all users from the database
+        List<User> users = userService.getAllUsers();
 
+        // Check if there are any users
+        if (users.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No users found"));
+        }
+
+        // Get the first user
+        User firstUser = users.get(0);
+
+        // Create a response with only the required fields
+        Map<String, String> response = new HashMap<>();
+        response.put("first_name", firstUser.getFirst_name());
+        response.put("last_name", firstUser.getLast_name());
+        response.put("email", firstUser.getEmail());
+
+        // Return the response
+        return ResponseEntity.ok(response);
+    }
 }
