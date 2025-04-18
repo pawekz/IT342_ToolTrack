@@ -6,12 +6,13 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 import ToolManagement from "./pages/ToolManagement";
 import UserManagement from "./pages/UserManagement";
 import ChunkUploader from "./pages/ChunkUploaderTest";
+import LandingPage from "./pages/LandingPage";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
