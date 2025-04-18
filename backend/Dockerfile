@@ -23,4 +23,4 @@ EXPOSE 8080
 ENV WEBSITES_PORT=8080
 
 # Run the application
-ENTRYPOINT ["java", "-Dserver.port=8080", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dserver.port=8080", "-jar", "app.jar"]7
