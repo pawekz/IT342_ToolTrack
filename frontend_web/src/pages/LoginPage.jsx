@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import axios from "axios";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -20,11 +21,15 @@ const LoginPage = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://${import.meta.env.VITE_BackendHostname}:8080/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // Always use Azure backend for login
+      const response = await fetch(
+        "https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       if (response.ok) {
         const userData = await response.json();
@@ -64,11 +69,8 @@ const LoginPage = () => {
     // Function to test database connection
     const testDbConnection = async () => {
       try {
-        // Determine which API URL to use based on environment
-        const apiUrl = process.env.NODE_ENV === 'production'
-            ? 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/dbconnect'
-            : 'http://localhost:8080/test/dbconnect';
-
+        // Always use Azure backend for DB test
+        const apiUrl = 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/dbconnect';
         const response = await axios.get(apiUrl);
         setTestUser(response.data);
       } catch (err) {
