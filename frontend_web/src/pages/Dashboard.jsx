@@ -66,7 +66,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex bg-gray-100">
       <SidebarLayout />
-      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto h-screen">
         <div className="h-16 md:hidden" /> {/* Spacer for mobile view */}
 
         {/* Dashboard Header */}
