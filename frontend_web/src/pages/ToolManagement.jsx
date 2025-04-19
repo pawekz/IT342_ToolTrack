@@ -83,7 +83,7 @@ const ToolManagement = () => {
     <div className="min-h-screen flex bg-gray-50">
       <SidebarLayout />
       
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 h-screen overflow-y-auto">
         <div className="h-16 md:hidden" /> {/* Spacer for mobile view */}
 
         <div className="flex justify-between items-center mb-8">
