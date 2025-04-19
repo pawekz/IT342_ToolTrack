@@ -24,7 +24,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -36,6 +35,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import androidx.compose.ui.tooling.preview.Preview
+import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 
 class LoginActivity : ComponentActivity() {
 
@@ -76,7 +76,11 @@ class LoginActivity : ComponentActivity() {
                             Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
                             navigateToMainActivity()
                         } else {
-                            Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "Please enter email and password",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     onGoogleSignInClick = {

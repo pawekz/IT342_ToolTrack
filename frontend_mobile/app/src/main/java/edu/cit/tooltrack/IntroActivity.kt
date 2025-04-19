@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import androidx.core.content.edit
+import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 
 
 class IntroActivity : ComponentActivity() {
