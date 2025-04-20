@@ -7,6 +7,7 @@ import ToolManagement from "./pages/ToolManagement";
 import UserManagement from "./pages/UserManagement";
 import ChunkUploader from "./pages/ChunkUploaderTest";
 import LandingPage from "./pages/LandingPage";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/toolmanagement" element={<ToolManagement />} />
         <Route path="/user-management" element={<UserManagement />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/ChunkUploader" element={<ChunkUploader/>}/>
       </Routes>
