@@ -24,4 +24,10 @@
     <string name="dont_have_account">Don\'t have an account? </string>
     <string name="already_have_account">Already have an account? </string>
     <string name="name">Full Name</string>
+
+    <!-- Menu -->
+    <string name="search_tools">Search tools…</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_scan">Scan</string>
+    <string name="menu_profile">Profile</string>
 </resources>

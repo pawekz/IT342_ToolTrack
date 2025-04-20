@@ -2,6 +2,7 @@ package edu.cit.tooltrack
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,23 +25,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import androidx.compose.ui.tooling.preview.Preview
+import edu.cit.tooltrack.api.RegistrationRequest
+import edu.cit.tooltrack.api.ToolTrackApi
+import edu.cit.tooltrack.ui.theme.ToolTrackTheme
+import kotlinx.coroutines.launch
 
 class SignupActivity : ComponentActivity() {
 
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
+    private val toolTrackApi = ToolTrackApi.create()
+
+    // Track loading state for UI
+    private val isLoading = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,11 +79,10 @@ class SignupActivity : ComponentActivity() {
         setContent {
             ToolTrackTheme {
                 SignupScreen(
+                    isLoading = isLoading.value,
                     onSignupClick = { name, email, password, confirmPassword ->
                         if (validateInputs(name, email, password, confirmPassword)) {
-                            // TODO: Implement actual signup logic with backend
-                            Toast.makeText(this, "Signup successful", Toast.LENGTH_SHORT).show()
-                            navigateToMainActivity()
+                            registerUser(name, email, password)
                         }
                     },
                     onGoogleSignUpClick = {
@@ -89,13 +97,72 @@ class SignupActivity : ComponentActivity() {
         }
     }
 
+    private fun registerUser(name: String, email: String, password: String) {
+        // Split name into first and last name
+        val nameParts = name.trim().split(" ", limit = 2)
+        val firstName = nameParts[0]
+        val lastName = if (nameParts.size > 1) nameParts[1] else ""
+
+        // Create registration request
+        val request = RegistrationRequest(
+            first_name = firstName,
+            last_name = lastName,
+            email = email,
+            password_hash = password,
+            isGoogle = false,
+            role = "staff"
+        )
+        //logcat
+        Log.d("API_REQUEST", "Sending registration: $request")
+
+        // Show loading indicator
+        isLoading.value = true
+
+        // Make API call
+        lifecycleScope.launch {
+            try {
+                val response = toolTrackApi.registerUser(request)
+                //isLoading.value = false
+
+                if (response.isSuccessful) {
+                val responseBody = response.body()
+                Log.d("API_SUCCESS", "Registration successful: $responseBody")
+
+                Toast.makeText(
+                    this@SignupActivity,
+                    "Successfully Registered, redirecting to Dashboard",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                lifecycleScope.launch {
+                    kotlinx.coroutines.delay(2000) // 2 seconds delay
+                    isLoading.value = false
+                    navigateToMainActivity()
+                }
+
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("API_ERROR", "Registration failed: $errorBody")
+                    Toast.makeText(this@SignupActivity,
+                        "Registration failed: ${response.errorBody()?.string()}",
+                        Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                isLoading.value = false
+                Log.e("API_EXCEPTION", "Error during registration", e)
+                Toast.makeText(this@SignupActivity,
+                    "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun validateInputs(name: String, email: String, password: String, confirmPassword: String): Boolean {
         if (name.isEmpty()) {
             Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show()
             return false
         }
 
-        if (email.isEmpty()) {
+        if (email.trim().lowercase().isEmpty()) {
             Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show()
             return false
         }
@@ -105,8 +172,8 @@ class SignupActivity : ComponentActivity() {
             return false
         }
 
-        if (password.length < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+        if (password.length < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show()
             return false
         }
 
@@ -129,6 +196,7 @@ class SignupActivity : ComponentActivity() {
 fun PreviewSignupScreen() {
     ToolTrackTheme {
         SignupScreen(
+            isLoading = false,
             onSignupClick = { _, _, _, _ -> },
             onGoogleSignUpClick = {},
             onLoginClick = {}
@@ -138,6 +206,7 @@ fun PreviewSignupScreen() {
 
 @Composable
 fun SignupScreen(
+    isLoading: Boolean = false,
     onSignupClick: (name: String, email: String, password: String, confirmPassword: String) -> Unit,
     onGoogleSignUpClick: () -> Unit,
     onLoginClick: () -> Unit
@@ -149,6 +218,11 @@ fun SignupScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
     // Background with Linear Gradient
     Box(
         modifier = Modifier
@@ -339,7 +413,7 @@ fun SignupScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Signup Button
+                    // Signup Button with loading indicator
                     Button(
                         onClick = { onSignupClick(name, email, password, confirmPassword) },
                         modifier = Modifier
@@ -350,13 +424,21 @@ fun SignupScreen(
                             containerColor = Color(0xFF2EA69E),
                             contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = !isLoading
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.signup),
-                            fontSize = 16.sp,
-                            fontFamily = FontFamily(Font(R.font.inter))
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(id = R.string.signup),
+                                fontSize = 16.sp,
+                                fontFamily = FontFamily(Font(R.font.inter))
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -372,7 +454,8 @@ fun SignupScreen(
                             containerColor = Color.White,
                             contentColor = Color.Black
                         ),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = !isLoading
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.android_neutral_signup_google),
@@ -405,4 +488,5 @@ fun SignupScreen(
             }
         }
     }
+}
 }
