@@ -2,6 +2,7 @@ package edu.cit.tooltrack
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -111,6 +112,8 @@ class SignupActivity : ComponentActivity() {
             isGoogle = false,
             role = "staff"
         )
+        //logcat
+        Log.d("API_REQUEST", "Sending registration: $request")
 
         // Show loading indicator
         isLoading.value = true
@@ -119,19 +122,34 @@ class SignupActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val response = toolTrackApi.registerUser(request)
-                isLoading.value = false
+                //isLoading.value = false
 
                 if (response.isSuccessful) {
-                    Toast.makeText(this@SignupActivity,
-                        "Registration successful!", Toast.LENGTH_SHORT).show()
+                val responseBody = response.body()
+                Log.d("API_SUCCESS", "Registration successful: $responseBody")
+
+                Toast.makeText(
+                    this@SignupActivity,
+                    "Successfully Registered, redirecting to Dashboard",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                lifecycleScope.launch {
+                    kotlinx.coroutines.delay(2000) // 2 seconds delay
+                    isLoading.value = false
                     navigateToMainActivity()
+                }
+
                 } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("API_ERROR", "Registration failed: $errorBody")
                     Toast.makeText(this@SignupActivity,
                         "Registration failed: ${response.errorBody()?.string()}",
                         Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 isLoading.value = false
+                Log.e("API_EXCEPTION", "Error during registration", e)
                 Toast.makeText(this@SignupActivity,
                     "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -144,7 +162,7 @@ class SignupActivity : ComponentActivity() {
             return false
         }
 
-        if (email.isEmpty()) {
+        if (email.trim().lowercase().isEmpty()) {
             Toast.makeText(this, "Please enter your email", Toast.LENGTH_SHORT).show()
             return false
         }
@@ -200,6 +218,11 @@ fun SignupScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
     // Background with Linear Gradient
     Box(
         modifier = Modifier
@@ -465,4 +488,5 @@ fun SignupScreen(
             }
         }
     }
+}
 }
