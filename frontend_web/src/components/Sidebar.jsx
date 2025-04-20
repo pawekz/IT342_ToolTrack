@@ -11,7 +11,7 @@ const LogoutModal = ({ isOpen, onClose, onLogout }) => {
   const brandColor = "#2EA69E";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm mx-4 relative transform transition-all">
         {/* Close button */}
         <button 
@@ -35,13 +35,13 @@ const LogoutModal = ({ isOpen, onClose, onLogout }) => {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={onLogout}
-            className="flex-1 py-2 px-4 rounded-lg text-white font-medium transition-colors"
+            className="flex-1 py-2 px-4 rounded-lg text-white font-medium transition-colors cursor-pointer"
             style={{ backgroundColor: brandColor }}
           >
             Log Out
@@ -181,7 +181,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <button 
                     onClick={() => setShowLogoutModal(true)}
                     className={`
-                      w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                      w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer
                       ${item.className || "text-gray-600 hover:bg-gray-50"}
                     `}
                   >
