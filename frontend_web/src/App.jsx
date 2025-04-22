@@ -8,9 +8,12 @@ import UserManagement from "./pages/UserManagement";
 import ChunkUploader from "./pages/ChunkUploaderTest";
 import LandingPage from "./pages/LandingPage";
 import SettingsPage from "./pages/SettingsPage";
+import { AuthProvider } from "./components/AuthProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
+    <AuthProvider>
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -21,9 +24,15 @@ function App() {
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
-        <Route path="/ChunkUploader" element={<ChunkUploader/>}/>
+
+        <Route path="/ChunkUploader" element={
+          <ProtectedRoute>
+             <ChunkUploader/>
+          </ProtectedRoute>
+        }/>
       </Routes>
     </Router>
+    </AuthProvider>
   );
 }
 

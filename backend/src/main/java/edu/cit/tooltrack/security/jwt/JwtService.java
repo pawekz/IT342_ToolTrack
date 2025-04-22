@@ -26,7 +26,8 @@ public class JwtService {
     public static String generateToken(UserResponseDTO user) {
         return Jwts
                 .builder()
-                .claim("name", user.getFirst_name() + " " + user.getLast_name())
+                .claim("firstName", user.getFirst_name())
+                .claim("lastName", user.getLast_name())
                 .subject(user.getEmail())
                 .claim("role", user.getRole())
                 .issuer("Spring-boot")

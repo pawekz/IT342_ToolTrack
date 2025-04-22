@@ -43,8 +43,8 @@ public class User {
     private Timestamp created_at;
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 
-//    public enum Role {
-//        admin, staff
-//    }
+    public enum Role {
+        admin, staff
+    }
 
 }
