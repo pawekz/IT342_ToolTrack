@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,6 +26,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,35 +76,43 @@ fun NavHostContainer(
 
 @Composable
 fun BottomNavItem(navController: NavHostController) {
-    NavigationBar(
-        containerColor = Color(0xFFFFFFFF)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shadowElevation = 10.dp,
+        color = Color(0xFFFFFFFF)
     ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
+        NavigationBar(
+            containerColor = Color.Transparent // Use transparent to let Surface color show
+        ) {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
 
-        Constants.BottomNavItem.forEach { navItem ->
-            NavigationBarItem(
-                selected = currentRoute == navItem.route,
-                onClick = {
-                    navController.navigate(navItem.route)
-                },
-                icon = {
-                    Icon(
-                        imageVector = navItem.icon,
-                        contentDescription = navItem.label
+            Constants.BottomNavItem.forEach { navItem ->
+                NavigationBarItem(
+                    selected = currentRoute == navItem.route,
+                    onClick = {
+                        navController.navigate(navItem.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = navItem.icon,
+                            contentDescription = navItem.label
+                        )
+                    },
+                    label = {
+                        Text(text = navItem.label)
+                    },
+                    alwaysShowLabel = false,
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.White,
+                        unselectedIconColor = Color.Black,
+                        selectedTextColor = Color.Black,
+                        indicatorColor = Color(0xFF2EA69E), // green indicator
+                        unselectedTextColor = Color.Gray // softer for unselected (optional)
                     )
-                },
-                label = {
-                    Text(text = navItem.label)
-                },
-                alwaysShowLabel = false,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF2EA69E),
-                    unselectedIconColor = Color.Black,
-                    selectedTextColor = Color.Black,
-                    indicatorColor = Color(0xFF2EA69E)
                 )
-            )
+            }
         }
     }
 }
