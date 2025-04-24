@@ -1,0 +1,33 @@
+@startuml
+skinparam backgroundColor transparent
+
+rectangle "ToolTrackTheme" {
+  rectangle "Surface (White Background)" {
+    rectangle "Scaffold" {
+      rectangle "Content Area (NavHostContainer)" {
+        rectangle "Active Screen (Home/Scan/Profile)" #lightblue
+      }
+
+      rectangle "Bottom Navigation Bar" #lightgrey {
+        rectangle "Home Tab" #white
+        rectangle "Scan QR Tab" #white
+        rectangle "Profile Tab" #white
+      }
+    }
+  }
+}
+
+note right of "Bottom Navigation Bar"
+  Surface wrapper with:
+  - Top rounded corners (24.dp)
+  - Shadow elevation (12.dp)
+  - White background
+end note
+
+note right of "Content Area (NavHostContainer)"
+  Content area with padding
+  applied from Scaffold's
+  PaddingValues parameter
+end note
+
+@enduml

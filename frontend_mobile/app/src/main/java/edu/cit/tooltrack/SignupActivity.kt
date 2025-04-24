@@ -287,7 +287,12 @@ fun SignupScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
-                            unfocusedBorderColor = Color(0xFF909090)
+                            unfocusedBorderColor = Color(0xFF909090),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black,
+                            focusedLabelColor = Color(0xFF2EA69E),
+                            unfocusedLabelColor = Color(0xFF909090)
                         ),
                         leadingIcon = {
                             Icon(
@@ -315,7 +320,12 @@ fun SignupScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
-                            unfocusedBorderColor = Color(0xFF909090)
+                            unfocusedBorderColor = Color(0xFF909090),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black,
+                            focusedLabelColor = Color(0xFF2EA69E),
+                            unfocusedLabelColor = Color(0xFF909090)
                         ),
                         leadingIcon = {
                             Icon(
@@ -344,7 +354,12 @@ fun SignupScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
-                            unfocusedBorderColor = Color(0xFF909090)
+                            unfocusedBorderColor = Color(0xFF909090),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black,
+                            focusedLabelColor = Color(0xFF2EA69E),
+                            unfocusedLabelColor = Color(0xFF909090)
                         ),
                         leadingIcon = {
                             Icon(
@@ -384,7 +399,12 @@ fun SignupScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
-                            unfocusedBorderColor = Color(0xFF909090)
+                            unfocusedBorderColor = Color(0xFF909090),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black,
+                            focusedLabelColor = Color(0xFF2EA69E),
+                            unfocusedLabelColor = Color(0xFF909090)
                         ),
                         leadingIcon = {
                             Icon(
