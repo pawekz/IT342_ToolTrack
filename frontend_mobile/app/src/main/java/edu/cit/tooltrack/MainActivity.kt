@@ -59,27 +59,32 @@ fun NavHostContainer(
     NavHost(
         navController = navController,
         startDestination = "home",
-        modifier = Modifier.padding(padding),
-        builder = {
-            composable("home") {
-                HomeScreen()
-            }
-            composable("scan") {
-                ScanScreen()
-            }
-            composable("profile") {
-                ProfileScreen()
-            }
+        modifier = Modifier.padding(padding)
+    ) {
+        composable("home") {
+            edu.cit.tooltrack.screens.home.HomeScreen()
         }
-    )
+        composable("scan") {
+            edu.cit.tooltrack.screens.scan.ScanScreen(navController)
+        }
+        composable("profile") {
+            edu.cit.tooltrack.screens.profile.ProfileScreen(navController)
+        }
+        composable("profile_settings") {
+            edu.cit.tooltrack.screens.profile.ProfileSettings(navController)
+        }
+        composable("about") {
+            edu.cit.tooltrack.screens.about.AboutScreen(navController)
+        }
+    }
 }
 
 @Composable
 fun BottomNavItem(navController: NavHostController) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-        shadowElevation = 10.dp,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        shadowElevation = 12.dp,
         color = Color(0xFFFFFFFF)
     ) {
         NavigationBar(

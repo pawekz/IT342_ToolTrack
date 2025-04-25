@@ -91,4 +91,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
+    //for QR Code
+    implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
+
 }

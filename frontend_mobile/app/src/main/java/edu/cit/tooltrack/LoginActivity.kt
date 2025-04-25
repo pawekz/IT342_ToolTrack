@@ -41,6 +41,7 @@ import com.google.android.gms.common.api.ApiException
 import edu.cit.tooltrack.api.LoginRequest
 import edu.cit.tooltrack.api.ToolTrackApi
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
+import edu.cit.tooltrack.utils.SessionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -49,6 +50,7 @@ class LoginActivity : ComponentActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
     private val toolTrackApi = ToolTrackApi.create()
+    private lateinit var sessionManager: SessionManager
 
     private val isLoading = mutableStateOf(false)
 
@@ -60,6 +62,9 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Initialize SessionManager
+        sessionManager = SessionManager(this)
 
         // Register for Google Sign-In activity result
         googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -144,10 +149,16 @@ class LoginActivity : ComponentActivity() {
                 if (response.isSuccessful) {
                     val token = response.body()
                     Log.d("API_SUCCESS", "Login successful: JWT token received")
+                    
+                    // Save the token in SessionManager
+                    token?.let { 
+                        sessionManager.saveAuthToken(it)
+                        Log.d("SessionManager", "Token saved, user: ${sessionManager.getUserName()}, role: ${sessionManager.getUserRole()}")
+                    }
 
                     // Show success message with green styling
-                    showSnackbar("Login successful, redirecting to Dashboard", SnackbarType.SUCCESS)
-                    delay(1500) // Brief delay to show success message
+                    showSnackbar("Login successful", SnackbarType.SUCCESS)
+                    delay(1000) // Brief delay to show success message
                     navigateToMainActivity()
                 } else {
                     Log.e("API_ERROR", "Login failed: ${response.code()}")
@@ -316,7 +327,12 @@ fun LoginScreen(
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF000000),
-                                unfocusedBorderColor = Color(0xFF909090)
+                                unfocusedBorderColor = Color(0xFF909090),
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black,
+                                focusedLabelColor = Color(0xFF2EA69E),
+                                unfocusedLabelColor = Color(0xFF909090)
                             ),
                             leadingIcon = {
                                 Icon(
@@ -345,7 +361,12 @@ fun LoginScreen(
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF000000),
-                                unfocusedBorderColor = Color(0xFF909090)
+                                unfocusedBorderColor = Color(0xFF909090),
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black,
+                                focusedLabelColor = Color(0xFF2EA69E),
+                                unfocusedLabelColor = Color(0xFF909090)
                             ),
                             leadingIcon = {
                                 Icon(
