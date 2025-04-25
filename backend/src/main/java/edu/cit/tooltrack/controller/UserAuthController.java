@@ -41,7 +41,6 @@ public class UserAuthController {
 
     private Map<String, Object> data;
 
-
     @GetMapping("/checkUser")
     public ResponseEntity<Map<String, String>> checkUser(@RequestParam String email) {
         if (userService.isUserExist(email) ) {
@@ -53,13 +52,13 @@ public class UserAuthController {
 
 
     @PostMapping("/googleLogin")
-    public ResponseEntity<?> googleLogin(@RequestBody User user){
+    public ResponseEntity<?> googleLogin(@RequestBody User user) {
         UserResponseDTO userDetails = null;
-        if(userService.isUserExist(user.getEmail())){
+        if (userService.isUserExist(user.getEmail())) {
             userDetails = userService.getUserData(user.getEmail());
             return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
-        }else{
-            userDetails =  userService.register(user);
+        } else {
+            userDetails = userService.register(user);
             return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userDetails));
         }
     }

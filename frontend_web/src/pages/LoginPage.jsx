@@ -13,7 +13,8 @@ const LoginPage = () => {
   
   const { loginAction, setJWTtoken } = useAuth();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useSt
+  const [password, setPassword] = useState("");
+
   const [googleApiReady, setGoogleApiReady] = useState(false)
   const [googleApiLoading, setGoogleApiLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -71,7 +72,7 @@ const LoginPage = () => {
 
   //function to test database connection - remove after testing
   useEffect(() => {
-    console.log("ENV: " + import.meta.env.VITE_GOOGLE_CLIENT_ID);
+
     // Function to test database connection
     const testDbConnection = async () => {
       try {
@@ -96,7 +97,7 @@ const LoginPage = () => {
       setError('Google login service is not available');
       return;
     }
-  
+
     try {
       //client id must not be exposed
       const client = google.accounts.oauth2.initTokenClient({
@@ -139,8 +140,8 @@ const LoginPage = () => {
                   password_hash: null,
                   isGoogle: true
                 };
-                axios.post(`http:localhost:8080/auth/register`, userData).then(response => {
-                  setJWTtoken(response.data.token, navigate);
+                axios.post(`http://localhost:8080/auth/register`, userData).then(response => {
+                  setJWTtoken(response.data);
                 })
               }
             });

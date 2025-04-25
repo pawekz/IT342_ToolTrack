@@ -19,9 +19,8 @@ export const AuthProvider = ({children}) => {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {
-                    const { token, role } = response.data; 
+                    const { token, role } = response.data;
                     localStorage.setItem("token", token);
-                    setToken(token);
         
                     // Redirect user based on role
                     if (role === "Staff") {
@@ -34,18 +33,18 @@ export const AuthProvider = ({children}) => {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {
-                    const decode = jwtDecode(response.data);
-                    
-                    console.log(decode)
-                    // const { token, role } = response.data; 
-                    // localStorage.setItem("token", token);
-                    // setToken(token);
+                    console.log(response.data.token)
+                    setToken(response.data.token);
+                    localStorage.setItem("token", response.data.token);
+                    const decoded = jwtDecode(response.data.token);
+                    console.log(decoded)
         
                     // // Redirect user based on role
-                    // if (role === "Staff") {
-                    //     navigate("/dashboard"); 
-                    // }
-                    // return;
+                    if (decoded.role === "Staff") {
+                        console.log("redirecting...to dashboard")
+                        navigate("/dashboard");
+                    }
+                    return;
                 }
             }
             throw new Error(response.data.message)
@@ -56,13 +55,17 @@ export const AuthProvider = ({children}) => {
     }
 
     const logout = () => {
-        setIsAuthenticated(false)
-        localStorage.removeItem('isAuthenticated')
+        // setIsAuthenticated(false)
+        const token = localStorage.getItem("token");
+        if (!token) return
+        localStorage.removeItem("token");
+        sessionStorage.clear();
     }
 
     const setJWTtoken = (token) => {
         localStorage.setItem("token", token);
         setToken(token);
+        console.log(token)
         return;
     }
 

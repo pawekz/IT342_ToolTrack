@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Icon } from "@iconify/react";
 import { X } from "lucide-react";
 
+import { useAuth } from "../components/AuthProvider";
+
 // LogoutModal Component
 const LogoutModal = ({ isOpen, onClose, onLogout }) => {
   if (!isOpen) return null;
@@ -56,6 +58,9 @@ const LogoutModal = ({ isOpen, onClose, onLogout }) => {
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  //removing the jwt
+  const { logout } = useAuth();
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -77,6 +82,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const handleLogout = () => {
     // Close the modal first
     setShowLogoutModal(false);
+    logout()
     
     // Here you would handle the actual logout logic
     // For example, clearing local storage, cookies, etc.

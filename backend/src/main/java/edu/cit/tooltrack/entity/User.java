@@ -31,7 +31,6 @@ public class User {
     @OneToMany(mappedBy = "user_id")
     private List<ReturnTransaction> returnTransaction_image;
 
-    private BigInteger employee_id;
     private String first_name;
     private String last_name;
     private String email;
@@ -44,7 +43,7 @@ public class User {
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 
     public enum Role {
-        admin, staff
+        Admin, Staff
     }
 
 }
