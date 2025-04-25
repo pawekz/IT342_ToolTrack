@@ -28,21 +28,18 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       // Always use Azure backend for login
-      const response = await fetch(
-        "https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
 
       if (response.ok) {
-        const userData = await response.json();
-        localStorage.setItem("user", JSON.stringify(userData)); // Store session
-        navigate("/dashboard"); // Redirect to dashboard
+        const data = await response.json();
+        setJWTtoken(data.token)
+        navigate("/dashboard")
       } else {
-        alert("Invalid login credentials");
+        console.error("Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -119,7 +116,7 @@ const LoginPage = () => {
   
             const profile = await profileResponse.json();
             console.log('Google Profile:', profile);
-            
+
             const checkUserResponse = await axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser`,
               {params: { email: profile.email }},
             ).then(response => {
