@@ -64,7 +64,7 @@ const LoginPage = () => {
     }
   }, [])
 
-  //function to test database connection - remove after testing
+  //function to test database connection - status indicator
   useEffect(() => {
     // Function to test database connection
     const testDbConnection = async () => {
@@ -73,8 +73,10 @@ const LoginPage = () => {
         const apiUrl = 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/dbconnect';
         const response = await axios.get(apiUrl);
         setTestUser(response.data);
+        console.log("Database connection successful: Status 200");
       } catch (err) {
         console.error("Database connection test error:", err);
+        console.log("Database connection error code:", err.response?.status || "Unknown");
         setTestError(err.response?.data?.error || "Failed to connect to database");
       }
     };
@@ -82,7 +84,7 @@ const LoginPage = () => {
     // Call the test function
     testDbConnection();
   }, []);
-  //test database connection - remove after testing
+  //test database connection - status indicator
 
   const handleGoogleLogin = async () => {
     if (!googleApiReady) {
@@ -90,7 +92,7 @@ const LoginPage = () => {
       setError('Google login service is not available');
       return;
     }
-  
+
     try {
       const client = google.accounts.oauth2.initCodeClient({
         client_id: import.meta.env.VITE_CLIENT_GOOGLE_ID, // Ensure this is correctly set in your .env file
@@ -102,27 +104,27 @@ const LoginPage = () => {
             setError('Google login failed');
             return;
           }
-  
+
           try {
             console.log('Authorization code:', response.code);
-  
-            // Optionally, send the authorization code to your backend for further processing
+
+            // Optionally, send the authorization code to your backend for +further processing
             const profileResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: {
                 Authorization: `Bearer ${response.code}`, // Replace with your backend token exchange logic
               },
             });
-  
+
             const profile = await profileResponse.json();
             console.log('Google Profile:', profile);
-  
+
             // Handle the profile data (e.g., store it in localStorage or send it to your backend)
           } catch (err) {
             console.error('Error fetching Google profile:', err);
           }
         },
       });
-  
+
       // Open the popup
       client.requestCode();
     } catch (err) {
@@ -131,28 +133,18 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4 pt-20">
+    <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4 pt-20 relative">
       <Navbar />
+      {/* Database connection status indicator */}
+      <div 
+        className={`fixed bottom-2 right-2 w-[12px] h-[12px] rounded-full ${
+          testUser ? 'bg-green-500' : testError ? 'bg-red-500' : 'bg-gray-300'
+        }`}
+        title={testUser ? "Database connected" : testError ? "Database connection failed" : "Checking connection..."}
+      ></div>
       <div className="bg-white p-10 rounded-xl shadow-md w-[28rem] mt-10">
         <h2 className="text-3xl font-bold text-center mb-3">Welcome</h2>
 
-        {/* Database Connection Test - REMOVE AFTER TESTING */}
-        {testUser && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
-              <h3 className="font-bold text-center">Database Connection Test</h3>
-              <div className="flex flex-col items-center">
-                <p><span className="font-semibold">Name:</span> {testUser.first_name} {testUser.last_name}</p>
-                <p><span className="font-semibold">Email:</span> {testUser.email}</p>
-              </div>
-            </div>
-        )}
-        {testError && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
-              <h3 className="font-bold text-center">Database Connection Test Failed</h3>
-              <p className="text-center">{testError}</p>
-            </div>
-        )}
-        {/* Database Connection Test - REMOVE AFTER TESTING */}
 
         <p className="text-gray-600 text-center mb-6">Login to your account</p>
 
