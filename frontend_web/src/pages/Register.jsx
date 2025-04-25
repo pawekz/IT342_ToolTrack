@@ -103,11 +103,6 @@ const Register = () => {
         <h2 className="text-3xl font-bold text-center mb-3">Welcome</h2>
         <p className="text-gray-600 text-center mb-6">Register an account</p>
 
-        <a href="/googlelogin" className="w-full bg-white border border-gray-300 text-gray-600 py-3 rounded-md shadow-md hover:bg-gray-100 mb-6 flex items-center justify-center space-x-2 cursor-pointer">
-          <Icon icon="flat-color-icons:google" width="22" height="22" />
-          <span>Continue with Google</span>
-        </a>
-
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
