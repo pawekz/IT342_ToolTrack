@@ -85,6 +85,7 @@ public class UserAuthController {
         // Check if user exists
         try {
             UserResponseDTO userDetails = userService.verifyUser(loginRequest);
+            System.out.println("generating token for normal login");
             return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Credentials"));
