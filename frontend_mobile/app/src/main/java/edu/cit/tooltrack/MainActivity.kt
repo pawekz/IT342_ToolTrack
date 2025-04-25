@@ -68,7 +68,13 @@ fun NavHostContainer(
             edu.cit.tooltrack.screens.scan.ScanScreen(navController)
         }
         composable("profile") {
-            edu.cit.tooltrack.screens.profile.ProfileScreen()
+            edu.cit.tooltrack.screens.profile.ProfileScreen(navController)
+        }
+        composable("profile_settings") {
+            edu.cit.tooltrack.screens.profile.ProfileSettings(navController)
+        }
+        composable("about") {
+            edu.cit.tooltrack.screens.about.AboutScreen(navController)
         }
     }
 }
