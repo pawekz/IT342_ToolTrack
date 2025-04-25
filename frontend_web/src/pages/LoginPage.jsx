@@ -13,7 +13,8 @@ const LoginPage = () => {
   
   const { loginAction, setJWTtoken } = useAuth();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useSt
+  const [password, setPassword] = useState("");
+
   const [googleApiReady, setGoogleApiReady] = useState(false)
   const [googleApiLoading, setGoogleApiLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -71,6 +72,7 @@ const LoginPage = () => {
 
   //function to test database connection - remove after testing
   useEffect(() => {
+
     // Function to test database connection
     const testDbConnection = async () => {
       try {
@@ -78,10 +80,8 @@ const LoginPage = () => {
         const apiUrl = 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/dbconnect';
         const response = await axios.get(apiUrl);
         setTestUser(response.data);
-        console.log("Database connection successful: Status 200");
       } catch (err) {
         console.error("Database connection test error:", err);
-        console.log("Database connection error code:", err.response?.status || "Unknown");
         setTestError(err.response?.data?.error || "Failed to connect to database");
       }
     };
@@ -89,7 +89,7 @@ const LoginPage = () => {
     // Call the test function
     testDbConnection();
   }, []);
-  //test database connection - status indicator
+  //test database connection - remove after testing
 
   const handleGoogleLogin = async () => {
     if (!googleApiReady) {
@@ -120,7 +120,7 @@ const LoginPage = () => {
             const profile = await profileResponse.json();
             console.log('Google Profile:', profile);
             
-            const checkUserResponse = await axios.get(`http://localhost:8080/auth/checkUser`,
+            const checkUserResponse = await axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser`,
               {params: { email: profile.email }},
             ).then(response => {
               console.log("Check User Response:", response.data);
@@ -140,8 +140,8 @@ const LoginPage = () => {
                   password_hash: null,
                   isGoogle: true
                 };
-                axios.post(`http:localhost:8080/auth/register`, userData).then(response => {
-                  setJWTtoken(response.data.token, navigate);
+                axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/register`, userData).then(response => {
+                  setJWTtoken(response.data);
                 })
               }
             });
@@ -151,7 +151,7 @@ const LoginPage = () => {
           }
         },
       });
-
+  
       client.requestAccessToken();
     } catch (err) {
       console.error('Error initializing Google login:', err);
