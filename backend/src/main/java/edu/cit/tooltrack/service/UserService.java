@@ -59,11 +59,17 @@ public class UserService {
     public UserResponseDTO register(User user) {
         user.setIs_active(1);
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
-        user.setRole("staff");
+        user.setRole("Staff");
 
-        String encodedPassword = passwordEncoder.encode(user.getPassword_hash());
-        user.setPassword_hash(encodedPassword);
-        // Save the user to the database
+        //check if data has a password, hash it, else, it's a google registration skip the hash
+        if(user.getPassword_hash() != null){
+            String encodedPassword = passwordEncoder.encode(user.getPassword_hash());
+            user.setPassword_hash(encodedPassword);
+        }else{
+            user.setIsGoogle(true);
+        }
+
+
         User savedUser = userRepository.save(user);
         return new UserResponseDTO(savedUser.getEmail(), savedUser.getRole() ,savedUser.getFirst_name(), savedUser.getLast_name());
     }
@@ -78,22 +84,13 @@ public class UserService {
         return new UserResponseDTO(user.getEmail(),user.getRole(),user.getFirst_name(), user.getLast_name());
     }
 
-    public UserResponseDTO addGoogleUser(OAuth2User oAuth2User){
-        User user = new User();
-        user.setIsGoogle(true);
-        user.setFirst_name(oAuth2User.getAttributes().get("given_name").toString());
-        user.setLast_name(oAuth2User.getAttributes().get("family_name").toString());
-        user.setEmail(oAuth2User.getAttributes().get("email").toString());
+    public UserResponseDTO addGoogleUser(User user){
         user.setRole("staff");
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
         userRepository.save(user);
         return new UserResponseDTO(user.getEmail(), user.getRole() ,user.getFirst_name(), user.getLast_name());
     }
 
-    public Boolean isGoogleSignedIn(OAuth2User oAuth2User){
-        User user = userRepository.findByEmail(oAuth2User.getAttributes().get("email").toString());
-        return user != null;
-    }
 
     public UserResponseDTO addUser(User user){
         //no checking for if user already existed

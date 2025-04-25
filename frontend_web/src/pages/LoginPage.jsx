@@ -108,7 +108,7 @@ const LoginPage = () => {
           try {
             console.log('Authorization code:', response.code);
 
-            // Optionally, send the authorization code to your backend for further processing
+            // Optionally, send the authorization code to your backend for +further processing
             const profileResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: {
                 Authorization: `Bearer ${response.code}`, // Replace with your backend token exchange logic

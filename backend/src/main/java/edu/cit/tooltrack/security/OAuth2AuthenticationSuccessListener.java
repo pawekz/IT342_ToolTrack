@@ -22,17 +22,17 @@ public class OAuth2AuthenticationSuccessListener implements ApplicationListener<
     @Override
     public void onApplicationEvent(AuthenticationSuccessEvent event) {
         // Check if this is an OAuth2 login
-        if (event.getAuthentication().getPrincipal() instanceof OAuth2User) {
-            OAuth2User oauth2User = (OAuth2User) event.getAuthentication().getPrincipal();
-
-            String email = oauth2User.getAttribute("email");
-            if (email != null && !userService.isUserExist(email)) {
-                userService.addGoogleUser(oauth2User);
-            }
-
-            // Store user attributes in the session
-            httpSession.setAttribute("user", oauth2User.getAttributes());
-        }
+//        if (event.getAuthentication().getPrincipal() instanceof OAuth2User) {
+//            OAuth2User oauth2User = (OAuth2User) event.getAuthentication().getPrincipal();
+//
+//            String email = oauth2User.getAttribute("email");
+//            if (email != null && !userService.isUserExist(email)) {
+//                userService.addGoogleUser(oauth2User);
+//            }
+//
+//            // Store user attributes in the session
+//            httpSession.setAttribute("user", oauth2User.getAttributes());
+//        }
     }
 }
 
