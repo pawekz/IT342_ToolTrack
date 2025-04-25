@@ -3,8 +3,14 @@ import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import axios from "axios";
+import {useAuth} from "../components/AuthProvider.jsx";
+
+
 
 const Register = () => {
+
+  const {setJWTtoken} = useAuth();
+
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -42,27 +48,49 @@ const Register = () => {
     }
 
     try {
-      // Determine which API URL to use based on environment
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/register'
-        : 'http://localhost:8080/register';
+      // Validate email first
+      // const isEmailAvailable = await validateEmail(formData.email);
+      axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser?email=" + formData.email)
+          .then( response => {
+            if(response.data.msg === ("User does not exist")){
+              //proceed to registration
+              axios.post("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/register", {
+                  first_name: formData.first_name,
+                last_name: formData.last_name,
+                  email: formData.email,
+                  password_hash: formData.password_hash,
+                }).then( response => {
+                  if(response.status === 201){
+                    setJWTtoken(response.data)
+                    navigate('/dashboard')
+                  }else{
+                    setError(response.data) //Registraton failed message
+                  }
+              })
+            }else{
+              setError("Email is already existed")
+            }
+          })
 
-      // Send registration request
-      const response = await axios.post(apiUrl, {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        password_hash: formData.password_hash
-      });
-
-      // Store token in localStorage
-      localStorage.setItem('token', response.data);
-
-      // Redirect to dashboard
-      navigate('/dashboard');
     } catch (err) {
       console.error("Registration error:", err);
-      setError(err.response?.data || "Registration failed. Please try again.");
+
+      // Log detailed error information
+      console.log("Error details:", {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message
+      });
+
+      // Set a more informative error message
+      if (err.response?.data) {
+        setError(typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data));
+      } else if (err.message) {
+        setError(`Registration failed: ${err.message}`);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
