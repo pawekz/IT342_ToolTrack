@@ -4,8 +4,14 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 
+import { useAuth } from "../components/AuthProvider";
+
+
 const LoginPage = () => {
+
   const navigate = useNavigate();
+  
+  const { loginAction, setJWTtoken } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -66,6 +72,7 @@ const LoginPage = () => {
 
   //function to test database connection - remove after testing
   useEffect(() => {
+
     // Function to test database connection
     const testDbConnection = async () => {
       try {
@@ -90,12 +97,12 @@ const LoginPage = () => {
       setError('Google login service is not available');
       return;
     }
-  
+
     try {
-      const client = google.accounts.oauth2.initCodeClient({
-        client_id: import.meta.env.VITE_CLIENT_GOOGLE_ID, // Ensure this is correctly set in your .env file
+      //client id must not be exposed
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         scope: 'profile email',
-        ux_mode: 'popup', // This ensures a popup is used
         callback: async (response) => {
           if (response.error) {
             console.error('Google login error:', response.error);
@@ -104,31 +111,54 @@ const LoginPage = () => {
           }
   
           try {
-            console.log('Authorization code:', response.code);
-  
-            // Optionally, send the authorization code to your backend for further processing
             const profileResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
               headers: {
-                Authorization: `Bearer ${response.code}`, // Replace with your backend token exchange logic
+                Authorization: `Bearer ${response.access_token}`,
               },
             });
   
             const profile = await profileResponse.json();
             console.log('Google Profile:', profile);
-  
-            // Handle the profile data (e.g., store it in localStorage or send it to your backend)
+            
+            const checkUserResponse = await axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser`,
+              {params: { email: profile.email }},
+            ).then(response => {
+              console.log("Check User Response:", response.data);
+              if(response.status === 200 && response.data.msg === "User exists"){
+                //go to login auth provider
+                const credentials = {
+                  email: profile.email,
+                  isGoogle: true
+                };
+                loginAction(credentials, navigate);
+              }else if(response.status === 200 && response.data.msg === "User does not exist") {
+                
+                const userData = {
+                  email: profile.email,
+                  first_name: profile.given_name,
+                  last_name: profile.family_name,
+                  password_hash: null,
+                  isGoogle: true
+                };
+                axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/register`, userData).then(response => {
+                  setJWTtoken(response.data);
+                })
+              }
+            });
           } catch (err) {
             console.error('Error fetching Google profile:', err);
+            setError("Failed to fetch profile data.");
           }
         },
       });
   
-      // Open the popup
-      client.requestCode();
+      client.requestAccessToken();
     } catch (err) {
       console.error('Error initializing Google login:', err);
+      setError("Google login failed to initialize.");
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-100 p-4 pt-20">

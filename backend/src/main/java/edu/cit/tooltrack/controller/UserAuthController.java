@@ -26,12 +26,14 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Tag(name = "User Authentication API", description = "Endpoints for user authentication")
 @CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net"})
 @RestController
+@RequestMapping("/auth")
 public class UserAuthController {
 
     @Autowired
@@ -39,46 +41,26 @@ public class UserAuthController {
 
     private Map<String, Object> data;
 
-    @Operation(
-            summary = "Allow Google login",
-            description = "Initiates OAuth2 authentication via Google. " +
-                    "Redirects the user to Google's authorization page, and after successful authentication, " +
-                    "redirects to the configured success URL.",
-            responses = {
-                    @ApiResponse(responseCode = "302", description = "Redirects the user to Google's authentication page")
-            }
-    )
-    @GetMapping("/googlelogin")
-    public void initiateGoogleLogin(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorization/google"); // Redirects to Google OAuth
+    @GetMapping("/checkUser")
+    public ResponseEntity<Map<String, String>> checkUser(@RequestParam String email) {
+        if (userService.isUserExist(email) ) {
+            return ResponseEntity.ok(Map.of("msg", "User exists"));
+        } else {
+            return ResponseEntity.ok(Map.of("msg", "User does not exist"));
+        }
     }
 
 
-    @Operation(summary = "gets the user data thats from google api and returns token",
-            description = "after the user gets authenticated by google, to get his token after login in to google it must send a requet to this endpoint to fetch the token")
-    @GetMapping("/user-info")
-    public String getUser(@AuthenticationPrincipal OAuth2User principal){
-
-        if (principal == null) {
-            return "Error: User is not authenticated, principal is null";
+    @PostMapping("/googleLogin")
+    public ResponseEntity<?> googleLogin(@RequestBody User user) {
+        UserResponseDTO userDetails = null;
+        if (userService.isUserExist(user.getEmail())) {
+            userDetails = userService.getUserData(user.getEmail());
+            return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
+        } else {
+            userDetails = userService.register(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userDetails));
         }
-        UserResponseDTO user;
-
-        if(userService.isGoogleSignedIn(principal)) {
-            user = userService.getUserData(principal.getAttributes().get("email").toString());
-            System.out.println(user.getEmail());
-        }
-        else{
-            user = userService.addGoogleUser(principal);
-        }
-
-        // Add user to the SecurityContext
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(user, null, List.of());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-//        return JwtService.generateToken(user);
-        return "Name: " + user.getFirst_name() + " " + user.getLast_name() + " and Email: " + user.getEmail();
     }
 
     @Operation(
@@ -103,7 +85,7 @@ public class UserAuthController {
         // Check if user exists
         try {
             UserResponseDTO userDetails = userService.verifyUser(loginRequest);
-            return ResponseEntity.ok().body(JwtService.generateToken(userDetails));
+            return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Credentials"));
         }
@@ -113,10 +95,11 @@ public class UserAuthController {
     public ResponseEntity<String> register(@RequestBody User user) {
         try {
             UserResponseDTO userResponse = userService.register(user);
-            String token = JwtService.generateToken(userResponse);
-            return ResponseEntity.status(HttpStatus.CREATED).body(token);
+            return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userResponse));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + e.getMessage());
         }
     }
+
+
 }
