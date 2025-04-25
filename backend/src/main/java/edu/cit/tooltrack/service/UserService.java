@@ -65,6 +65,7 @@ public class UserService {
         if(user.getPassword_hash() != null){
             String encodedPassword = passwordEncoder.encode(user.getPassword_hash());
             user.setPassword_hash(encodedPassword);
+            user.setIsGoogle(false);
         }else{
             user.setIsGoogle(true);
         }
