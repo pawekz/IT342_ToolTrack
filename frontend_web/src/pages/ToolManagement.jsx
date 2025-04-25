@@ -5,6 +5,8 @@ import Hammer from "../assets/hammer.jpg";
 
 const ToolManagement = () => {
   const [showModal, setShowModal] = useState(false);
+  const [editingTool, setEditingTool] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [toolItems, setToolItems] = useState([
     {
       tool_id: 1,
@@ -47,6 +49,31 @@ const ToolManagement = () => {
       tool_id: toolItems.length + 1,
     };
     setToolItems([...toolItems, toolWithId]);
+  };
+
+  const handleEditTool = (updatedTool) => {
+    setToolItems(
+      toolItems.map((tool) =>
+        tool.tool_id === updatedTool.tool_id ? updatedTool : tool
+      )
+    );
+    setEditingTool(null);
+  };
+
+  const handleDeleteTool = (toolId) => {
+    // For a real backend, you would make an API call here
+    setToolItems(toolItems.filter((tool) => tool.tool_id !== toolId));
+    setDeleteConfirmation(null);
+  };
+
+  const openEditModal = (tool) => {
+    setEditingTool(tool);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingTool(null);
   };
 
   // Function to determine status badge styling
@@ -101,9 +128,35 @@ const ToolManagement = () => {
 
         <ToolModal
           show={showModal}
-          onClose={() => setShowModal(false)}
-          onSubmit={handleAddTool}
+          onClose={closeModal}
+          onSubmit={editingTool ? handleEditTool : handleAddTool}
+          initialData={editingTool}
+          isEditing={!!editingTool}
         />
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmation && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
+              <p className="mb-6">Are you sure you want to delete "{deleteConfirmation.name}"? This action cannot be undone.</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteConfirmation(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteTool(deleteConfirmation.tool_id)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {toolItems.map((tool) => (
@@ -151,9 +204,20 @@ const ToolManagement = () => {
                   </svg>
                   Acquired: {tool.date_acquired}
                 </div>
-                <button className="text-teal-500 hover:text-teal-600 text-sm font-medium">
-                  Details
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => openEditModal(tool)}
+                    className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => setDeleteConfirmation(tool)}
+                    className="text-red-500 hover:text-red-600 text-sm font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}

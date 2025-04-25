@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ToolModal = ({ show, onClose, onSubmit }) => {
+const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     name: '',
@@ -12,6 +12,25 @@ const ToolModal = ({ show, onClose, onSubmit }) => {
     tool_condition: 'NEW',
     status: 'AVAILABLE',
   });
+
+  // Initialize form with data when editing
+  useEffect(() => {
+    if (initialData) {
+      setForm(initialData);
+    } else {
+      // Reset form when adding a new tool
+      setForm({
+        name: '',
+        serial_number: '',
+        location: '',
+        description: '',
+        date_acquired: '',
+        image_url: '',
+        tool_condition: 'NEW',
+        status: 'AVAILABLE',
+      });
+    }
+  }, [initialData]);
 
   if (!show) return null;
 
@@ -177,7 +196,9 @@ const ToolModal = ({ show, onClose, onSubmit }) => {
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 animate-fade-in">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
-            {step === 1 ? "Add New Tool" : "Generate QR Code"}
+            {isEditing 
+              ? (step === 1 ? "Edit Tool" : "Update QR Code") 
+              : (step === 1 ? "Add New Tool" : "Generate QR Code")}
           </h2>
           <button
             onClick={onClose}
@@ -230,7 +251,7 @@ const ToolModal = ({ show, onClose, onSubmit }) => {
               onClick={handleSubmit}
               className="bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
             >
-              Save Tool
+              {isEditing ? "Update Tool" : "Save Tool"}
             </button>
           )}
         </div>
