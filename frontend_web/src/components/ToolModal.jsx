@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
   const [step, setStep] = useState(1);
@@ -8,15 +8,22 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     location: '',
     description: '',
     date_acquired: '',
+    image: null,
+    image_preview: '',
     image_url: '',
     tool_condition: 'NEW',
     status: 'AVAILABLE',
   });
+  const fileInputRef = useRef(null);
 
   // Initialize form with data when editing
   useEffect(() => {
     if (initialData) {
-      setForm(initialData);
+      setForm({
+        ...initialData,
+        image: null,
+        image_preview: initialData.image_url || ''
+      });
     } else {
       // Reset form when adding a new tool
       setForm({
@@ -25,6 +32,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         location: '',
         description: '',
         date_acquired: '',
+        image: null,
+        image_preview: '',
         image_url: '',
         tool_condition: 'NEW',
         status: 'AVAILABLE',
@@ -39,8 +48,49 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     setForm({ ...form, [name]: value });
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setForm({
+        ...form,
+        image: file,
+        image_preview: URL.createObjectURL(file)
+      });
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
+
   const handleSubmit = () => {
-    onSubmit(form);
+    // Create a FormData object to handle the file upload
+    const formData = new FormData();
+    
+    // Add all form fields to the FormData
+    Object.keys(form).forEach(key => {
+      if (key === 'image' && form[key]) {
+        formData.append('image', form[key]);
+      } else if (key !== 'image_preview') {
+        formData.append(key, form[key]);
+      }
+    });
+    
+    // In a real implementation, the API would handle the image upload and return a URL
+    // For now, we'll create an object that matches what the parent component expects
+    const submissionData = {
+      ...form,
+      // If there's a new image, we'd use the URL from the server response
+      // For now, we'll use the preview URL to simulate this
+      image_url: form.image ? form.image_preview : form.image_url
+    };
+    
+    // Remove properties that shouldn't be passed back to the parent
+    delete submissionData.image;
+    delete submissionData.image_preview;
+    
+    // Pass the cleaned data back to the parent
+    onSubmit(submissionData);
     onClose();
     setStep(1); // Reset step when closed
   };
@@ -147,15 +197,40 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-          <input
-            type="text"
-            name="image_url"
-            value={form.image_url}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="https://example.com/image.jpg"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Image Upload</label>
+          <div className="flex flex-col space-y-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={triggerFileInput}
+                className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                Choose Image
+              </button>
+              <span className="text-sm text-gray-500 truncate">
+                {form.image ? form.image.name : "No file chosen"}
+              </span>
+            </div>
+            
+            {(form.image_preview || form.image_url) && (
+              <div className="mt-2 relative">
+                <div className="h-24 w-24 rounded-lg border border-gray-200 overflow-hidden">
+                  <img 
+                    src={form.image_preview || form.image_url} 
+                    alt="Tool preview" 
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
@@ -202,7 +277,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -233,7 +308,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           {step === 2 && (
             <button
               onClick={prevStep}
-              className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+              className="cursor-pointer px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
             >
               Back
             </button>
@@ -242,14 +317,14 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           {step === 1 ? (
             <button
               onClick={nextStep}
-              className="bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
+              className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
             >
               Next
             </button>
           ) : (
             <button
               onClick={handleSubmit}
-              className="bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
+              className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
             >
               {isEditing ? "Update Tool" : "Save Tool"}
             </button>
