@@ -15,7 +15,7 @@ export const AuthProvider = ({children}) => {
         try {
             console.log(data)
             if(!data.isGoogle){ //NormalLogin
-                const response = await axios.post(`http://localhost:8080/auth/login`, data, {
+                const response = await axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/login`, data, {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {
@@ -29,7 +29,7 @@ export const AuthProvider = ({children}) => {
                     return;
                 }
             } else{ //googleLogin
-                const response = await axios.post(`http://localhost:8080/auth/googleLogin`, data, {
+                const response = await axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/googleLogin`, data, {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {

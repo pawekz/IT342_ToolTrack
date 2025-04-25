@@ -120,7 +120,7 @@ const LoginPage = () => {
             const profile = await profileResponse.json();
             console.log('Google Profile:', profile);
             
-            const checkUserResponse = await axios.get(`http://localhost:8080/auth/checkUser`,
+            const checkUserResponse = await axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser`,
               {params: { email: profile.email }},
             ).then(response => {
               console.log("Check User Response:", response.data);
@@ -140,7 +140,7 @@ const LoginPage = () => {
                   password_hash: null,
                   isGoogle: true
                 };
-                axios.post(`http://localhost:8080/auth/register`, userData).then(response => {
+                axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/register`, userData).then(response => {
                   setJWTtoken(response.data);
                 })
               }
