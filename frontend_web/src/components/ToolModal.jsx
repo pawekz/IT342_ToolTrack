@@ -88,7 +88,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
 
       // Correct axios post
       await axios.post(
-          'http://localhost:8080/qrcode/uploadImage',
+          'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/uploadImage',
           form,
           {
             headers: {
