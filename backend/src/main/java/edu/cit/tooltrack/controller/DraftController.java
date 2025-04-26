@@ -53,35 +53,6 @@ public class DraftController {
     }
 
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadChunk(
-            @RequestParam String name,
-            @RequestParam long size,
-            @RequestParam int currentChunkIndex,
-            @RequestParam int totalChunks,
-            HttpServletRequest request
-    ) {
-        try {
-            String uuidName = java.util.UUID.randomUUID() + "_" + name;
-            String result = chunkUploadService.uploadChunk(uuidName, size, currentChunkIndex, totalChunks, request, "Tool_Images/");
-            if (result != null) {
-                return ResponseEntity.ok().body(Map.of("imageUrl", result, "image_name", uuidName));
-            }
-            return ResponseEntity.ok().body("{\"message\": \"Chunk uploaded successfully\"}");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("{\"error\": \"Chunk upload failed: " + e.getMessage() + "\"}");
-        }
-    }
-
-    @PostMapping("/addTool")
-    public ResponseEntity<?> addTool(@RequestBody ToolItems toolItems) {
-        ToolItems latestToolId = toolItemService.addToolItem(toolItems);
-        if (latestToolId != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("toolId", latestToolId.getTool_id()));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item Addition Unsuccessful"));
-        }
-    }
 
     /**
      * Test endpoint to fetch the first user from the database

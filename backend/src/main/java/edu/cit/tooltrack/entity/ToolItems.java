@@ -24,13 +24,21 @@ public class ToolItems {
     @OneToMany(mappedBy = "tool_id")
     private List<ToolTransaction> toolTransaction;
 
+
+    @Enumerated(EnumType.STRING)
+    private Condition  tool_condition  = Condition.NEW;
+
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.AVAILABLE;
+
     private String category;
     private String name;
     private String qr_code;
+    private String qr_code_name;
     private String location;
     private String description;
     private Date date_acquired;
-    private String image_url; // foreign key to the tool_images
+    private String image_url;
     private String image_name;
     private Timestamp created_at;
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?

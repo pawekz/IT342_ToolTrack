@@ -64,6 +64,8 @@ public class SecurityConfig {
                         .requestMatchers("/googlelogin").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/test/**", "/auth/**").permitAll()
+                        .requestMatchers("/qrcode/**").authenticated()
+                        .requestMatchers("/toolitem/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

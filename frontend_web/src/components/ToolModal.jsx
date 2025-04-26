@@ -4,6 +4,8 @@ import axios from 'axios'
 const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
   const chunkSize = 5 * 1024 * 1024; // 5MB
 
+  const [toolId, setToolId] = useState(null);
+  const [qrImage, setQrImage] = useState(null);
   const [error, setError] = useState(null);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -19,10 +21,6 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     tool_condition: 'NEW',
   });
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    console.log(form);
-  }, [form]);
 
   // Initialize form with data when editing
   useEffect(() => {
@@ -73,9 +71,56 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    try {
+      const form = new FormData();
+
+      // Fetch the blob from the blob URL (qrImage is a blob URL)
+      const response = await fetch(qrImage);
+      const blob = await response.blob();
+
+      // Convert blob into a File (important for multipart upload)
+      const file = new File([blob], `${toolId}_qr.png`, { type: 'image/png' });
+
+      // Append the correct fields
+      form.append('file', file);
+      form.append('toolId', toolId);
+
+      // Correct axios post
+      await axios.post(
+          'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/uploadImage',
+          form,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+      ).then(res => {
+        if (res.status === 201) {
+          console.log(res)
+          const params = new URLSearchParams();
+          params.append('image_url', res.data.imageUrl);
+          params.append('tool_id', toolId);
+
+          axios.put('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addQr',
+              params,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+            }).then(res => {
+
+          })
+        }
+      });
+    } catch (error) {
+      console.error('Error uploading QR Image:', error);
+    }
+
     // Create a FormData object to handle the file upload
     const formData = new FormData();
+
     
     // Add all form fields to the FormData
     Object.keys(form).forEach(key => {
@@ -105,8 +150,83 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     setStep(1); // Reset step when closed
   };
 
-  const nextStep = () => {
-    setStep(2);
+  //this will upload image byte per byte, in this way it can accomodate
+  //large image size
+  const uploadImageInChunks = async (image) => {
+    const file = image;
+    const totalChunks = Math.ceil(file.size / chunkSize);
+
+    for (let i = 0; i < totalChunks; i++) {
+      const from = i * chunkSize;
+      const to = Math.min(from + chunkSize, file.size);
+      const blob = file.slice(from, to);
+      const buffer = await blob.arrayBuffer();
+
+      const params = new URLSearchParams();
+      params.set('name', file.name);
+      params.set('size', file.size);
+      params.set('currentChunkIndex', i);
+      params.set('totalChunks', totalChunks);
+
+      try {
+        const res = await axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/upload?${params.toString()}`, buffer, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+        });
+
+        if (res.status === 200) {
+          // Only return image URL after last chunk
+          if (res.data) {
+            return res.data;
+          }
+        } else {
+          throw new Error("Upload failed with status: " + res.status);
+        }
+      } catch (err) {
+        console.error("Chunk upload error:", err);
+        throw new Error("Upload failed");
+      }
+    }
+    throw new Error("Image URL not returned"); // fallback safety
+  };
+
+  const nextStep = async () => {
+
+    const {imageUrl, image_name}  = await uploadImageInChunks(form.image);
+    await setForm({
+      ...form,
+      image_name: image_name,
+      image_url: imageUrl,
+    });
+
+    axios.post('http://localhost:8080/toolitem/addTool', form, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+        .then(res => {
+          if (res.status === 201) {
+            setToolId(res.data.toolId)
+            axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + res.data.toolId, {}, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+              responseType: 'blob'
+            })
+                .then(res => {
+                  if (res.status === 200) {
+                    const blobUrl = URL.createObjectURL(res.data);
+                    setQrImage(blobUrl);
+                    setStep(2)
+                  }
+                })
+          } else {
+            //set error   <----
+          }
+        })
   };
 
   const prevStep = () => {
@@ -120,9 +240,12 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         <div className="text-center p-6">
           <div className="flex justify-center mb-4">
             <div className="w-48 h-48 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
-              <svg className="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              {qrImage ?  (
+                      <img src={qrImage} alt="QR Code" className="h-full w-full object-cover"/>
+                  )  
+                  :(<svg className="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
-              </svg>
+              </svg>)}
             </div>
           </div>
           <h3 className="text-lg font-medium text-gray-800">QR Code for {form.name}</h3>

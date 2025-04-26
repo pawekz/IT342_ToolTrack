@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.tools.Tool;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class ToolItemService {
@@ -26,22 +28,6 @@ public class ToolItemService {
         }
     }
 
-    public String uploadImage(MultipartFile file,
-                              String uploadId,
-                              String fileName,
-                              int chunkIndex,
-                              int totalChunks) {
-        try {
-            if (file.isEmpty() || fileName == null || fileName.isBlank()) {
-                return "Invalid file or file name.";
-            }
-//            return imageChunkUploader.uploadChunk(file, uploadId ,fileName, chunkIndex, totalChunks, "Tool_Images/");
-        } catch (Exception error) {
-            error.printStackTrace();
-            return "An error occurred while uploading the image.";
-        }
-        return null;
-    }
 
     public ToolItems getToolItem(int id) {
         return toolItemRepository.findById(id).orElse(null);
@@ -51,7 +37,38 @@ public class ToolItemService {
         return toolItemRepository.findAll();
     }
 
-//    public String getToolImage(String imageName){
-//        return s3Service.getImage(imageName, "Tool_Images/");
-//    }
+    public ToolItems addQrImage(int toolId, String qr_url) {
+        try {
+            ToolItems old_tool = toolItemRepository.findById(toolId).orElse(null);
+            old_tool.setQr_code(qr_url);
+            return toolItemRepository.save(old_tool);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public ToolItems updateToolItem(ToolItems newToolData, int toolId) {
+        try {
+            ToolItems old_tool = toolItemRepository.findById(toolId).orElse(null);
+
+            if (old_tool != null) {
+                old_tool.setName(newToolData.getName());
+                old_tool.setCategory(newToolData.getCategory());
+                old_tool.setQr_code(newToolData.getQr_code());
+                old_tool.setLocation(newToolData.getLocation());
+                old_tool.setDescription(newToolData.getDescription());
+                old_tool.setUpdated_at(newToolData.getUpdated_at());
+                old_tool.setImage_url(newToolData.getImage_url());
+                old_tool.setImage_name(newToolData.getImage_name());
+                old_tool.setTool_condition(newToolData.getTool_condition());
+                old_tool.setStatus(newToolData.getStatus());
+                toolItemRepository.save(old_tool);
+                return old_tool;
+            } else {
+                throw new IllegalArgumentException("No Item found");
+            }
+        } catch (IllegalArgumentException error) {
+            return null;
+        }
+    }
 }
