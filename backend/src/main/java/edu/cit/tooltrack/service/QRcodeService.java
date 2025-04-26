@@ -37,12 +37,12 @@ public class QRcodeService {
         }
     }
 
-    public String uploadImage(MultipartFile file) {
+    public String uploadImage(MultipartFile file, String uuidName) {
         try {
-            File tempFile = File.createTempFile("upload", file.getOriginalFilename());
+            File tempFile = File.createTempFile("upload", uuidName);
             file.transferTo(tempFile);
             tempFile.deleteOnExit();
-            return s3Service.upload(tempFile, "QR_Images/", file.getOriginalFilename());
+            return s3Service.upload(tempFile, "QR_Images/", uuidName + ".jpg");
         } catch (Exception error) {
             return null;
         }

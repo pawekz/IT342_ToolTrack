@@ -12,31 +12,36 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/qrcode")
+@CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net"})
 public class QRController {
 
     @Autowired
     private QRcodeService qrcodeService;
 
     @PostMapping("/create/{toolId}")
-    public ResponseEntity<byte[]> createQRAsMultipart(@PathVariable("toolId") String toolId) {
+    public ResponseEntity<?> createQRAsMultipart(@PathVariable("toolId") String toolId) {
         try {
             byte[] qrCodeData = qrcodeService.createQR("tool_id: " + toolId);
-            // Set headers for multipart response (e.g., Content-Disposition)
-            System.out.println(qrCodeData);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + toolId + "_qrcode.png");
             headers.add(HttpHeaders.CONTENT_TYPE, "image/png");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + toolId + "_qrcode.png");
+
             return new ResponseEntity<>(qrCodeData, headers, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+                    .body(Map.of("message", "Failed to generate QR code"));
         }
     }
 
+
     @PostMapping("/uploadImage")
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-        String imageUrl = qrcodeService.uploadImage(file);
+    public ResponseEntity<?> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam int toolId) {
+
+        String uuidName = java.util.UUID.randomUUID() + "_" + toolId;
+        String imageUrl = qrcodeService.uploadImage(file, uuidName);
         if(imageUrl != null){
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("imageUrl", imageUrl));
         }else{
