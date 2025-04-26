@@ -17,7 +17,6 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     image_name: '',
     image_url: '',
     tool_condition: 'NEW',
-    status: 'NEW',
   });
   const fileInputRef = useRef(null);
 
@@ -44,8 +43,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         image: null,
         image_preview: '',
         image_url: '',
-        tool_condition: '',
-        status: 'NEW',
+        tool_condition: 'NEW',
       });
     }
   }, [initialData]);
@@ -107,75 +105,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     setStep(1); // Reset step when closed
   };
 
-  //This function uploads the image, byte by byte, this able to handles
-  //large file size
-  //return : String
-  //params : (File, Int)
-  const uploadImageInChunks = async (image) => {
-    const file = image;
-    const totalChunks = Math.ceil(file.size / chunkSize);
-
-    for (let i = 0; i < totalChunks; i++) {
-      const from = i * chunkSize;
-      const to = Math.min(from + chunkSize, file.size);
-      const blob = file.slice(from, to);
-      const buffer = await blob.arrayBuffer();
-
-      const params = new URLSearchParams();
-      params.set('name', file.name);
-      params.set('size', file.size);
-      params.set('currentChunkIndex', i);
-      params.set('totalChunks', totalChunks);
-
-      try {
-        const res = await axios.post(`http://localhost:8080/test/upload?${params.toString()}`, buffer, {
-          headers: { 'Content-Type': 'application/octet-stream' },
-        });
-
-        if (res.status === 200) {
-          // Only return image URL after last chunk
-          if (res.data?.imageUrl) {
-            return res.data;
-          }
-        }
-      } catch (err) {
-        console.log(err)
-        throw new Error("Upload failed");
-      }
-    }
-    throw new Error("Image URL not returned"); // fallback safety
-  };
-
-
-  const nextStep = async () => {
-    if (form.image_preview == '') {
-      console.log(form) //set an error handling here  <-----
-    }else{
-      try {
-        const data = await uploadImageInChunks(form.image);
-        if (data) {
-          // Update the form with the returned values
-          await setForm({
-            ...form,
-            image_url: data.imageUrl,
-            image_name: data.image_name,
-          });
-          if (form.image_url) {
-            axios.post('http://localhost:8080/test/addTool', form)
-                .then(res => {
-                if (res.status === 200) {
-                  console.log(res.data)
-                  setStep(2)
-                }else{
-                  //set error
-                };
-            })
-          }
-        }
-      } catch (error) {
-        console.error('Upload failed:', error.message); // Log any errors during upload
-      }
-    }
+  const nextStep = () => {
+    setStep(2);
   };
 
   const prevStep = () => {
