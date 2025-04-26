@@ -39,7 +39,7 @@ const LoginPage = () => {
         setJWTtoken(data.token)
         navigate("/dashboard")
       } else {
-        console.error("Login failed");
+        setError("Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);

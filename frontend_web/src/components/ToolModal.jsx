@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios'
 
 const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
+  const chunkSize = 5 * 1024 * 1024; // 5MB
+
+  const [error, setError] = useState(null);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     name: '',
@@ -10,11 +14,16 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     date_acquired: '',
     image: null,
     image_preview: '',
+    image_name: '',
     image_url: '',
     tool_condition: 'NEW',
-    status: 'AVAILABLE',
+    status: 'NEW',
   });
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    console.log(form);
+  }, [form]);
 
   // Initialize form with data when editing
   useEffect(() => {
@@ -35,8 +44,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         image: null,
         image_preview: '',
         image_url: '',
-        tool_condition: 'NEW',
-        status: 'AVAILABLE',
+        tool_condition: '',
+        status: 'NEW',
       });
     }
   }, [initialData]);
@@ -61,6 +70,9 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
 
   const triggerFileInput = () => {
     fileInputRef.current.click();
+    if(form.image === null){
+      setError(null);
+    }
   };
 
   const handleSubmit = () => {
@@ -95,8 +107,75 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     setStep(1); // Reset step when closed
   };
 
-  const nextStep = () => {
-    setStep(2);
+  //This function uploads the image, byte by byte, this able to handles
+  //large file size
+  //return : String
+  //params : (File, Int)
+  const uploadImageInChunks = async (image) => {
+    const file = image;
+    const totalChunks = Math.ceil(file.size / chunkSize);
+
+    for (let i = 0; i < totalChunks; i++) {
+      const from = i * chunkSize;
+      const to = Math.min(from + chunkSize, file.size);
+      const blob = file.slice(from, to);
+      const buffer = await blob.arrayBuffer();
+
+      const params = new URLSearchParams();
+      params.set('name', file.name);
+      params.set('size', file.size);
+      params.set('currentChunkIndex', i);
+      params.set('totalChunks', totalChunks);
+
+      try {
+        const res = await axios.post(`http://localhost:8080/test/upload?${params.toString()}`, buffer, {
+          headers: { 'Content-Type': 'application/octet-stream' },
+        });
+
+        if (res.status === 200) {
+          // Only return image URL after last chunk
+          if (res.data?.imageUrl) {
+            return res.data;
+          }
+        }
+      } catch (err) {
+        console.log(err)
+        throw new Error("Upload failed");
+      }
+    }
+    throw new Error("Image URL not returned"); // fallback safety
+  };
+
+
+  const nextStep = async () => {
+    if (form.image_preview == '') {
+      console.log(form) //set an error handling here  <-----
+    }else{
+      try {
+        const data = await uploadImageInChunks(form.image);
+        if (data) {
+          // Update the form with the returned values
+          await setForm({
+            ...form,
+            image_url: data.imageUrl,
+            image_name: data.image_name,
+          });
+          if (form.image_url) {
+            axios.post('http://localhost:8080/test/addTool', form)
+                .then(res => {
+                if (res.status === 200) {
+                  console.log(res.data)
+                  setStep(2)
+                }else{
+                  //set error
+                };
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Upload failed:', error.message); // Log any errors during upload
+      }
+    }
   };
 
   const prevStep = () => {
@@ -149,17 +228,17 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-          <input
-            type="text"
-            name="serial_number"
-            value={form.serial_number}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="Enter serial number"
-          />
-        </div>
+        {/*<div>*/}
+        {/*  <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>*/}
+        {/*  <input*/}
+        {/*    type="text"*/}
+        {/*    name="serial_number"*/}
+        {/*    value={form.serial_number}*/}
+        {/*    onChange={handleChange}*/}
+        {/*    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"*/}
+        {/*    placeholder="Enter serial number"*/}
+        {/*  />*/}
+        {/*</div>*/}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -248,20 +327,20 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
-          >
-            <option value="AVAILABLE">AVAILABLE</option>
-            <option value="BORROWED">BORROWED</option>
-            <option value="MAINTENANCE">MAINTENANCE</option>
-            <option value="RETIRED">RETIRED</option>
-          </select>
-        </div>
+      {/*  <div>*/}
+      {/*    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>*/}
+      {/*    <select*/}
+      {/*      name="status"*/}
+      {/*      value={form.status}*/}
+      {/*      onChange={handleChange}*/}
+      {/*      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"*/}
+      {/*    >*/}
+      {/*      <option value="AVAILABLE">AVAILABLE</option>*/}
+      {/*      <option value="BORROWED">BORROWED</option>*/}
+      {/*      <option value="MAINTENANCE">MAINTENANCE</option>*/}
+      {/*      <option value="RETIRED">RETIRED</option>*/}
+      {/*    </select>*/}
+      {/*  </div>*/}
       </div>
     );
   };

@@ -40,14 +40,14 @@ public class S3Service {
         }
     }
 
-    public String upload(File file, String folderPath, String fileName) {
+    public String upload(File file, String folderPath, String uuidName) {
         try {
-            String s3Key = BUCKET_KEY + folderPath + java.util.UUID.randomUUID() + "_" + fileName;
+            String s3Key = BUCKET_KEY + folderPath + uuidName;
 
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(BUCKET_NAME)
                     .key(s3Key)
-                    .contentType(getContentType(fileName))
+                    .contentType(getContentType(uuidName))
                     .build();
 
             // Step 3: Upload the file to S3

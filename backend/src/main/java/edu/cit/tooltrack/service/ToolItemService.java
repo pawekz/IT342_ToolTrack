@@ -1,10 +1,6 @@
 package edu.cit.tooltrack.service;
 
-import edu.cit.tooltrack.dto.UploadToolItemDTO;
-import edu.cit.tooltrack.entity.ToolImages;
 import edu.cit.tooltrack.entity.ToolItems;
-import edu.cit.tooltrack.repository.ToolCategoryRepository;
-import edu.cit.tooltrack.repository.ToolImagesRepository;
 import edu.cit.tooltrack.repository.ToolItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,21 +14,11 @@ public class ToolItemService {
     @Autowired
     private ToolItemRepository toolItemRepository;
     @Autowired
-    private ToolCategoryService toolCategoryService;
-    @Autowired
-    private S3Service s3Service;
-    @Autowired
-    private ToolImagesService toolImagesServ;
-    @Autowired
     private ImageChunkUploader imageChunkUploader;
 
-    public ToolItems addToolItem(UploadToolItemDTO toolItemDTO) {
+    public ToolItems addToolItem(ToolItems toolItems) {
         try {
-            toolItemDTO.getToolItem().setCategory_id(toolCategoryService.getCategory(toolItemDTO.getToolCategory()));
-            ToolItems savedToolItem = toolItemRepository.save(toolItemDTO.getToolItem());
-            for (String imageUrl : toolItemDTO.getImages()) {
-                toolImagesServ.add(imageUrl, savedToolItem);
-            }
+            toolItemRepository.save(toolItems);
             return toolItemRepository.findLatestToolItem();
         }catch (Exception error){
             System.out.println(error.getMessage());
@@ -65,7 +51,7 @@ public class ToolItemService {
         return toolItemRepository.findAll();
     }
 
-    public String getToolImage(String imageName){
-        return s3Service.getImage(imageName, "Tool_Images/");
-    }
+//    public String getToolImage(String imageName){
+//        return s3Service.getImage(imageName, "Tool_Images/");
+//    }
 }
