@@ -20,35 +20,18 @@ public class ToolItems {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int tool_id;
 
-
     @JsonManagedReference("toolTransaction_toolId")
     @OneToMany(mappedBy = "tool_id")
     private List<ToolTransaction> toolTransaction;
 
-    @JsonBackReference("toolItem_category")
-    @ManyToOne
-    @JoinColumn(name = "fk_category")
-    private ToolCategory category_id;
-
+    private String category;
     private String name;
-    private String serial_number;
     private String qr_code;
-
-    @Enumerated(EnumType.STRING)
-    private Condition  tool_condition  = Condition.NEW;
-
-    @Enumerated(EnumType.STRING)
-    private Status status = Status.AVAILABLE;
-
     private String location;
     private String description;
-
     private Date date_acquired;
-
-    @JsonManagedReference("toolItem_image")
-    @OneToMany(mappedBy = "tool_item")
-    private List<ToolImages> images; // foreign key to the tool_images
-
+    private String image_url; // foreign key to the tool_images
+    private String image_name;
     private Timestamp created_at;
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 

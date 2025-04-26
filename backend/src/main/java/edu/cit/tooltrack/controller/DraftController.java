@@ -62,9 +62,10 @@ public class DraftController {
             HttpServletRequest request
     ) {
         try {
-            String result = chunkUploadService.uploadChunk(name, size, currentChunkIndex, totalChunks, request);
+            String uuidName = java.util.UUID.randomUUID() + "_" + name;
+            String result = chunkUploadService.uploadChunk(uuidName, size, currentChunkIndex, totalChunks, request, "Tool_Images/");
             if (result != null) {
-                return ResponseEntity.ok().body("{\"imageUrl\": \"" + result + "\"}");
+                return ResponseEntity.ok().body(Map.of("imageUrl", result, "image_name", uuidName));
             }
             return ResponseEntity.ok().body("{\"message\": \"Chunk uploaded successfully\"}");
         } catch (Exception e) {
@@ -73,8 +74,8 @@ public class DraftController {
     }
 
     @PostMapping("/addTool")
-    public ResponseEntity<?> addTool(@RequestBody UploadToolItemDTO toolItemDTO) {
-        ToolItems latestToolId = toolItemService.addToolItem(toolItemDTO);
+    public ResponseEntity<?> addTool(@RequestBody ToolItems toolItems) {
+        ToolItems latestToolId = toolItemService.addToolItem(toolItems);
         if (latestToolId != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("toolId", latestToolId.getTool_id()));
         } else {

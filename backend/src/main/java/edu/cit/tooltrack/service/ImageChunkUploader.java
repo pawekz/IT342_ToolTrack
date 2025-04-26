@@ -26,13 +26,18 @@ public class ImageChunkUploader {
     private static final String UPLOAD_DIR = "backend/uploads/"; // Directory to store uploaded files
     private static final ConcurrentHashMap<String, Long> uploadedSizes = new ConcurrentHashMap<>();
 
-    public String uploadChunk(String name, long size, int currentChunkIndex, int totalChunks, HttpServletRequest request) throws IOException {
+    public String uploadChunk(String uuidName, long size,
+                              int currentChunkIndex,
+                              int totalChunks,
+                              HttpServletRequest request,
+                              String directory
+    ) throws IOException {
         File uploadDir = new File(UPLOAD_DIR);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
 
-        File outputFile = new File(uploadDir, name);
+        File outputFile = new File(uploadDir, uuidName);
 
         try (InputStream inputStream = request.getInputStream();
             FileOutputStream fos = new FileOutputStream(outputFile, true)) {
@@ -45,10 +50,9 @@ public class ImageChunkUploader {
 
         if (currentChunkIndex == totalChunks - 1) {
             // Final chunk received, upload to S3 and delete local file
-            String imageUrl = s3Service.upload(outputFile,"Tool_Images/" , name);
+            String imageUrl = s3Service.upload(outputFile,directory , uuidName);
             // Clean up local file after upload
-//            outputFile.delete();
-
+            outputFile.delete();
             return imageUrl;
         }
 

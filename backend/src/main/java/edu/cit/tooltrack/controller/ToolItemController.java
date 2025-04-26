@@ -44,20 +44,20 @@ public class ToolItemController {
         return null;
     }
 
-    @GetMapping("/getImage/{imageName}")
-    public String getImageTool(@PathVariable String imageName){
-        return toolItemService.getToolImage(imageName);
-    }
+//    @GetMapping("/getImage/{imageName}")
+//    public String getImageTool(@PathVariable String imageName){
+//        return toolItemService.getToolImage(imageName);
+//    }
 
 
-    @PostMapping("/addTool")
-    public ResponseEntity<?> addTool(@RequestBody UploadToolItemDTO toolItemDTO) {
-        ToolItems latestToolId = toolItemService.addToolItem(toolItemDTO);
-        if (latestToolId != null) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("toolId", latestToolId.getTool_id()));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item Addition Unsuccessful"));
-        }
-    }
+//    @PostMapping("/addTool")
+//    public ResponseEntity<?> addTool(@RequestBody UploadToolItemDTO toolItemDTO) {
+//        ToolItems latestToolId = toolItemService.addToolItem(toolItemDTO);
+//        if (latestToolId != null) {
+//            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("toolId", latestToolId.getTool_id()));
+//        } else {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item Addition Unsuccessful"));
+//        }
+//    }
 
 }
