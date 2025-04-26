@@ -208,6 +208,8 @@ private fun MenuOptions(
     navController: NavHostController,
     onLogoutClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,7 +220,10 @@ private fun MenuOptions(
             icon = Icons.Default.AccountBalanceWallet,
             title = "Borrowed Tools",
             showDivider = true,
-            onClick = { /* Navigate to Borrowed Tools screen */ }
+            onClick = { 
+                // Navigate to BorrowedToolActivity
+                context.startActivity(Intent(context, BorrowedToolActivity::class.java))
+            }
         )
 
         // Profile Settings Option

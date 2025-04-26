@@ -14,24 +14,27 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
     private val toolSearchService = ToolSearchService.create()
-    
+
     var searchQuery by mutableStateOf("")
         private set
-    
+
     var searchResults by mutableStateOf<List<ToolItem>>(emptyList())
         private set
-    
+
     var categories by mutableStateOf<List<ToolCategory>>(emptyList())
         private set
-    
+
     var isLoading by mutableStateOf(false)
         private set
-    
+
     var errorMessage by mutableStateOf<String?>(null)
         private set
-    
+
+    var isCategoriesExpanded by mutableStateOf(false)
+        private set
+
     private var searchJob: Job? = null
-    
+
     init {
         categories = listOf(
             ToolCategory(1, "Power Tools", "Various power tools", ""),
@@ -46,27 +49,27 @@ class HomeViewModel : ViewModel() {
         )
 
     }
-    
+
     fun updateSearchQuery(query: String) {
         searchQuery = query
         searchJob?.cancel()
-        
+
         if (query.isEmpty()) {
             searchResults = emptyList()
             return
         }
-        
+
         searchJob = viewModelScope.launch {
             delay(300) // Debounce search typing
             performSearch(query)
         }
     }
-    
+
     private fun performSearch(query: String) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-            
+
             try {
                 val response = toolSearchService.searchTools(query)
                 if (response.isSuccessful) {
@@ -83,12 +86,12 @@ class HomeViewModel : ViewModel() {
             }
         }
     }
-    
+
     fun searchByCategory(category: ToolCategory) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-            
+
             try {
                 val response = toolSearchService.searchTools("", category.name)
                 if (response.isSuccessful) {
@@ -105,12 +108,12 @@ class HomeViewModel : ViewModel() {
             }
         }
     }
-    
+
     private fun loadCategories() {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
-            
+
             try {
                 val response = toolSearchService.getCategories()
                 if (response.isSuccessful) {
@@ -124,5 +127,9 @@ class HomeViewModel : ViewModel() {
                 isLoading = false
             }
         }
+    }
+
+    fun toggleCategoriesExpanded() {
+        isCategoriesExpanded = !isCategoriesExpanded
     }
 }
