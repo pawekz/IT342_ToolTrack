@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,6 +55,7 @@ fun HomeScreen() {
     val categories = viewModel.categories
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
+    val isCategoriesExpanded = viewModel.isCategoriesExpanded
 
     Box(
         modifier = Modifier
@@ -80,7 +84,9 @@ fun HomeScreen() {
                 if (categories.isNotEmpty()) {
                     CategorySection(
                         categories = categories,
-                        onCategoryClick = { /* Do not call search */ }
+                        onCategoryClick = { /* Do not call search */ },
+                        isExpanded = isCategoriesExpanded,
+                        onToggleExpanded = { viewModel.toggleCategoriesExpanded() }
                     )
                 }
 
@@ -109,13 +115,13 @@ fun HomeHeader(
     val context = LocalContext.current
     // Initialize SessionManager to access user data
     val sessionManager = remember { SessionManager(context) }
-    
+
     // Check if user is logged in (token is valid and not expired)
     val isLoggedIn = sessionManager.isLoggedIn()
-    
+
     // Get the user's first name from SessionManager only if logged in
     val firstName = if (isLoggedIn) sessionManager.getUserFirstName() else ""
-    
+
      Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,7 +225,9 @@ fun SearchBar(
 @Composable
 fun CategorySection(
     categories: List<ToolCategory>,
-    onCategoryClick: (ToolCategory) -> Unit
+    onCategoryClick: (ToolCategory) -> Unit,
+    isExpanded: Boolean = false,
+    onToggleExpanded: () -> Unit = {}
 ) {
     // Sample extended categories - in a real app, these would come from your data source
     val extendedCategories = rememberExtendedCategories(categories)
@@ -238,61 +246,93 @@ fun CategorySection(
             )
 
             Text(
-                text = "See All",
+                text = if (isExpanded) "Show Less" else "See All",
                 fontSize = 14.sp,
                 color = Color(0xFF3366FF),
-                modifier = Modifier.clickable { /* Navigate to all categories */ }
+                modifier = Modifier.clickable { onToggleExpanded() }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Carousel implementation
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp) // Fixed height for the carousel
-        ) {
-            val scrollState = rememberLazyListState()
-            val coroutineScope = rememberCoroutineScope()
-
-            LazyRow(
-                state = scrollState,
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+        if (isExpanded) {
+            // Grid layout for expanded view
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(extendedCategories) { category ->
-                    CategoryItem(category = category, onClick = { onCategoryClick(category) })
+                    CategoryItem(
+                        category = category,
+                        onClick = { onCategoryClick(category) }
+                    )
                 }
             }
 
-            // Add indicators and navigation arrows if desired
-            Row(
+            // Button to collapse back
+            Button(
+                onClick = { onToggleExpanded() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 8.dp),
-                horizontalArrangement = Arrangement.Center
+                    .padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF3366FF)
+                )
             ) {
-                extendedCategories.forEachIndexed { index, _ ->
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .size(8.dp)
-                            .background(
-                                color = if (
-                                    // Check if this index is visible in the viewport
-                                    index >= scrollState.firstVisibleItemIndex && 
-                                    index <= scrollState.firstVisibleItemIndex + scrollState.layoutInfo.visibleItemsInfo.size - 1
-                                ) Color(0xFF3366FF) else Color(0xFFD9E3F0),
-                                shape = CircleShape
-                            )
-                            .clickable {
-                                coroutineScope.launch {
-                                    scrollState.animateScrollToItem(index)
+                Text("Show Less", color = Color.White)
+            }
+        } else {
+            // Carousel implementation for collapsed view
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp) // Fixed height for the carousel
+            ) {
+                val scrollState = rememberLazyListState()
+                val coroutineScope = rememberCoroutineScope()
+
+                LazyRow(
+                    state = scrollState,
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(extendedCategories) { category ->
+                        CategoryItem(category = category, onClick = { onCategoryClick(category) })
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                // Add indicators and navigation arrows if desired
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    extendedCategories.forEachIndexed { index, _ ->
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .size(8.dp)
+                                .background(
+                                    color = if (
+                                        // Check if this index is visible in the viewport
+                                        index >= scrollState.firstVisibleItemIndex && 
+                                        index <= scrollState.firstVisibleItemIndex + scrollState.layoutInfo.visibleItemsInfo.size - 1
+                                    ) Color(0xFF3366FF) else Color(0xFFD9E3F0),
+                                    shape = CircleShape
+                                )
+                                .clickable {
+                                    coroutineScope.launch {
+                                        scrollState.animateScrollToItem(index)
+                                    }
                                 }
-                            }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -410,7 +450,7 @@ fun CategoryItem(
             fontSize = 14.sp,
             color = Color(0xFF2E3A59),
             textAlign = TextAlign.Center,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
     }
@@ -647,12 +687,14 @@ private fun HomePreviewContent() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
                 // Categories
                 CategorySection(
                     categories = sampleCategories,
-                    onCategoryClick = { }
+                    onCategoryClick = { },
+                    isExpanded = false,
+                    onToggleExpanded = { }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
