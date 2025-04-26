@@ -35,7 +35,7 @@ const LoginPage = () => {
 
     try {
       // Always use Azure backend for login
-      const response = await fetch("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/auth/login", {
+      const response = await fetch("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })

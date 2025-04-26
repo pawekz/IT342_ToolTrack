@@ -102,7 +102,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           params.append('image_url', res.data.imageUrl);
           params.append('tool_id', toolId);
 
-          axios.put('http://localhost:8080/toolitem/addQr',
+          axios.put('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addQr',
               params,
             {
               headers: {
@@ -169,7 +169,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
       params.set('totalChunks', totalChunks);
 
       try {
-        const res = await axios.post(`http://localhost:8080/toolitem/upload?${params.toString()}`, buffer, {
+        const res = await axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/upload?${params.toString()}`, buffer, {
           headers: {
             'Content-Type': 'application/octet-stream',
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -210,7 +210,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         .then(res => {
           if (res.status === 201) {
             setToolId(res.data.toolId)
-            axios.post('http://localhost:8080/qrcode/create/' + res.data.toolId, {}, {
+            axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + res.data.toolId, {}, {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem('token')}`,
               },
