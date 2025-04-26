@@ -94,4 +94,7 @@ dependencies {
     //for QR Code
     implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
 
+    //for image library
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 }

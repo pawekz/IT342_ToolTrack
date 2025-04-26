@@ -23,10 +23,10 @@ class LoginActivityTest {
     @Test
     fun loginWithValidCredentials_doesNotCrashAndNavigates() {
         assertTrue("Device has no internet connection", hasInternetConnection(composeTestRule.activity))
-        // Enter email
+        // Enter email - using the specified test account
         composeTestRule.onNodeWithTag("emailField").performTextClearance()
-        composeTestRule.onNodeWithTag("emailField").performTextInput("paula.binignit@cit.edu")
-        // Enter password
+        composeTestRule.onNodeWithTag("emailField").performTextInput("paulo.binignitmaster@cit.edu")
+        // Enter password - using the specified test account
         composeTestRule.onNodeWithTag("passwordField").performTextClearance()
         composeTestRule.onNodeWithTag("passwordField").performTextInput("!@#Admin123")
         // Click the login button (using text label)

@@ -38,7 +38,7 @@ fun ProfileSettings(navController: NavHostController) {
     val context = LocalContext.current
     // Initialize SessionManager
     val sessionManager = remember { SessionManager(context) }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -47,21 +47,23 @@ fun ProfileSettings(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 80.dp) // Add padding for bottom navigation
+                .padding(bottom = 120.dp) // Increased padding to ensure Save button is fully visible
         ) {
             // Profile Header with user info and edit functionality
             ProfileSettingsHeader(
                 navController = navController,
-                name = sessionManager.getUserName(),
+                firstName = sessionManager.getUserFirstName(),
+                lastName = sessionManager.getUserLastName(),
                 role = sessionManager.getUserRole()
             )
-            
+
             // Profile form fields
             ProfileForm(
-                name = sessionManager.getUserName(),
+                firstName = sessionManager.getUserFirstName(),
+                lastName = sessionManager.getUserLastName(),
                 email = sessionManager.getUserEmail()
             )
-            
+
             // Save button
             SaveButton()
         }
@@ -71,7 +73,8 @@ fun ProfileSettings(navController: NavHostController) {
 @Composable
 private fun ProfileSettingsHeader(
     navController: NavHostController,
-    name: String = "",
+    firstName: String = "",
+    lastName: String = "",
     role: String = ""
 ) {
     Column(
@@ -147,7 +150,7 @@ private fun ProfileSettingsHeader(
                             contentScale = ContentScale.Crop
                         )
                     }
-                    
+
                     // Edit button overlay
                     Box(
                         modifier = Modifier
@@ -167,9 +170,15 @@ private fun ProfileSettingsHeader(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // User Name - Use the name from SessionManager
+                // User Name - Display combined first and last name from parameters
+                val displayName = if (firstName.isNotEmpty() || lastName.isNotEmpty()) {
+                    "$firstName $lastName".trim()
+                } else {
+                    "User"
+                }
+
                 Text(
-                    text = name.ifEmpty { "User" },
+                    text = displayName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black
@@ -190,42 +199,52 @@ private fun ProfileSettingsHeader(
 
 @Composable
 private fun ProfileForm(
-    name: String = "",
+    firstName: String = "",
+    lastName: String = "",
     email: String = ""
 ) {
+    // Get the current context
+    val context = LocalContext.current
+    // Initialize SessionManager
+    val sessionManager = remember { SessionManager(context) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 24.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp), // Reduced vertical padding
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Name Field - Use the name from SessionManager
+        // First Name Field
         ProfileFormField(
             icon = Icons.Default.Person,
-            value = name.ifEmpty { "User" },
-            iconTint = Color(0xFF909090)
+            value = firstName.ifEmpty { "First Name" },
+            iconTint = Color(0xFF909090),
+            label = "First Name"
         )
-        
+
+        // Last Name Field
+        ProfileFormField(
+            icon = Icons.Default.Person,
+            value = lastName.ifEmpty { "Last Name" },
+            iconTint = Color(0xFF909090),
+            label = "Last Name"
+        )
+
         // Email Field - Use the email from SessionManager
         ProfileFormField(
             icon = Icons.Default.Email,
             value = email.ifEmpty { "user@example.com" },
             iconTint = Color(0xFF909090)
         )
-        
+
         // Password Field
         ProfileFormField(
             icon = Icons.Default.Lock,
             value = "************",
             iconTint = Color(0xFF909090)
         )
-        
-        // Phone Field
-        ProfileFormField(
-            icon = Icons.Default.Phone,
-            value = "+63 911 911 9111",
-            iconTint = Color(0xFF909090)
-        )
+
+        // Phone number removed as it's not included in JWT token
     }
 }
 
@@ -233,7 +252,8 @@ private fun ProfileForm(
 private fun ProfileFormField(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     value: String,
-    iconTint: Color = Color.Black
+    iconTint: Color = Color.Black,
+    label: String = ""
 ) {
     Surface(
         modifier = Modifier
@@ -254,14 +274,29 @@ private fun ProfileFormField(
                 tint = iconTint,
                 modifier = Modifier.size(20.dp)
             )
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
-            Text(
-                text = value,
-                fontSize = 13.sp,
-                color = Color.Black
-            )
+
+            if (label.isNotEmpty()) {
+                Column {
+                    Text(
+                        text = label,
+                        fontSize = 10.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = value,
+                        fontSize = 13.sp,
+                        color = Color.Black
+                    )
+                }
+            } else {
+                Text(
+                    text = value,
+                    fontSize = 13.sp,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
@@ -271,7 +306,7 @@ private fun SaveButton() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 24.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp), // Reduced vertical padding
         contentAlignment = Alignment.Center
     ) {
         Button(
