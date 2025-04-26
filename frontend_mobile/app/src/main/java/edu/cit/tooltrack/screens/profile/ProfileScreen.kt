@@ -1,6 +1,7 @@
 package edu.cit.tooltrack.screens.profile
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,7 +56,7 @@ fun ProfileScreen(navController: NavHostController) {
     val context = LocalContext.current
     // Initialize SessionManager
     val sessionManager = remember { SessionManager(context) }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -68,16 +69,26 @@ fun ProfileScreen(navController: NavHostController) {
         ) {
             // Profile Header with user info
             ProfileHeader(
-                name = sessionManager.getUserName(),
-                email = sessionManager.getUserEmail()
+                firstName = sessionManager.getUserFirstName(),
+                lastName = sessionManager.getUserLastName(),
+                email = sessionManager.getUserEmail(),
+                navController = navController
             )
-            
+
             // Menu Options
             MenuOptions(
                 navController = navController,
                 onLogoutClick = {
-                    sessionManager.clearSession()
-                    // Navigate to login screen
+                    // Check if the user is actually logged in and token is valid
+                    if (sessionManager.isLoggedIn()) {
+                        // Clear the session data (removes JWT token and user info)
+                        sessionManager.clearSession()
+                        Log.d("ProfileScreen", "User logged out successfully")
+                    } else {
+                        Log.d("ProfileScreen", "User was already logged out due to token expiration")
+                    }
+                    
+                    // Navigate to login screen regardless of previous state
                     context.startActivity(Intent(context, LoginActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
@@ -89,8 +100,10 @@ fun ProfileScreen(navController: NavHostController) {
 
 @Composable
 private fun ProfileHeader(
-    name: String = "",
-    email: String = ""
+    firstName: String = "",
+    lastName: String = "",
+    email: String = "",
+    navController: NavHostController
 ) {
     Column(
         modifier = Modifier
@@ -115,6 +128,7 @@ private fun ProfileHeader(
                         color = Color(0xB3E7F6F4), // Transparent light teal
                         shape = RoundedCornerShape(10.dp)
                     )
+                    .clickable { navController.popBackStack() }
                     .padding(8.dp)
             ) {
                 Icon(
@@ -162,9 +176,15 @@ private fun ProfileHeader(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // User Name - Use the name from SessionManager
+                // User Name - Display combined first and last name
+                val displayName = if (firstName.isNotEmpty() || lastName.isNotEmpty()) {
+                    "$firstName $lastName".trim()
+                } else {
+                    "User"
+                }
+
                 Text(
-                    text = name.ifEmpty { "User" },
+                    text = displayName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black
@@ -188,6 +208,8 @@ private fun MenuOptions(
     navController: NavHostController,
     onLogoutClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,9 +220,12 @@ private fun MenuOptions(
             icon = Icons.Default.AccountBalanceWallet,
             title = "Borrowed Tools",
             showDivider = true,
-            onClick = { /* Navigate to Borrowed Tools screen */ }
+            onClick = { 
+                // Navigate to BorrowedToolActivity
+                context.startActivity(Intent(context, BorrowedToolActivity::class.java))
+            }
         )
-        
+
         // Profile Settings Option
         MenuOption(
             icon = Icons.Default.Person,
@@ -208,7 +233,7 @@ private fun MenuOptions(
             showDivider = true,
             onClick = { navController.navigate("profile_settings") }
         )
-        
+
         // About Us Option
         MenuOption(
             icon = Icons.Outlined.Info,
@@ -216,7 +241,7 @@ private fun MenuOptions(
             showDivider = true,
             onClick = { navController.navigate("about") }
         )
-        
+
         // Delete Account Option
         MenuOption(
             icon = Icons.Outlined.Delete,
@@ -226,9 +251,9 @@ private fun MenuOptions(
             showDivider = false,
             onClick = { /* Show delete account confirmation */ }
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Logout Option
         MenuOption(
             icon = Icons.AutoMirrored.Filled.ExitToApp,
@@ -274,9 +299,9 @@ private fun MenuOption(
                     modifier = Modifier.size(20.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(19.dp))
-            
+
             // Menu item text
             Text(
                 text = title,
@@ -285,7 +310,7 @@ private fun MenuOption(
                 color = textColor
             )
         }
-        
+
         if (showDivider) {
             Divider(
                 color = Color(0xFFD4D4D4),

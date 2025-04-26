@@ -30,4 +30,18 @@
     <string name="menu_home">Home</string>
     <string name="menu_scan">Scan</string>
     <string name="menu_profile">Profile</string>
+
+    <string name="search_hint">Search for tools…</string>
+    <string name="categories">Categories</string>
+    <string name="popular_tools">Popular Tools</string>
+    <string name="search_results">Search Results</string>
+    <string name="no_results_found">No results found</string>
+    <string name="no_tools_available">No tools available</string>
+    <string name="error_loading_data">Error loading data</string>
+    <string name="status_available">Available</string>
+    <string name="status_in_use">In Use</string>
+    <string name="status_maintenance">Maintenance</string>
+    <string name="hello_there">Hello, there!</string>
+    <string name="find_your_tools">Find your tools</string>
+
 </resources>

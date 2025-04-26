@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -41,6 +42,9 @@ import edu.cit.tooltrack.api.RegistrationRequest
 import edu.cit.tooltrack.api.ToolTrackApi
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SignupActivity : ComponentActivity() {
 
@@ -60,7 +64,7 @@ class SignupActivity : ComponentActivity() {
             if (result.resultCode == RESULT_OK) {
                 try {
                     val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                    val account = task.getResult(ApiException::class.java)
+                    task.getResult(ApiException::class.java)
                     // Signed in successfully
                     Toast.makeText(this, "Google Sign Up successful", Toast.LENGTH_SHORT).show()
                     navigateToMainActivity()
@@ -80,9 +84,9 @@ class SignupActivity : ComponentActivity() {
             ToolTrackTheme {
                 SignupScreen(
                     isLoading = isLoading.value,
-                    onSignupClick = { name, email, password, confirmPassword ->
-                        if (validateInputs(name, email, password, confirmPassword)) {
-                            registerUser(name, email, password)
+                    onSignupClick = { firstName, lastName, email, password, confirmPassword ->
+                        if (validateInputs(firstName, lastName, email, password, confirmPassword)) {
+                            registerUser(firstName, lastName, email, password)
                         }
                     },
                     onGoogleSignUpClick = {
@@ -97,12 +101,7 @@ class SignupActivity : ComponentActivity() {
         }
     }
 
-    private fun registerUser(name: String, email: String, password: String) {
-        // Split name into first and last name
-        val nameParts = name.trim().split(" ", limit = 2)
-        val firstName = nameParts[0]
-        val lastName = if (nameParts.size > 1) nameParts[1] else ""
-
+    private fun registerUser(firstName: String, lastName: String, email: String, password: String) {
         // Create registration request
         val request = RegistrationRequest(
             first_name = firstName,
@@ -110,7 +109,6 @@ class SignupActivity : ComponentActivity() {
             email = email,
             password_hash = password,
             isGoogle = false,
-            role = "staff"
         )
         //logcat
         Log.d("API_REQUEST", "Sending registration: $request")
@@ -118,47 +116,77 @@ class SignupActivity : ComponentActivity() {
         // Show loading indicator
         isLoading.value = true
 
-        // Make API call
+        // Make API call with timeout
         lifecycleScope.launch {
             try {
-                val response = toolTrackApi.registerUser(request)
-                //isLoading.value = false
-
-                if (response.isSuccessful) {
-                val responseBody = response.body()
-                Log.d("API_SUCCESS", "Registration successful: $responseBody")
-
-                Toast.makeText(
-                    this@SignupActivity,
-                    "Successfully Registered, redirecting to Dashboard",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                lifecycleScope.launch {
-                    kotlinx.coroutines.delay(2000) // 2 seconds delay
-                    isLoading.value = false
-                    navigateToMainActivity()
+                // Set a 30-second timeout for the API call
+                val response = withTimeoutOrNull(30000) { // 30 seconds timeout
+                    toolTrackApi.registerUser(request)
                 }
 
+                if (response == null) {
+                    // Timeout occurred
+                    isLoading.value = false
+                    Log.e("API_ERROR", "Registration request timed out after 30 seconds")
+                    Toast.makeText(
+                        this@SignupActivity,
+                        "Registration timed out. Please try again later.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    Log.d("API_SUCCESS", "Registration successful: $responseBody")
+
+                    Toast.makeText(
+                        this@SignupActivity,
+                        "Successfully Registered, redirecting to Dashboard",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    lifecycleScope.launch {
+                        kotlinx.coroutines.delay(2000) // 2 seconds delay
+                        isLoading.value = false
+                        navigateToMainActivity()
+                    }
                 } else {
-                    val errorBody = response.errorBody()?.string()
+                    isLoading.value = false
+                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                    val errorMessage = if (errorBody.contains("Registration failed")) {
+                        "Registration failed. Please try again with a different email."
+                    } else {
+                        "Registration failed: $errorBody"
+                    }
+
                     Log.e("API_ERROR", "Registration failed: $errorBody")
-                    Toast.makeText(this@SignupActivity,
-                        "Registration failed: ${response.errorBody()?.string()}",
-                        Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@SignupActivity,
+                        errorMessage,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
                 isLoading.value = false
                 Log.e("API_EXCEPTION", "Error during registration", e)
-                Toast.makeText(this@SignupActivity,
-                    "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@SignupActivity,
+                    "Error: ${e.message ?: "Unknown error"}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
-    private fun validateInputs(name: String, email: String, password: String, confirmPassword: String): Boolean {
-        if (name.isEmpty()) {
-            Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show()
+    private fun validateInputs(firstName: String, lastName: String, email: String, password: String, confirmPassword: String): Boolean {
+        if (firstName.isEmpty()) {
+            Toast.makeText(this, "Please enter your first name", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (lastName.isEmpty()) {
+            Toast.makeText(this, "Please enter your last name", Toast.LENGTH_SHORT).show()
             return false
         }
 
@@ -197,7 +225,7 @@ fun PreviewSignupScreen() {
     ToolTrackTheme {
         SignupScreen(
             isLoading = false,
-            onSignupClick = { _, _, _, _ -> },
+            onSignupClick = { _, _, _, _, _ -> },
             onGoogleSignUpClick = {},
             onLoginClick = {}
         )
@@ -207,11 +235,13 @@ fun PreviewSignupScreen() {
 @Composable
 fun SignupScreen(
     isLoading: Boolean = false,
-    onSignupClick: (name: String, email: String, password: String, confirmPassword: String) -> Unit,
+    onSignupClick: (firstName: String, lastName: String, email: String, password: String, confirmPassword: String) -> Unit,
+
     onGoogleSignUpClick: () -> Unit,
     onLoginClick: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -239,7 +269,7 @@ fun SignupScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             // Logo
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Image(
                 painter = painterResource(id = R.mipmap.tooltrack_logo_foreground),
                 contentDescription = stringResource(id = R.string.app_name),
@@ -271,42 +301,80 @@ fun SignupScreen(
                     // App Name
                     Text(
                         text = stringResource(id = R.string.signup),
-                        fontSize = 28.sp,
+                        fontSize = 24.sp,
                         fontFamily = FontFamily(Font(R.font.inter_bold))
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Name Field
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text(stringResource(id = R.string.name)) },
-                        singleLine = true,
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF000000),
-                            unfocusedBorderColor = Color(0xFF909090),
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            cursorColor = Color.Black,
-                            focusedLabelColor = Color(0xFF2EA69E),
-                            unfocusedLabelColor = Color(0xFF909090)
-                        ),
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_dialog_email),
-                                contentDescription = null,
-                                modifier = Modifier.padding(20.dp),
-                                tint = Color(0xFF909090)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // First Name Field
+                        OutlinedTextField(
+                            value = firstName,
+                            onValueChange = { firstName = it },
+                            label = { Text("First Name") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(68.dp),
+                            shape = RoundedCornerShape(
+                                topStart = 14.dp,
+                                bottomStart = 14.dp,
+                                topEnd = 0.dp,
+                                bottomEnd = 0.dp
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF000000),
+                                unfocusedBorderColor = Color(0xFF909090),
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black,
+                                focusedLabelColor = Color(0xFF2EA69E),
+                                unfocusedLabelColor = Color(0xFF909090)
+                            ),
+
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
                             )
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
                         )
-                    )
+
+                        // Last Name Field
+                        OutlinedTextField(
+                            value = lastName,
+                            onValueChange = { lastName = it },
+                            label = { Text("Last Name") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(68.dp),
+                            shape = RoundedCornerShape(
+                                topStart = 0.dp,
+                                bottomStart = 0.dp,
+                                topEnd = 14.dp,
+                                bottomEnd = 14.dp
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF000000),
+                                unfocusedBorderColor = Color(0xFF909090),
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black,
+                                focusedLabelColor = Color(0xFF2EA69E),
+                                unfocusedLabelColor = Color(0xFF909090)
+                            ),
+
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            )
+                        )
+                    }
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -317,7 +385,7 @@ fun SignupScreen(
                         label = { Text(stringResource(id = R.string.email)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(14.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
                             unfocusedBorderColor = Color(0xFF909090),
@@ -337,7 +405,8 @@ fun SignupScreen(
                         },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
+                            imeAction = ImeAction.Next,
+                            capitalization = KeyboardCapitalization.None
                         )
                     )
 
@@ -351,7 +420,7 @@ fun SignupScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(14.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
                             unfocusedBorderColor = Color(0xFF909090),
@@ -396,7 +465,7 @@ fun SignupScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(14.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF000000),
                             unfocusedBorderColor = Color(0xFF909090),
@@ -435,7 +504,7 @@ fun SignupScreen(
 
                     // Signup Button with loading indicator
                     Button(
-                        onClick = { onSignupClick(name, email, password, confirmPassword) },
+                        onClick = { onSignupClick(firstName, lastName, email, password, confirmPassword) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 0.dp)
@@ -444,7 +513,7 @@ fun SignupScreen(
                             containerColor = Color(0xFF2EA69E),
                             contentColor = Color.White
                         ),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(14.dp),
                         enabled = !isLoading
                     ) {
                         if (isLoading) {
@@ -474,7 +543,7 @@ fun SignupScreen(
                             containerColor = Color.White,
                             contentColor = Color.Black
                         ),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(14.dp),
                         enabled = !isLoading
                     ) {
                         Image(
