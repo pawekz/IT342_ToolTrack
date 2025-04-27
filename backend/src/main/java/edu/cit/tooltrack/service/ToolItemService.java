@@ -71,4 +71,19 @@ public class ToolItemService {
             return null;
         }
     }
+
+    @SuppressWarnings({ "unused" })
+    public String deleteToolItem(String toolId) {
+        String message = null;
+
+        try {
+            if(toolItemRepository.findById(Integer.parseInt(toolId)).isPresent()){
+                toolItemRepository.deleteById(Integer.parseInt(toolId));
+                message = "Tool Item deleted successfully";
+            }
+        }catch(NoSuchElementException e){
+            message = "Tool Item not found";
+        }
+        return message;
+    }
 }

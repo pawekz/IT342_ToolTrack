@@ -21,7 +21,11 @@ public class ToolItems {
     private int tool_id;
 
     @JsonManagedReference("toolTransaction_toolId")
-    @OneToMany(mappedBy = "tool_id")
+    @OneToMany(
+            mappedBy = "tool_id",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<ToolTransaction> toolTransaction;
 
 

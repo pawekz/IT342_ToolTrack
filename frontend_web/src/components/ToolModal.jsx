@@ -102,7 +102,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           params.append('image_url', res.data.imageUrl);
           params.append('tool_id', toolId);
 
-          axios.put('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addQr',
+          axios.put('http://localhost:8080/toolitem/addQr',
               params,
             {
               headers: {
@@ -195,13 +195,17 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
   const nextStep = async () => {
 
     const {imageUrl, image_name}  = await uploadImageInChunks(form.image);
+
+    console.log(imageUrl)
+    console.log(image_name)
+
     await setForm({
       ...form,
       image_name: image_name,
       image_url: imageUrl,
     });
 
-    axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', form, {
+    axios.post('http://localhost:8080/toolitem/addTool', form, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'

@@ -13,7 +13,7 @@ const ToolManagement = () => {
 
 
   useEffect(() => {
-    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/getAllTool", {
+    axios.get("http://localhost:8080/toolitem/getAllTool", {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
@@ -45,6 +45,17 @@ const ToolManagement = () => {
   const handleDeleteTool = (toolId) => {
     // For a real backend, you would make an API call here
     setToolItems(toolItems.filter((tool) => tool.tool_id !== toolId));
+
+    console.log("deleting: "+toolId);
+    axios.delete("http://localhost:8080/toolitem/delete/" + toolId
+        , {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    })
+        .then(response => {
+          console.log(response.data.message);
+        })
     setDeleteConfirmation(null);
   };
 
