@@ -254,17 +254,13 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     }
 
     const {imageUrl, image_name}  = await uploadImageInChunks(form.image);
-
-    console.log(imageUrl)
-    console.log(image_name)
-
-    await setForm({
+    const updatedForm = {
       ...form,
       image_name: image_name,
       image_url: imageUrl,
-    });
-
-    axios.post('http://localhost:8080/toolitem/addTool', form, {
+    };
+    setForm(updatedForm);
+    axios.post('http://localhost:8080/toolitem/addTool', updatedForm, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'
