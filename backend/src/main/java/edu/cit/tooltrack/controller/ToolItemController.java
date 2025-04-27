@@ -75,7 +75,7 @@ public class ToolItemController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/getAllTool")
     public ResponseEntity<?> getAllToolItems(){
             List<ToolItems> toolItems = toolItemService.getAllItem();
            if(toolItems.size() > 0){
