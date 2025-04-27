@@ -17,6 +17,8 @@ public class ToolItemService {
     private ToolItemRepository toolItemRepository;
     @Autowired
     private ImageChunkUploader imageChunkUploader;
+    @Autowired
+    private S3Service s3Service;
 
     public ToolItems addToolItem(ToolItems toolItems) {
         try {
@@ -37,10 +39,11 @@ public class ToolItemService {
         return toolItemRepository.findAll();
     }
 
-    public ToolItems addQrImage(int toolId, String qr_url) {
+    public ToolItems addQrImage(int toolId, String qr_url, String qr_name) {
         try {
             ToolItems old_tool = toolItemRepository.findById(toolId).orElse(null);
             old_tool.setQr_code(qr_url);
+            old_tool.setQr_code_name(qr_name);
             return toolItemRepository.save(old_tool);
         } catch (Exception e) {
             return null;
@@ -77,7 +80,14 @@ public class ToolItemService {
         String message = null;
 
         try {
-            if(toolItemRepository.findById(Integer.parseInt(toolId)).isPresent()){
+            ToolItems toolItem = toolItemRepository.findById(Integer.parseInt(toolId)).orElse(null);
+            if(toolItem != null){
+
+                System.out.println("Deleteing:  image name: "+ toolItem.getImage_name() );
+                System.out.println("deleteing qr images" + toolItem.getQr_code_name());
+
+                s3Service.deleteImage(toolItem.getImage_name(), "Tool_Images/");
+                s3Service.deleteImage(toolItem.getQr_code_name(), "QR_Images/");
                 toolItemRepository.deleteById(Integer.parseInt(toolId));
                 message = "Tool Item deleted successfully";
             }

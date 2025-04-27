@@ -92,8 +92,9 @@ public class ToolItemController {
     @PutMapping("/addQr")
     public ResponseEntity<?> updateTool(
             @RequestParam("image_url") String image_url,
-            @RequestParam("tool_id") int tool_id){
-        ToolItems toolItems = toolItemService.addQrImage(tool_id, image_url);
+            @RequestParam("tool_id") int tool_id,
+            @RequestParam("qr_code_name") String qr_code_name){
+        ToolItems toolItems = toolItemService.addQrImage(tool_id, image_url,qr_code_name);
         if (toolItems != null) {
             return ResponseEntity.ok(toolItems);
         } else {

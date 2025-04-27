@@ -13,7 +13,7 @@ const ToolManagement = () => {
 
 
   useEffect(() => {
-    axios.get("http://localhost:8080/toolitem/getAllTool", {
+    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/getAllTool", {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
@@ -47,7 +47,7 @@ const ToolManagement = () => {
     setToolItems(toolItems.filter((tool) => tool.tool_id !== toolId));
 
     console.log("deleting: "+toolId);
-    axios.delete("http://localhost:8080/toolitem/delete/" + toolId
+    axios.delete("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/delete/" + toolId
         , {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
