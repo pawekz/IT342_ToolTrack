@@ -45,6 +45,17 @@ const ToolManagement = () => {
   const handleDeleteTool = (toolId) => {
     // For a real backend, you would make an API call here
     setToolItems(toolItems.filter((tool) => tool.tool_id !== toolId));
+
+    console.log("deleting: "+toolId);
+    axios.delete("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/delete/" + toolId
+        , {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    })
+        .then(response => {
+          console.log(response.data.message);
+        })
     setDeleteConfirmation(null);
   };
 

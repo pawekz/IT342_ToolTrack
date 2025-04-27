@@ -55,6 +55,9 @@ public class ToolItemController {
     //Adding Tool
     @PostMapping("/addTool")
     public ResponseEntity<?> addTool(@RequestBody ToolItems toolItems) {
+
+        System.out.println("image_url: " + toolItems.getImage_url() + "");
+        System.out.println("image_name: " + toolItems.getImage_name() + "");
         ToolItems latestToolId = toolItemService.addToolItem(toolItems);
         if (latestToolId != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("toolId", latestToolId.getTool_id()));
@@ -89,8 +92,9 @@ public class ToolItemController {
     @PutMapping("/addQr")
     public ResponseEntity<?> updateTool(
             @RequestParam("image_url") String image_url,
-            @RequestParam("tool_id") int tool_id){
-        ToolItems toolItems = toolItemService.addQrImage(tool_id, image_url);
+            @RequestParam("tool_id") int tool_id,
+            @RequestParam("qr_code_name") String qr_code_name){
+        ToolItems toolItems = toolItemService.addQrImage(tool_id, image_url,qr_code_name);
         if (toolItems != null) {
             return ResponseEntity.ok(toolItems);
         } else {
@@ -104,5 +108,19 @@ public class ToolItemController {
                                         @RequestBody ToolItems toolItems){
         return null;
     }
+
+    @DeleteMapping("/delete/{toolId}")
+    public ResponseEntity<?> updateTool(@PathVariable String toolId){
+
+        String deleteMessage = toolItemService.deleteToolItem(toolId);
+
+        if(deleteMessage.equals("Tool Item deleted successfully")){
+            return ResponseEntity.ok(Map.of("message", deleteMessage));
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", deleteMessage));
+        }
+    }
+
+
 
 }

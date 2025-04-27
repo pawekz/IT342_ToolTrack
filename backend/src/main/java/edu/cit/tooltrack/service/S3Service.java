@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -50,21 +51,33 @@ public class S3Service {
                     .contentType(getContentType(uuidName))
                     .build();
 
-            // Step 3: Upload the file to S3
             s3.putObject(request, RequestBody.fromFile(file));
 
-            // Step 4: Get the Object URL using AWS SDK's S3Utilities
             S3Utilities s3Utilities = s3.utilities();
             String objectUrl = s3Utilities.getUrl(builder ->
                     builder.bucket(BUCKET_NAME).key(s3Key)
             ).toString();
-
             return objectUrl;
         } catch (Exception e) {
             System.out.println("Error occurred while uploading the file to S3: " + e.getMessage());
             throw new RuntimeException("Error occurred while uploading the file to S3: " + e.getMessage(), e);
         }
     }
+
+    public String deleteImage(String uuidName, String folderPath) {
+        try {
+            String s3Key = BUCKET_KEY + folderPath + uuidName;
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(s3Key)
+                    .build();
+            s3.deleteObject(deleteObjectRequest);
+            return "Image deleted successfully";
+        }catch (Exception e){
+            return "Image not found";
+        }
+    }
+
 
     public String getImage(String s3Key, String imagePath) {
         try {
@@ -80,10 +93,10 @@ public class S3Service {
                     builder.bucket(BUCKET_NAME).key(fullS3Key)
             ).toString();
 
-            return objectUrl; // Return the URL of the image
+            return objectUrl;
         } catch (Exception e) {
             System.err.println("Error fetching image: " + e.getMessage());
-            return null; // Or handle error appropriately
+            return null;
         }
     }
 

@@ -42,10 +42,15 @@ public class QRController {
 
         String uuidName = java.util.UUID.randomUUID() + "_" + toolId;
         String imageUrl = qrcodeService.uploadImage(file, uuidName);
-        if(imageUrl != null){
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("imageUrl", imageUrl));
-        }else{
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "File Upload Unsuccessfull"));
+        if (imageUrl != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "imageUrl", imageUrl,
+                    "qr_code_name", uuidName
+            ));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "message", "File Upload Unsuccessful"
+            ));
         }
     }
 

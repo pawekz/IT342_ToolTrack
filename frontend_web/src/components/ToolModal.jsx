@@ -129,6 +129,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           const params = new URLSearchParams();
           params.append('image_url', res.data.imageUrl);
           params.append('tool_id', toolId);
+          params.append('qr_code_name', res.data.qr_code_name)
+          console.log(res.data)
 
           axios.put('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addQr',
               params,
@@ -254,13 +256,13 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     }
 
     const {imageUrl, image_name}  = await uploadImageInChunks(form.image);
-    await setForm({
+    const updatedForm = {
       ...form,
       image_name: image_name,
       image_url: imageUrl,
-    });
-
-    axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', form, {
+    };
+    setForm(updatedForm);
+    axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'

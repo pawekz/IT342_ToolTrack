@@ -26,7 +26,7 @@ public class ToolTransaction {
 
     @JsonBackReference("toolTransaction_toolId")
     @ManyToOne
-    @JoinColumn(name = "fk_tool_transactions_tool")
+    @JoinColumn(name = "fk_tool_id")
     private ToolItems tool_id;
 
     @JsonBackReference("toolTransaction")

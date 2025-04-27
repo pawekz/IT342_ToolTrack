@@ -21,7 +21,11 @@ public class ToolItems {
     private int tool_id;
 
     @JsonManagedReference("toolTransaction_toolId")
-    @OneToMany(mappedBy = "tool_id")
+    @OneToMany(
+            mappedBy = "tool_id",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<ToolTransaction> toolTransaction;
 
 
@@ -39,7 +43,7 @@ public class ToolItems {
     private String description;
     private Date date_acquired;
     private String image_url;
-    private String image_name;
+    private String  image_name;
     private Timestamp created_at;
     private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
 
