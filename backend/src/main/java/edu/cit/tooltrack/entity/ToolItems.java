@@ -51,7 +51,6 @@ public class ToolItems {
     @PrePersist //before it save to db this will run first to ensue the variables will not be empty
     protected void onCreate() {
         this.created_at = Timestamp.valueOf(LocalDateTime.now());
-        this.updated_at = Timestamp.valueOf(LocalDateTime.now());
     }
 
     @PreUpdate

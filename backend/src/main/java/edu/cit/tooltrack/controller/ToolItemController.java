@@ -1,21 +1,14 @@
 package edu.cit.tooltrack.controller;
 
-import edu.cit.tooltrack.dto.UploadToolItemDTO;
+import edu.cit.tooltrack.dto.ToolBorrowDTO;
 import edu.cit.tooltrack.entity.ToolItems;
 import edu.cit.tooltrack.service.ImageChunkUploader;
 import edu.cit.tooltrack.service.ToolItemService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.SchemaProperty;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -90,7 +83,7 @@ public class ToolItemController {
 
     //This will be use during submitting the new tool
     @PutMapping("/addQr")
-    public ResponseEntity<?> updateTool(
+    public ResponseEntity<?> addQr(
             @RequestParam("image_url") String image_url,
             @RequestParam("tool_id") int tool_id,
             @RequestParam("qr_code_name") String qr_code_name){
@@ -104,13 +97,14 @@ public class ToolItemController {
     }
 
     @PostMapping("/add/qr/{tool_id}")
-    public ResponseEntity<?> updateTool(@RequestParam String tool_id,
+    public ResponseEntity<?> updateTool(@PathVariable String tool_id,
                                         @RequestBody ToolItems toolItems){
+
         return null;
     }
 
     @DeleteMapping("/delete/{toolId}")
-    public ResponseEntity<?> updateTool(@PathVariable String toolId){
+    public ResponseEntity<?> deleteTool(@PathVariable String toolId){
 
         String deleteMessage = toolItemService.deleteToolItem(toolId);
 
@@ -121,6 +115,29 @@ public class ToolItemController {
         }
     }
 
+    @GetMapping("/borrow/{toolId}")
+    public ResponseEntity<?> borrow(@PathVariable int toolId){
+        ToolItems toolItem = toolItemService.getToolItem(toolId);
+        if(toolItem != null){
+            return ResponseEntity.ok(Map.of("toolItem", new ToolBorrowDTO(toolItem)));
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item not found"));
+        }
+    }
 
+    @GetMapping("/search/{toolName}")
+    public ResponseEntity<?> searchItem(@PathVariable String toolName){
+        ToolBorrowDTO item = toolItemService.getToolItemByName(toolName);
+        if(item != null){
+            return ResponseEntity.ok(Map.of("toolItem", item));
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item not found"));
+        }
+    }
+
+    @GetMapping("/getAllNames")
+    public ResponseEntity<?> getAllName() {
+        return ResponseEntity.ok(Map.of("Items", toolItemService.getAllToolItemNames()));
+    }
 
 }
