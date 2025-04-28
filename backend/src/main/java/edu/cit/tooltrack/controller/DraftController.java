@@ -1,7 +1,5 @@
     package edu.cit.tooltrack.controller;
 
-import edu.cit.tooltrack.dto.UploadToolItemDTO;
-import edu.cit.tooltrack.entity.ToolItems;
 import edu.cit.tooltrack.entity.User;
 import edu.cit.tooltrack.service.ImageChunkUploader;
 import edu.cit.tooltrack.service.QRcodeService;
@@ -12,12 +10,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;

@@ -1,5 +1,6 @@
 package edu.cit.tooltrack.service;
 
+import edu.cit.tooltrack.dto.ToolBorrowDTO;
 import edu.cit.tooltrack.entity.ToolItems;
 import edu.cit.tooltrack.repository.ToolItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,8 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.tools.Tool;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class ToolItemService {
@@ -65,6 +69,7 @@ public class ToolItemService {
                 old_tool.setImage_name(newToolData.getImage_name());
                 old_tool.setTool_condition(newToolData.getTool_condition());
                 old_tool.setStatus(newToolData.getStatus());
+                old_tool.setUpdated_at(Timestamp.valueOf(LocalDateTime.now()));
                 toolItemRepository.save(old_tool);
                 return old_tool;
             } else {
@@ -82,10 +87,6 @@ public class ToolItemService {
         try {
             ToolItems toolItem = toolItemRepository.findById(Integer.parseInt(toolId)).orElse(null);
             if(toolItem != null){
-
-                System.out.println("Deleteing:  image name: "+ toolItem.getImage_name() );
-                System.out.println("deleteing qr images" + toolItem.getQr_code_name());
-
                 s3Service.deleteImage(toolItem.getImage_name(), "Tool_Images/");
                 s3Service.deleteImage(toolItem.getQr_code_name(), "QR_Images/");
                 toolItemRepository.deleteById(Integer.parseInt(toolId));
@@ -95,5 +96,22 @@ public class ToolItemService {
             message = "Tool Item not found";
         }
         return message;
+    }
+
+    public List<String> getAllToolItemNames(){
+        return toolItemRepository.getAllItemNames();
+    }
+
+    public ToolBorrowDTO getToolItemByName(String name) {
+        try {
+            ToolItems toolItem = toolItemRepository.findItemByName(name);
+            if (toolItem != null) {
+                return new ToolBorrowDTO(toolItem);
+            } else {
+                throw new NoSuchElementException("Item not found");
+            }
+        } catch (NoSuchElementException e) {
+            return null;
+        }
     }
 }
