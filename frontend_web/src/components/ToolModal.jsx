@@ -9,6 +9,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
   const [error, setError] = useState(null);
   const [step, setStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
     serial_number: '',
@@ -19,7 +21,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     image_preview: '',
     image_name: '',
     image_url: '',
-    tool_condition: 'NEW',
+    category: 'Power Tools',
   });
   const fileInputRef = useRef(null);
 
@@ -32,6 +34,19 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     'Storage Room 1',
     'Storage Room 2',
     'Maintenance Bay'
+  ];
+
+  // Predefined categories
+  const categoryOptions = [
+    'Power Tools',
+    'Hand Tools',
+    'Garden Tools',
+    'Electrical Tools',
+    'Plumbing Tools',
+    'Painting',
+    'Automotive Tools',
+    'Measuring Tools',
+    'Safety Equipment'
   ];
 
   // Initialize form with data when editing
@@ -53,7 +68,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         image: null,
         image_preview: '',
         image_url: '',
-        tool_condition: 'NEW',
+        category: 'Power Tools',
       });
     }
   }, [initialData]);
@@ -100,8 +115,10 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
   };
 
   const handleSubmit = async () => {
+    setIsSaving(true);
+
     try {
-      const form = new FormData();
+      const formData = new FormData();
 
       // Fetch the blob from the blob URL (qrImage is a blob URL)
       const response = await fetch(qrImage);
@@ -111,73 +128,59 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
       const file = new File([blob], `${toolId}_qr.png`, { type: 'image/png' });
 
       // Append the correct fields
-      form.append('file', file);
-      form.append('toolId', toolId);
+      formData.append('file', file);
+      formData.append('toolId', toolId);
 
-      // Correct axios post
-      await axios.post(
+      // Upload QR code image
+      const qrUploadRes = await axios.post(
           'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/uploadImage',
-          form,
+          formData,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
             }
           }
-      ).then(res => {
-        if (res.status === 201) {
-          console.log(res)
-          const params = new URLSearchParams();
-          params.append('image_url', res.data.imageUrl);
-          params.append('tool_id', toolId);
-          params.append('qr_code_name', res.data.qr_code_name)
-          console.log(res.data)
+      );
 
-          axios.put('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addQr',
-              params,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`,
-                  'Content-Type': 'application/x-www-form-urlencoded'
-                }
-              }).then(res => {
+      if (qrUploadRes.status === 201) {
+        const params = new URLSearchParams();
+        params.append('image_url', qrUploadRes.data.imageUrl);
+        params.append('tool_id', toolId);
+        params.append('qr_code_name', qrUploadRes.data.qr_code_name);
 
-          })
-        }
-      });
-    } catch (error) {
-      console.error('Error uploading QR Image:', error);
-    }
-
-    // Create a FormData object to handle the file upload
-    const formData = new FormData();
-
-
-    // Add all form fields to the FormData
-    Object.keys(form).forEach(key => {
-      if (key === 'image' && form[key]) {
-        formData.append('image', form[key]);
-      } else if (key !== 'image_preview') {
-        formData.append(key, form[key]);
+        // Add QR to tool
+        await axios.put('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addQr',
+            params,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+            });
       }
-    });
 
-    // In a real implementation, the API would handle the image upload and return a URL
-    // For now, we'll create an object that matches what the parent component expects
-    const submissionData = {
-      ...form,
-      // If there's a new image, we'd use the URL from the server response
-      // For now, we'll use the preview URL to simulate this
-      image_url: form.image ? form.image_preview : form.image_url
-    };
+      // Create submission data for parent component
+      const submissionData = {
+        ...form,
+        // If there's a new image, we'd use the URL from the server response
+        // For now, we'll use the preview URL to simulate this
+        image_url: form.image ? form.image_preview : form.image_url
+      };
 
-    // Remove properties that shouldn't be passed back to the parent
-    delete submissionData.image;
-    delete submissionData.image_preview;
+      // Remove properties that shouldn't be passed back to the parent
+      delete submissionData.image;
+      delete submissionData.image_preview;
 
-    // Pass the cleaned data back to the parent
-    onSubmit(submissionData);
-    onClose();
-    setStep(1); // Reset step when closed
+      // Pass the cleaned data back to the parent
+      onSubmit(submissionData);
+      onClose();
+      setStep(1); // Reset step when closed
+    } catch (error) {
+      console.error('Error saving tool:', error);
+      setError('Failed to save tool');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   //this will upload image byte per byte, in this way it can accomodate
@@ -255,39 +258,48 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
       return;
     }
 
-    const {imageUrl, image_name}  = await uploadImageInChunks(form.image);
-    const updatedForm = {
-      ...form,
-      image_name: image_name,
-      image_url: imageUrl,
-    };
-    setForm(updatedForm);
-    axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
+    setIsLoading(true);
+
+    try {
+      const {imageUrl, image_name} = await uploadImageInChunks(form.image);
+      const updatedForm = {
+        ...form,
+        image_name: image_name,
+        image_url: imageUrl,
+      };
+      setForm(updatedForm);
+
+      const response = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.status === 201) {
+        setToolId(response.data.toolId);
+
+        const qrResponse = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + response.data.toolId, {}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          responseType: 'blob'
+        });
+
+        if (qrResponse.status === 200) {
+          const blobUrl = URL.createObjectURL(qrResponse.data);
+          setQrImage(blobUrl);
+          setStep(2);
+        }
+      } else {
+        setError("Failed to create tool");
       }
-    })
-        .then(res => {
-          if (res.status === 201) {
-            setToolId(res.data.toolId)
-            axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + res.data.toolId, {}, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-              },
-              responseType: 'blob'
-            })
-                .then(res => {
-                  if (res.status === 200) {
-                    const blobUrl = URL.createObjectURL(res.data);
-                    setQrImage(blobUrl);
-                    setStep(2)
-                  }
-                })
-          } else {
-            //set error   <----
-          }
-        })
+    } catch (error) {
+      console.error("Error during tool creation:", error);
+      setError("An error occurred while creating the tool");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const prevStep = () => {
@@ -343,18 +355,6 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
                 <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>
             )}
           </div>
-
-          {/*<div>*/}
-          {/*  <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>*/}
-          {/*  <input*/}
-          {/*    type="text"*/}
-          {/*    name="serial_number"*/}
-          {/*    value={form.serial_number}*/}
-          {/*    onChange={handleChange}*/}
-          {/*    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"*/}
-          {/*    placeholder="Enter serial number"*/}
-          {/*  />*/}
-          {/*</div>*/}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -444,34 +444,18 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <select
-                name="tool_condition"
-                value={form.tool_condition}
+                name="category"
+                value={form.category}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
             >
-              <option value="NEW">NEW</option>
-              <option value="GOOD">GOOD</option>
-              <option value="FAIR">FAIR</option>
-              <option value="POOR">POOR</option>
+              {categoryOptions.map((category, index) => (
+                  <option key={index} value={category}>{category}</option>
+              ))}
             </select>
           </div>
-
-          {/*  <div>*/}
-          {/*    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>*/}
-          {/*    <select*/}
-          {/*      name="status"*/}
-          {/*      value={form.status}*/}
-          {/*      onChange={handleChange}*/}
-          {/*      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"*/}
-          {/*    >*/}
-          {/*      <option value="AVAILABLE">AVAILABLE</option>*/}
-          {/*      <option value="BORROWED">BORROWED</option>*/}
-          {/*      <option value="MAINTENANCE">MAINTENANCE</option>*/}
-          {/*      <option value="RETIRED">RETIRED</option>*/}
-          {/*    </select>*/}
-          {/*  </div>*/}
         </div>
     );
   };
@@ -518,6 +502,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
             {step === 2 && (
                 <button
                     onClick={prevStep}
+                    disabled={isSaving}
                     className="cursor-pointer px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
                 >
                   Back
@@ -527,16 +512,34 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
             {step === 1 ? (
                 <button
                     onClick={nextStep}
-                    className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
+                    disabled={isLoading}
+                    className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm flex items-center justify-center min-w-24"
                 >
-                  Next
+                  {isLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </>
+                  ) : "Next"}
                 </button>
             ) : (
                 <button
                     onClick={handleSubmit}
-                    className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm"
+                    disabled={isSaving}
+                    className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm flex items-center justify-center min-w-24"
                 >
-                  {isEditing ? "Update Tool" : "Save Tool"}
+                  {isSaving ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </>
+                  ) : (isEditing ? "Update Tool" : "Save Tool")}
                 </button>
             )}
           </div>
