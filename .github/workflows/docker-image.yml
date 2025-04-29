@@ -51,6 +51,8 @@ jobs:
           file: ./frontend_web/Dockerfile
           push: true
           tags: tooltrack.azurecr.io/tooltrack-frontend:latest
+          build-args:
+            VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
   deploy:
     needs: build-and-push
