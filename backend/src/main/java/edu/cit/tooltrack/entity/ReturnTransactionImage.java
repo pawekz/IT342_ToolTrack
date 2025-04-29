@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "return_transaction_images")
-public class ReturnTransaction {
+public class ReturnTransactionImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
