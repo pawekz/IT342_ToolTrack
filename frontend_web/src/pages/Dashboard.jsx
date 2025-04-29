@@ -5,12 +5,18 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from "recharts";
 
+import axios from "axios"
+
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(false);
+
+  const[totalUsers, setTotalUsers] = useState(0);
+  const[totalTools, setTotalTools] = useState(0);
+  const[totalBorrowed, setTotalBorrowed] = useState(0);
 
   // Mock data for the dashboard
   const mockBorrowingData = [
@@ -25,7 +31,6 @@ const Dashboard = () => {
   const mockRecentActivities = [
     { id: 1, user: "John Doe", action: "Borrowed", tool: "Power Drill", date: "2023-09-15" },
     { id: 2, user: "Jane Smith", action: "Returned", tool: "Hammer Set", date: "2023-09-14" },
-    
   ];
 
   const mockPopularTools = [
@@ -36,16 +41,28 @@ const Dashboard = () => {
   ];
 
   // Uncomment this when authentication is in place
-  /*
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      navigate("/login");
-    }
-  }, [navigate]);
-  */
+    axios.get("http://localhost:8080/toolitem/getTotalTools",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        .then(result => {
+          setTotalTools(result.data.total)
+        })
+
+    axios.get("http://localhost:8080/toolitem/getTotalUsers",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        .then(result => {
+          setTotalUsers(result.data.total)
+        })
+  }, []);
+
 
   // For future implementation:
   // 1. Fetch dashboard data from API
@@ -111,7 +128,7 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">Total Users</h3>
-                    <p className="text-3xl font-bold mt-2">10 <span className="text-green-500 text-sm">↑ 20%</span></p>
+                    <p className="text-3xl font-bold mt-2">{totalUsers} <span className="text-green-500 text-sm">↑ 20%</span></p>
                     <p className="text-sm text-gray-500 mt-1">Increase compared to last week</p>
                   </div>
                   <div className="p-2 bg-teal-50 rounded-md">
@@ -132,7 +149,7 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">Total Number of Tools</h3>
-                    <p className="text-3xl font-bold mt-2">56 <span className="text-green-500 text-sm">↑ 5%</span></p>
+                    <p className="text-3xl font-bold mt-2">{totalTools}<span className="text-green-500 text-sm">↑ 5%</span></p>
                     <p className="text-sm text-gray-500 mt-1">4 new tools added this month</p>
                   </div>
                   <div className="p-2 bg-blue-50 rounded-md">
@@ -153,7 +170,7 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">Tools Currently Borrowed</h3>
-                    <p className="text-3xl font-bold mt-2">27 <span className="text-yellow-500 text-sm">↑ 12%</span></p>
+                    <p className="text-3xl font-bold mt-2">{totalBorrowed}<span className="text-yellow-500 text-sm">↑ 12%</span></p>
                     <p className="text-sm text-gray-500 mt-1">8 due for return this week</p>
                   </div>
                   <div className="p-2 bg-yellow-50 rounded-md">

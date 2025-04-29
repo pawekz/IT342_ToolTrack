@@ -19,7 +19,7 @@ public class ToolBorrowDTO {
         private String qr_code;
         private String location;
         private String description;
-        private Date date_acquired;
+        private Timestamp date_acquired;
         private String image_url;
         private Timestamp created_at;
         private Timestamp updated_at;

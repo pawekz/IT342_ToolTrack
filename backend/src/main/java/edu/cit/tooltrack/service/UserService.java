@@ -80,6 +80,10 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public int getTotalUsers(){
+        return userRepository.findAll().size();
+    }
+
     public UserResponseDTO getUserData(String email){
         User user = userRepository.findByEmail(email);
         return new UserResponseDTO(user.getEmail(),user.getRole(),user.getFirst_name(), user.getLast_name());

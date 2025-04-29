@@ -114,4 +114,12 @@ public class ToolItemService {
             return null;
         }
     }
+
+    public int getTotalTools(){
+        return toolItemRepository.findAll().size();
+    }
+
+    public String dateFormat(Timestamp timestamp) {
+        return null;
+    }
 }
