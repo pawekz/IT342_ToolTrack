@@ -1,21 +1,40 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Icon } from "@iconify/react";
 import { Camera, Loader2 } from "lucide-react";
 import SidebarLayout from "../components/SidebarLayout";
+import { useAuth } from "../components/AuthProvider";
+import axios from "axios";
 
 const SettingsPage = () => {
+  const { user } = useAuth();
   // Static user data (would be fetched from backend in real implementation)
   const [userData, setUserData] = useState({
-    firstName: "Aeron",
-    lastName: "Carabuena",
-    email: "aeron.carabuena@example.com",
-    role: "Admin",
-    isGoogle: false,
-    image_url: null, // Null for now, will use initials
-    is_active: true,
-    created_at: "2023-10-15T09:30:00Z", 
-    updated_at: "2024-04-01T14:45:00Z"
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.sub || "",
+    role: user?.role || "",
+    isGoogle: user?.isGoogle || false,
+    image_url: null,
+    is_active: user?.is_active !== undefined ? user.is_active : true,
+    created_at: user?.created_at || new Date().toISOString(),
+    updated_at: user?.updated_at || new Date().toISOString()
   });
+
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.sub || "",
+        role: user.role || "",
+        isGoogle: user.isGoogle || false,
+        image_url: null,
+        is_active: user.is_active !== undefined ? user.is_active : true,
+        created_at: user.created_at || new Date().toISOString(),
+        updated_at: user.updated_at || new Date().toISOString()
+      });
+    }
+  }, [user]);
 
   // For password change
   const [passwordData, setPasswordData] = useState({
@@ -49,8 +68,7 @@ const SettingsPage = () => {
   const handleUpdateProfile = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
+
     setTimeout(() => {
       setIsLoading(false);
       setIsEditing(false);
@@ -59,13 +77,13 @@ const SettingsPage = () => {
         message: "Profile updated successfully!",
         type: "success"
       });
-      
+
       // Hide notification after 3 seconds
       setTimeout(() => {
         setNotification({ show: false, message: "", type: "" });
       }, 3000);
     }, 1000);
-    
+
     // In real implementation:
     // const response = await updateUserProfile(userData);
     // if (response.ok) { ... }
@@ -281,8 +299,8 @@ const SettingsPage = () => {
                   id="email"
                   name="email"
                   value={userData.email}
+                  disabled
                   onChange={handleInputChange}
-                  disabled={!isEditing || userData.isGoogle}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-colors disabled:bg-gray-50 disabled:text-gray-500"
                   style={{ "--tw-ring-color": `${brandColor}40` }}
                 />
@@ -433,7 +451,7 @@ const SettingsPage = () => {
         <div className="p-4 md:p-6 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-800">Account Information</h2>
         </div>
-        
+
         <div className="p-4 md:p-6">
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -442,14 +460,14 @@ const SettingsPage = () => {
                 {new Date(userData.created_at).toLocaleDateString()} at {new Date(userData.created_at).toLocaleTimeString()}
               </dd>
             </div>
-            
+
             <div>
               <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
               <dd className="mt-1 text-gray-800">
                 {new Date(userData.updated_at).toLocaleDateString()} at {new Date(userData.updated_at).toLocaleTimeString()}
               </dd>
             </div>
-            
+
             <div>
               <dt className="text-sm font-medium text-gray-500">Account Status</dt>
               <dd className="mt-1 flex items-center gap-2">
@@ -457,9 +475,9 @@ const SettingsPage = () => {
                 <span className="text-gray-800">{userData.is_active ? "Active" : "Inactive"}</span>
               </dd>
             </div>
-            
+
             <div>
-              <dt className="text-sm font-medium text-gray-500">Authentication Method</dt>
+              {/*<dt className="text-sm font-medium text-gray-500">Authentication Method</dt>
               <dd className="mt-1 flex items-center gap-2 text-gray-800">
                 {userData.isGoogle ? (
                   <>
@@ -472,7 +490,7 @@ const SettingsPage = () => {
                     Email and Password
                   </>
                 )}
-              </dd>
+              </dd>*/}
             </div>
           </dl>
         </div>

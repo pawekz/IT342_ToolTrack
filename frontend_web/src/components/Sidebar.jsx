@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   //removing the jwt
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -69,8 +69,8 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navItems = [
     { path: "/dashboard", icon: "mdi:view-dashboard", label: "Dashboard" },
     { path: "/toolmanagement", icon: "mdi:tools", label: "Tool Management" },
-    { path: "/user-management", icon: "mdi:account-group", label: "User Management" },
-    { path: "/tools", icon: "mdi:toolbox-outline", label: "Tools" }
+    { path: "/user-management", icon: "mdi:account-group", label: "Borrowing" },
+    { path: "/tools", icon: "mdi:toolbox-outline", label: "Report" }
   ];
 
   const bottomNavItems = [
@@ -118,19 +118,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           <h1 className="text-2xl font-bold text-center" style={{ color: brandColor }}>ToolTrack</h1>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-8">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon icon="mdi:magnify" className="w-4 h-4 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
-            style={{ "--tw-ring-color": brandColor }}
-          />
-        </div>
-
         {/* Top Section with flex-grow */}
         <div className="flex-grow">
           <nav>
@@ -168,13 +155,15 @@ const Sidebar = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-3 p-3 mb-4 bg-gray-50 rounded-lg">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
                  style={{ background: brandColor }}>
-              AC
+              {user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : "?"}
             </div>
             <div>
-              <p className="font-medium text-gray-800">Aeron Carabuena</p>
-              <span className="text-xs px-2 py-0.5 rounded-full" 
+              <p className="font-medium text-gray-800">
+                {user ? `${user.firstName} ${user.lastName}` : "Unknown User"}
+              </p>
+              <span className="text-xs px-2 py-0.5 rounded-full"
                     style={{ backgroundColor: `${brandColor}15`, color: brandColor }}>
-                Admin
+                {user ? user.role : "Role"}
               </span>
             </div>
           </div>

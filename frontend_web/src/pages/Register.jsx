@@ -7,6 +7,10 @@ import {useAuth} from "../components/AuthProvider.jsx";
 
 const Register = () => {
   const {setJWTtoken} = useAuth();
+  const [showPassword, setShowPassword] = useState({
+    password: false,
+    confirmPassword: false
+  });
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -169,22 +173,43 @@ const Register = () => {
                 onChange={handleChange}
                 className="w-full border border-gray-300 px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
             />
-            <input
-                type="password"
-                name="password_hash"
-                placeholder="Password"
-                value={formData.password_hash}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
-            />
-            <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
-            />
+            <div className="relative">
+              <input
+                  type={showPassword.password ? "text" : "password"}
+                  name="password_hash"
+                  placeholder="Password"
+                  value={formData.password_hash}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 px-4 py-3 pr-12 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
+              />
+              <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => ({ ...prev, password: !prev.password }))}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400"
+                  tabIndex={-1}
+              >
+                <Icon icon={showPassword.password ? "mdi:eye-off" : "mdi:eye"} width="24" height="24" />
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                  type={showPassword.confirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 px-4 py-3 pr-12 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
+              />
+              <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => ({ ...prev, confirmPassword: !prev.confirmPassword }))}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400"
+                  tabIndex={-1}
+              >
+                <Icon icon={showPassword.confirmPassword ? "mdi:eye-off" : "mdi:eye"} width="24" height="24" />
+              </button>
+            </div>
+
             <button
                 type="submit"
                 disabled={loading}
