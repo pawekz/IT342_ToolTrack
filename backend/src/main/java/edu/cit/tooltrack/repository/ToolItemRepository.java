@@ -20,4 +20,5 @@ public interface ToolItemRepository extends JpaRepository<ToolItems, Integer> {
     @Query(value = "SELECT name FROM tool_items", nativeQuery = true)
     List<String> getAllItemNames();
 
+    ToolItems findByCategory(String category);
 }

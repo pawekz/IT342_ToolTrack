@@ -45,7 +45,8 @@ public class ToolItems {
     private String image_url;
     private String  image_name;
     private Timestamp created_at;
-    private Timestamp updated_at; // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
+    private Timestamp updated_at;
+    private Boolean is_active;
 
 
     @PrePersist //before it save to db this will run first to ensue the variables will not be empty
@@ -58,11 +59,11 @@ public class ToolItems {
         this.updated_at = Timestamp.valueOf(LocalDateTime.now());
     }
 
-    private enum Condition {
+    public enum Condition {
         NEW, GOOD, FAIR, WORN, DAMAGED, BROKEN
     }
 
-    private enum Status {
+    public enum Status {
         AVAILABLE, BORROWED, MAINTENANCE, RETIRED
     }
 }

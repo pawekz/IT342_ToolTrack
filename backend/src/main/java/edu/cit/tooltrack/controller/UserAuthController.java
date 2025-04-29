@@ -56,6 +56,8 @@ public class UserAuthController {
         UserResponseDTO userDetails = null;
         if (userService.isUserExist(user.getEmail())) {
             userDetails = userService.getUserData(user.getEmail());
+            System.out.println("generating token for google login");
+            System.out.println("user details: "+ userDetails.getEmail()+ " " +userDetails.getFirst_name() + " " + userDetails.getLast_name());
             return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
         } else {
             userDetails = userService.register(user);
