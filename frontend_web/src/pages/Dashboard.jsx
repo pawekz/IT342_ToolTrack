@@ -101,12 +101,7 @@ const Dashboard = () => {
             >
               Overview
             </button>
-            <button 
-              onClick={() => handleTabChange("tools")}
-              className={`pb-2 text-sm font-medium ${activeTab === "tools" ? "border-b-2 border-teal-500 text-teal-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              Tools
-            </button>
+
             <button 
               onClick={() => handleTabChange("users")}
               className={`pb-2 text-sm font-medium ${activeTab === "users" ? "border-b-2 border-teal-500 text-teal-600" : "text-gray-500 hover:text-gray-700"}`}
@@ -128,8 +123,8 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">Total Users</h3>
-                    <p className="text-3xl font-bold mt-2">{totalUsers} <span className="text-green-500 text-sm">↑ 20%</span></p>
-                    <p className="text-sm text-gray-500 mt-1">Increase compared to last week</p>
+                    <p className="text-3xl font-bold mt-2">{totalUsers}</p> {/*<span className="text-green-500 text-sm">↑ 20%</span></p>
+                    <p className="text-sm text-gray-500 mt-1">Increase compared to last week</p>*/}
                   </div>
                   <div className="p-2 bg-teal-50 rounded-md">
                     <svg className="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -149,8 +144,8 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">Total Number of Tools</h3>
-                    <p className="text-3xl font-bold mt-2">{totalTools}<span className="text-green-500 text-sm">↑ 5%</span></p>
-                    <p className="text-sm text-gray-500 mt-1">4 new tools added this month</p>
+                    <p className="text-3xl font-bold mt-2">{totalTools}</p>{/*<span className="text-green-500 text-sm">↑ 5%</span></p>
+                    <p className="text-sm text-gray-500 mt-1">4 new tools added this month</p>*/}
                   </div>
                   <div className="p-2 bg-blue-50 rounded-md">
                     <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -170,8 +165,8 @@ const Dashboard = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">Tools Currently Borrowed</h3>
-                    <p className="text-3xl font-bold mt-2">{totalBorrowed}<span className="text-yellow-500 text-sm">↑ 12%</span></p>
-                    <p className="text-sm text-gray-500 mt-1">8 due for return this week</p>
+                    <p className="text-3xl font-bold mt-2">{totalBorrowed}</p>{/*<span className="text-yellow-500 text-sm">↑ 12%</span></p>
+                    <p className="text-sm text-gray-500 mt-1">8 due for return this week</p>*/}
                   </div>
                   <div className="p-2 bg-yellow-50 rounded-md">
                     <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

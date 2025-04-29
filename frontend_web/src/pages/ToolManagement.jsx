@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SidebarLayout from "../components/SidebarLayout";
 import ToolModal from "../components/ToolModal";
-import Hammer from "../assets/hammer.jpg";
+import ToolDetailsModal from "../components/ToolDetailsModal";
 import axios from "axios";
 import { useEffect } from "react";
 
@@ -10,6 +10,8 @@ const ToolManagement = () => {
   const [editingTool, setEditingTool] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [toolItems, setToolItems] = useState([])
+  const [viewingTool, setViewingTool] = useState(null);
+
 
 
   useEffect(() => {
@@ -139,7 +141,9 @@ const ToolManagement = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {toolItems.map((tool) => (
-                <div key={tool.tool_id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100">
+                <div key={tool.tool_id}
+                     onClick={() => setViewingTool(tool)}
+                     className="cursor-pointer bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100">
                   <div className="relative">
                     <img
                         src={tool.image_url}
@@ -182,13 +186,19 @@ const ToolManagement = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
-                          onClick={() => openEditModal(tool)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(tool);
+                          }}
                           className="cursor-pointer text-blue-500 hover:text-blue-600 text-sm font-medium"
                       >
                         Edit
                       </button>
                       <button
-                          onClick={() => setDeleteConfirmation(tool)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirmation(tool);
+                          }}
                           className="cursor-pointer text-red-500 hover:text-red-600 text-sm font-medium"
                       >
                         Delete
@@ -198,6 +208,11 @@ const ToolManagement = () => {
                 </div>
             ))}
           </div>
+          <ToolDetailsModal
+              show={!!viewingTool}
+              onClose={() => setViewingTool(null)}
+              tool={viewingTool}
+          />
         </div>
       </div>
   );
