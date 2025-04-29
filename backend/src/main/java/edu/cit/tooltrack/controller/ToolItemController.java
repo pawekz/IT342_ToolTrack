@@ -141,7 +141,7 @@ public class ToolItemController {
     @GetMapping("/search/tool/category/{category}")
     public ResponseEntity<?> searchCategory(@PathVariable String category) {
         String decodedCategory = java.net.URLDecoder.decode(category, StandardCharsets.UTF_8);
-        ToolBorrowDTO item = toolItemService.getToolItemByCategory(decodedCategory);
+        List<ToolItems> item = toolItemService.getToolItemByCategory(decodedCategory);
 
         if (item != null) {
             return ResponseEntity.ok(Map.of("toolItem", item));

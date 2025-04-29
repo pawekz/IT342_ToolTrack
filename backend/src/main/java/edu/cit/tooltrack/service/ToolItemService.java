@@ -1,7 +1,10 @@
 package edu.cit.tooltrack.service;
 
 import edu.cit.tooltrack.dto.ToolBorrowDTO;
+import edu.cit.tooltrack.dto.TransactionsDTO;
 import edu.cit.tooltrack.entity.ToolItems;
+import edu.cit.tooltrack.entity.ToolTransaction;
+import edu.cit.tooltrack.entity.User;
 import edu.cit.tooltrack.repository.ToolItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ToolItemService {
@@ -115,14 +119,9 @@ public class ToolItemService {
         }
     }
 
-    public ToolBorrowDTO getToolItemByCategory(String category) {
-        try{
-            ToolItems toolItems = toolItemRepository.findByCategory(category);
-            if (toolItems != null) {
-                return new ToolBorrowDTO(toolItems);
-            } else {
-                throw new NoSuchElementException("Item not found");
-            }
+    public List<ToolItems> getToolItemByCategory(String category) {
+        try {
+            return toolItemRepository.findByCategory(category);
         } catch (Exception e) {
             return null;
         }
