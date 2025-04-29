@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/test/**", "/auth/**").permitAll()
                         .requestMatchers("/qrcode/**").authenticated()
                         .requestMatchers("/toolitem/**").authenticated()
+                        .requestMatchers("/transaction/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

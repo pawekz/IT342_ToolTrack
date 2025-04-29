@@ -89,6 +89,10 @@ public class UserService {
         return new UserResponseDTO(user.getEmail(),user.getRole(),user.getFirst_name(), user.getLast_name());
     }
 
+    public User getUserFullDetails(String email){
+        return userRepository.findByEmail(email);
+    }
+
     public UserResponseDTO addGoogleUser(User user){
         user.setRole("staff");
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));

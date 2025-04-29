@@ -22,7 +22,7 @@ public class ToolTransaction {
 
     @JsonManagedReference("return_images")
     @OneToMany(mappedBy = "toolTransaction")
-    private List<ReturnTransaction> returnImage;
+    private List<ReturnTransactionImage> returnImage;
 
     @JsonBackReference("toolTransaction_toolId")
     @ManyToOne
@@ -44,30 +44,29 @@ public class ToolTransaction {
     private Timestamp due_date;
     private Timestamp return_date;
     private Status status = Status.pending;
-    private Timestamp created_at = null;
-    private Timestamp updated_at;  // Comment: null on update CURRENT_TIMESTAMP, what do you mean?
+    private Timestamp created_at;
+    private Timestamp updated_at;
 
 
-    private enum Status {
-        pending, approved, active, completed, overdue
+    public enum Status {
+        pending, approved, active, completed, overdue, rejected
     }
 
-    private enum ConditionBefore {
+    public enum ConditionBefore {
         Fresh, good, fair, worn, damaged, broken
     }
 
-    private enum ConditionAfter {
+    public enum ConditionAfter {
         good, fair, worn, damaged, broken
     }
 
-    private enum TransactionType {
+    public enum TransactionType {
         borrow, returned
     }
 
     @PrePersist
     protected void onCreate() {
         this.created_at = Timestamp.valueOf(LocalDateTime.now());
-        this.updated_at = Timestamp.valueOf(LocalDateTime.now());
     }
 
     @PreUpdate

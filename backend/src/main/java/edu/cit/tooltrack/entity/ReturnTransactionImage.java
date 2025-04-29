@@ -1,7 +1,6 @@
 package edu.cit.tooltrack.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +9,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "return_transaction_images")
-public class ReturnTransaction {
+public class ReturnTransactionImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

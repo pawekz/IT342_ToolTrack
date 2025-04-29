@@ -1,5 +1,6 @@
 package edu.cit.tooltrack.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.cit.tooltrack.entity.ToolItems;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
