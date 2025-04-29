@@ -78,7 +78,7 @@ const UserManagement = () => {
           {/* Top header section */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-800">User Management</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">Borrowing Requests</h2>
               <p className="text-gray-500 text-sm mt-1">Manage tool borrowing requests</p>
             </div>
 

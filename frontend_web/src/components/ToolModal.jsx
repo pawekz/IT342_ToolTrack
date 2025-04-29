@@ -164,7 +164,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         ...form,
         // If there's a new image, we'd use the URL from the server response
         // For now, we'll use the preview URL to simulate this
-        image_url: form.image ? form.image_preview : form.image_url
+        image_url: form.image ? form.image_preview : form.image_url,
+        qr_code_url: qrUploadRes.data.imageUrl
       };
 
       // Remove properties that shouldn't be passed back to the parent

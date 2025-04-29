@@ -8,6 +8,7 @@ import { useAuth } from "../components/AuthProvider";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const { loginAction, setJWTtoken } = useAuth();
   const [email, setEmail] = useState("");
@@ -264,14 +265,24 @@ const LoginPage = () => {
                 className="w-full border border-gray-300 px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
                 disabled={loading}
             />
+            <div className="relative">
             <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-gray-300 px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2EA69E]"
                 disabled={loading}
             />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400"
+                tabIndex={-1}
+                >
+                  <Icon icon={showPassword ? "mdi:eye-off" : "mdi:eye"} width="24" height="24" />
+              </button>
+            </div>
             <button
                 type="submit"
                 disabled={loading}
@@ -281,6 +292,7 @@ const LoginPage = () => {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+
           </form>
 
           <p className="text-center text-gray-600 mt-6">
