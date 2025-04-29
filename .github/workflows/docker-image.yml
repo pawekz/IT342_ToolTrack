@@ -21,9 +21,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Log in to Azure
         uses: azure/login@v1
         with:
@@ -108,13 +105,13 @@ jobs:
             
             # Set database and OAuth environment variables
             az webapp config appsettings set --name tooltrack-backend --resource-group tooltrack --settings \
-            MYSQL_DATABASE="${{ secrets.MYSQL_DATABASE }}" \
-            MYSQL_USERNAME="${{ secrets.MYSQL_USERNAME }}" \
-            MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
-            MYSQL_SERVER="${{ secrets.MYSQL_SERVER }}" \
-            GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-            GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            WEBSITES_PORT=8080
+              MYSQL_DATABASE="${{ secrets.MYSQL_DATABASE }}" \
+              MYSQL_USERNAME="${{ secrets.MYSQL_USERNAME }}" \
+              MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
+              MYSQL_SERVER="${{ secrets.MYSQL_SERVER }}" \
+              GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+              GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+              WEBSITES_PORT=8080
             
             # Restart the web app to apply changes
             az webapp restart --name tooltrack-backend --resource-group tooltrack      
