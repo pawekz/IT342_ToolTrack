@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -125,9 +127,10 @@ public class ToolItemController {
         }
     }
 
-    @GetMapping("/search/{toolName}")
+    @GetMapping("/search/tool/{toolName}")
     public ResponseEntity<?> searchItem(@PathVariable String toolName){
-        ToolBorrowDTO item = toolItemService.getToolItemByName(toolName);
+        String decodedToolName = URLDecoder.decode(toolName, StandardCharsets.UTF_8);
+        ToolBorrowDTO item = toolItemService.getToolItemByName(decodedToolName);
         if(item != null){
             return ResponseEntity.ok(Map.of("toolItem", item));
         }else{
@@ -135,15 +138,19 @@ public class ToolItemController {
         }
     }
 
-    @GetMapping("/search/{category}")
-    public ResponseEntity<?> searchCategory(@PathVariable String category){
-        ToolBorrowDTO item = toolItemService.getToolItemByCategory(category);
-        if(item != null){
+    @GetMapping("/search/tool/category/{category}")
+    public ResponseEntity<?> searchCategory(@PathVariable String category) {
+        String decodedCategory = java.net.URLDecoder.decode(category, StandardCharsets.UTF_8);
+        ToolBorrowDTO item = toolItemService.getToolItemByCategory(decodedCategory);
+
+        if (item != null) {
             return ResponseEntity.ok(Map.of("toolItem", item));
-        }else{
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item not found"));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Tool Item not found for category: " + decodedCategory));
         }
     }
+
 
     @GetMapping("/getAllNames")
     public ResponseEntity<?> getAllName() {
