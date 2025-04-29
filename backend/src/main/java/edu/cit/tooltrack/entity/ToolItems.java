@@ -41,7 +41,7 @@ public class ToolItems {
     private String qr_code_name;
     private String location;
     private String description;
-    private Date date_acquired;
+    private Timestamp date_acquired;
     private String image_url;
     private String  image_name;
     private Timestamp created_at;

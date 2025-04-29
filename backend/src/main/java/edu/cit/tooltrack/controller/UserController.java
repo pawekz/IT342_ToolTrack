@@ -42,6 +42,15 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/getTotalUsers")
+    public ResponseEntity<Integer> getTotalUsers() {
+        int total = userService.getTotalUsers();
+        if(total == 0){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(0);
+        }
+        return ResponseEntity.ok(total);
+    }
+
     @Operation(
             summary = "Update a user",
             description = "Updates the details of an existing user.",

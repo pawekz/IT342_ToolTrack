@@ -135,9 +135,28 @@ public class ToolItemController {
         }
     }
 
+    @GetMapping("/search/{category}")
+    public ResponseEntity<?> searchCategory(@PathVariable String category){
+        ToolBorrowDTO item = toolItemService.getToolItemByCategory(category);
+        if(item != null){
+            return ResponseEntity.ok(Map.of("toolItem", item));
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item not found"));
+        }
+    }
+
     @GetMapping("/getAllNames")
     public ResponseEntity<?> getAllName() {
         return ResponseEntity.ok(Map.of("Items", toolItemService.getAllToolItemNames()));
+    }
+
+    @GetMapping("/getTotalTools")
+    public ResponseEntity<?>  getTotalTools() {
+        int total = toolItemService.getTotalTools();
+        if(total != 0){
+            return ResponseEntity.ok(Map.of("total", total));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "No Tool Items Found"));
     }
 
 }
