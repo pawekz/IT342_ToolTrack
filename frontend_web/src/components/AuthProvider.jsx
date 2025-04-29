@@ -1,80 +1,78 @@
 import axios from "axios";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-
 
 export const AuthContext = createContext();
 
-export const AuthProvider = ({children}) => {
+export const AuthProvider = ({ children }) => {
+    const [token, setToken] = useState(localStorage.getItem("token") || '');
+    const [user, setUser] = useState(null);
 
-    const [token, setToken] = useState(localStorage.getItem("token")||'');
+    const isAuthenticated = !!token;
 
-    const isAuthenticated = !!token; 
+    useEffect(() => {
+        if (token) {
+            const decoded = jwtDecode(token);
+            setUser(decoded);
+        }
+    }, [token]);
 
     const loginAction = async (data, navigate) => {
         try {
-            console.log(data)
-            if(!data.isGoogle){ //NormalLogin
+            if (!data.isGoogle) {
                 const response = await axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/login`, data, {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {
                     const { token, role } = response.data;
                     localStorage.setItem("token", token);
-        
-                    // Redirect user based on role
+                    setToken(token);
+                    setUser(jwtDecode(token));
                     if (role === "Staff") {
-                        navigate("/dashboard"); 
+                        navigate("/dashboard");
                     }
                     return;
                 }
-            } else{ //googleLogin
+            } else {
                 const response = await axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/googleLogin`, data, {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {
-                    console.log(response.data.token)
                     setToken(response.data.token);
                     localStorage.setItem("token", response.data.token);
-                    const decoded = jwtDecode(response.data.token);
-                    console.log(decoded)
-        
-                    // // Redirect user based on role
-                    if (decoded.role === "Staff") {
-                        console.log("redirecting...to dashboard")
+                    setUser(jwtDecode(response.data.token));
+                    if (jwtDecode(response.data.token).role === "Staff") {
                         navigate("/dashboard");
                     }
                     return;
                 }
             }
-            throw new Error(response.data.message)
+            throw new Error(response.data.message);
         } catch (error) {
-            console.log(error)
+            console.error(error);
         }
-        
-    }
+    };
 
     const logout = () => {
-        // setIsAuthenticated(false)
-        const token = localStorage.getItem("token");
-        if (!token) return
         localStorage.removeItem("token");
         sessionStorage.clear();
-    }
+        setToken('');
+        setUser(null);
+    };
 
     const setJWTtoken = (token) => {
         localStorage.setItem("token", token);
         setToken(token);
-        console.log(token)
-        return;
-    }
+        setUser(jwtDecode(token));
+    };
 
     return (
-        <AuthContext.Provider value={{isAuthenticated, loginAction, logout, setJWTtoken}}>
+        <AuthContext.Provider value={{ isAuthenticated, loginAction, logout, setJWTtoken, user }}>
             {children}
         </AuthContext.Provider>
-    )
-}
+    );
+};
+
 export default AuthProvider;
 export const useAuth = () => {
     return useContext(AuthContext);
