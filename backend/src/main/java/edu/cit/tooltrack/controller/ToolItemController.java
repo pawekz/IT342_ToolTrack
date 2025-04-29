@@ -135,6 +135,16 @@ public class ToolItemController {
         }
     }
 
+    @GetMapping("/search/{category}")
+    public ResponseEntity<?> searchCategory(@PathVariable String category){
+        ToolBorrowDTO item = toolItemService.getToolItemByCategory(category);
+        if(item != null){
+            return ResponseEntity.ok(Map.of("toolItem", item));
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item not found"));
+        }
+    }
+
     @GetMapping("/getAllNames")
     public ResponseEntity<?> getAllName() {
         return ResponseEntity.ok(Map.of("Items", toolItemService.getAllToolItemNames()));

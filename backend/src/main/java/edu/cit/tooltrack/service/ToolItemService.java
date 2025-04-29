@@ -115,6 +115,19 @@ public class ToolItemService {
         }
     }
 
+    public ToolBorrowDTO getToolItemByCategory(String category) {
+        try{
+            ToolItems toolItems = toolItemRepository.findByCategory(category);
+            if (toolItems != null) {
+                return new ToolBorrowDTO(toolItems);
+            } else {
+                throw new NoSuchElementException("Item not found");
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public int getTotalTools(){
         return toolItemRepository.findAll().size();
     }
