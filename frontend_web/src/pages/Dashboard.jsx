@@ -58,7 +58,7 @@ const Dashboard = () => {
           }
         })
         .then(result => {
-          setTotalUsers(result.data.total)
+          setTotalUsers(result.data)
         })
   }, []);
 
