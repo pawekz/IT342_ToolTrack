@@ -40,9 +40,8 @@ const Dashboard = () => {
     { name: "Lawn Mower", borrowed: 6 },
   ];
 
-  // Uncomment this when authentication is in place
   useEffect(() => {
-    axios.get("http://localhost:8080/toolitem/getTotalTools",
+    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/getTotalTools",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -52,7 +51,7 @@ const Dashboard = () => {
           setTotalTools(result.data.total)
         })
 
-    axios.get("http://localhost:8080/toolitem/getTotalUsers",
+    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/getTotalUsers",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
