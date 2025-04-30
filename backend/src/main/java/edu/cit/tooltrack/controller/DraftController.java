@@ -43,6 +43,16 @@ public class DraftController {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping("/getTotalUsers")
+    public ResponseEntity<Integer> getTotalUsers() {
+        int total = userService.getTotalUsers();
+        if(total == 0){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(0);
+        }
+        return ResponseEntity.ok(total);
+    }
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
