@@ -44,9 +44,7 @@ ToolTrack also provides analytics on how tools are being used and helps in sched
 ### **Feature 5: Notification Service**
 Push and email notifications for:
 - Due date reminders
-- Maintenance schedules
 - Return deadlines
-- Important system updates
 - Borrowing and return activity summaries
 
 ### **Feature 6: Analytics**
@@ -55,7 +53,7 @@ Push and email notifications for:
 - Maintenance schedule tracking
 - Individual user borrowing history
 - Tool demand trend analysis
-- Maintenance cost tracking
+
 
 ---
 
