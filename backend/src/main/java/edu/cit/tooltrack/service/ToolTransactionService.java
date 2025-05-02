@@ -11,7 +11,12 @@ import org.springframework.stereotype.Service;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,4 +85,25 @@ public class ToolTransactionService {
                 item.getName());
     }
 
+    public  Map<Month, Long> getFormatedDatesSortedBy(String sortBy) {
+        if(sortBy.equals("alltime")){
+            List<Timestamp> timestamps = toolTransactionRepo.getAllYear();
+            return null;
+        }else if(sortBy.equals("6months")){
+            List<Timestamp> timestamps = toolTransactionRepo.getLastSixMonths();
+            return formateDates(timestamps);
+        }else{
+            //last year
+            int lastyear = LocalDateTime.now().getYear()-1;
+            List<Timestamp> timestamps = toolTransactionRepo.getLastYear(lastyear);
+            return formateDates(timestamps);
+        }
+    }
+
+    private static Map<Month, Long> formateDates(List<Timestamp> timestamps) {
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        return timestamps.stream()
+                .map(Timestamp::toLocalDateTime)
+                .collect(Collectors.groupingBy(LocalDateTime::getMonth, Collectors.counting()));
+    }
 }

@@ -17,16 +17,21 @@ const Dashboard = () => {
   const[totalUsers, setTotalUsers] = useState(0);
   const[totalTools, setTotalTools] = useState(0);
   const[totalBorrowed, setTotalBorrowed] = useState(0);
+  const[dates, setDates] = useState([
+    { month: "Jan", tools: 0 },
+    { month: "Feb", tools: 0 },
+    { month: "Mar", tools: 0 },
+    { month: "Apr", tools: 0 },
+    { month: "May", tools: 0 },
+    { month: "Jun", tools: 0 },
+    { month: "Jul", tools: 0 },
+    { month: "Aug", tools: 0 },
+    { month: "Sep", tools: 0 },
+    { month: "Oct", tools: 0 },
+    { month: "Nov", tools: 0 },
+    { month: "Dec", tools: 0 }
+  ]);
 
-  // Mock data for the dashboard
-  const mockBorrowingData = [
-    { month: "Jan", tools: 15 },
-    { month: "Feb", tools: 20 },
-    { month: "Mar", tools: 25 },
-    { month: "Apr", tools: 18 },
-    { month: "May", tools: 30 },
-    { month: "Jun", tools: 28 },
-  ];
 
   const mockRecentActivities = [
     { id: 1, user: "John Doe", action: "Borrowed", tool: "Power Drill", date: "2023-09-15" },
@@ -60,7 +65,45 @@ const Dashboard = () => {
         .then(result => {
           setTotalUsers(result.data)
         })
+
+    axios.get("http://localhost:8080/transaction//getSortedDates/6months",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
   }, []);
+
+  const getMonthlyTools = () => {
+    axios.get("http://localhost:8080/transaction//getSortedDates/6months",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        .then(result => {
+          updateMonthlyTools(result.data)
+        })
+  }
+
+
+  function updateMonthlyTools(backendData) {
+    // Format backend keys to short 3-letter month names
+    const formattedBackend = {};
+    for (const [fullMonth, count] of Object.entries(backendData.timestamps)) {
+      const shortMonth = fullMonth.charAt(0).toUpperCase() + fullMonth.slice(1, 3).toLowerCase(); // e.g. "JANUARY" -> "Jan"
+      formattedBackend[shortMonth] = count;
+    }
+
+    // Update your state (dates)
+    setDates(prevDates =>
+        prevDates.map(entry => ({
+          ...entry,
+          tools: (formattedBackend[entry.month] || 0)
+        }))
+    );
+  }
+
 
 
   // For future implementation:
@@ -74,6 +117,9 @@ const Dashboard = () => {
     // Here you would fetch data based on the selected tab
     setLoading(true);
     // Simulate loading for UI demonstration
+
+
+
     setTimeout(() => {
       setLoading(false);
     }, 300);
@@ -198,7 +244,7 @@ const Dashboard = () => {
                 </div>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mockBorrowingData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart data={dates} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />

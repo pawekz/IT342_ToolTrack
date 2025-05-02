@@ -3,9 +3,11 @@ package edu.cit.tooltrack.repository;
 import edu.cit.tooltrack.entity.ToolTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.tools.Tool;
+import java.sql.Timestamp;
 import java.util.List;
 
 
@@ -13,4 +15,13 @@ import java.util.List;
 public interface ToolTransactionRepository extends JpaRepository<ToolTransaction, Integer> {
 
 
-}
+    @Query(value = "SELECT borrow_date FROM tool_transactions WHERE borrow_date >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 6 MONTH)", nativeQuery = true)
+    List<Timestamp> getLastSixMonths();
+
+    @Query(value = "SELECT borrow_date FROM tool_transactions WHERE YEAR(borrow_date) = :year", nativeQuery = true)
+    List<Timestamp> getLastYear(@Param("year") int year);
+
+    @Query(value = "SELECT borrow_date FROM tool_transactions", nativeQuery = true)
+    List<Timestamp> getAllYear();
+
+} 
