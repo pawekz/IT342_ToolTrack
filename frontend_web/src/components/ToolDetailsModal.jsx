@@ -42,13 +42,14 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
     });
 
     // Alternative method using Print-JS (better for some thermal printers)
+/*
     const handleThermalPrint = () => {
         // First download the QR image if it doesn't exist locally
         fetch(tool.qr_code)
             .then(response => response.blob())
             .then(blob => {
                 const imageUrl = URL.createObjectURL(blob);
-                
+
                 // Use Print-JS to print the image with specific dimensions
                 printJS({
                     printable: imageUrl,
@@ -72,6 +73,13 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
                 // Fallback to regular print method
                 handlePrint();
             });
+    };
+*/
+
+    // Update your handleThermalPrint function to use react-to-print directly
+    const handleThermalPrint = () => {
+        // Skip the fetch and just use react-to-print which already works
+        handlePrint();
     };
 
     if (!show || !tool) return null;
