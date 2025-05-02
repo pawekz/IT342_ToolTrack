@@ -44,7 +44,7 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
                 </div>
 
                 {/* QR Code Section */}
-                {tool.qr_code_url && (
+                {tool.qr_code && (
                     <div className="mt-8 text-center">
                         <h3 className="text-md font-semibold mb-2">QR Code</h3>
                         <div className="flex justify-center">
@@ -56,7 +56,7 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
                                     </svg>
                                 )}
                                 <img
-                                    src={tool.qr_code_url}
+                                    src={tool.qr_code}
                                     alt="Tool QR Code"
                                     className={`h-full w-full object-contain rounded-md ${qrLoading ? "hidden" : "block"}`}
                                     onLoad={() => setQrLoading(false)}
@@ -68,7 +68,7 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
                         {!qrLoading && (
                             <div className="mt-4">
                                 <a
-                                    href={tool.qr_code_url}
+                                    href={tool.qr_code}
                                     download={`tool-${tool.tool_id}-qrcode.png`}
                                     className="inline-block bg-teal-500 text-white text-sm px-4 py-2 rounded-md hover:bg-teal-600 transition"
                                 >
