@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SidebarLayout from "../components/SidebarLayout";
-import { CheckCircle, XCircle, Pencil, MoreVertical, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Pencil, MoreVertical, Eye, User } from 'lucide-react';
 import UserModal from '../components/UserModal';
 
 // Mock data for testing – to be replaced with dynamic data from the backend
@@ -9,28 +9,24 @@ const users = [
     id: 1,
     name: 'Nathaniel Salvoro',
     tool: 'Hammer',
-    avatar: 'https://i.pravatar.cc/150?img=1',
     email: 'nathaniel.s@example.com',
   },
   {
     id: 2,
     name: 'Maggie Johnson',
     tool: 'Ballpen',
-    avatar: 'https://i.pravatar.cc/150?img=2',
     email: 'maggie.j@example.com',
   },
   {
     id: 3,
     name: 'Gael Harry',
     tool: 'Wireless Drill',
-    avatar: 'https://i.pravatar.cc/150?img=3',
     email: 'gael.h@example.com',
   },
   {
     id: 4,
     name: 'Jenna Sullivan',
     tool: 'Laptop',
-    avatar: 'https://i.pravatar.cc/150?img=4',
     email: 'jenna.s@example.com',
   },
 ];
@@ -115,12 +111,8 @@ const UserManagement = () => {
                       className="grid grid-cols-3 items-center px-6 py-4 hover:bg-teal-50 transition-colors duration-200"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm border border-gray-200">
-                        <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                        />
+                      <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden shadow-sm border border-gray-200">
+                        <User className="w-6 h-6 text-teal-600" />
                       </div>
                       <span className="text-gray-800 font-medium">{user.name}</span>
                     </div>

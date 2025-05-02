@@ -74,13 +74,6 @@ const UserModal = ({ user, isOpen, onClose }) => {
                 {/* User profile content */}
                 <div className="p-6">
                     <div className="flex flex-col items-center mb-6">
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-teal-50 shadow-sm mb-4">
-                            <img
-                                src={user.avatar}
-                                alt={`${user.name}'s profile`}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
                         <h4 className="text-xl font-semibold text-gray-800">{user.name}</h4>
                     </div>
 
