@@ -86,10 +86,11 @@ public class ToolTransactionService {
     }
 
     public  Map<Month, Long> getFormatedDatesSortedBy(String sortBy) {
-        if(sortBy.equals("alltime")){
+        System.out.println("sort by: " + sortBy);
+        if(sortBy.equals("Alltime")){
             List<Timestamp> timestamps = toolTransactionRepo.getAllYear();
             return null;
-        }else if(sortBy.equals("6months")){
+        }else if(sortBy.equals("Last6months")){
             List<Timestamp> timestamps = toolTransactionRepo.getLastSixMonths();
             return formateDates(timestamps);
         }else{

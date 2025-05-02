@@ -17,6 +17,7 @@ const Dashboard = () => {
   const[totalUsers, setTotalUsers] = useState(0);
   const[totalTools, setTotalTools] = useState(0);
   const[totalBorrowed, setTotalBorrowed] = useState(0);
+  const[sortRange, setSortRange] = useState("Last 6 months")
   const[dates, setDates] = useState([
     { month: "Jan", tools: 0 },
     { month: "Feb", tools: 0 },
@@ -46,6 +47,7 @@ const Dashboard = () => {
   ];
 
   useEffect(() => {
+    console.log(sortRange)
     axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/getTotalTools",
         {
           headers: {
@@ -65,44 +67,66 @@ const Dashboard = () => {
         .then(result => {
           setTotalUsers(result.data)
         })
-
-    axios.get("http://localhost:8080/transaction//getSortedDates/6months",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        })
   }, []);
 
-  const getMonthlyTools = () => {
-    axios.get("http://localhost:8080/transaction//getSortedDates/6months",
+  useEffect(() => {
+    const sortValue = sortRange.split(" ").join("");
+    console.log("sortValue", sortValue);
+    axios.get(`http://localhost:8080/transaction/getSortedDates/${sortValue}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
-        })
-        .then(result => {
-          updateMonthlyTools(result.data)
-        })
+        }).then(result => {
+          if (result.status === 200) {
+            updateMonthlyTools(result.data.timestamps)
+          }
+    })
+  }, [sortRange]);
+
+
+  function getMonthLabels(range) {
+    const allMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    if (range === "Last 6 months") {
+      const now = new Date();
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthIndex = (now.getMonth() - i + 12) % 12;
+        months.push(allMonths[monthIndex]);
+      }
+      return months;
+    }
+
+    // Return full year for Last year / All time
+    return allMonths;
   }
 
 
   function updateMonthlyTools(backendData) {
-    // Format backend keys to short 3-letter month names
+    const shortMonth = (month) =>
+        month.charAt(0).toUpperCase() + month.slice(1, 3).toLowerCase();
+
+    // Format backend data into short month → count
     const formattedBackend = {};
-    for (const [fullMonth, count] of Object.entries(backendData.timestamps)) {
-      const shortMonth = fullMonth.charAt(0).toUpperCase() + fullMonth.slice(1, 3).toLowerCase(); // e.g. "JANUARY" -> "Jan"
-      formattedBackend[shortMonth] = count;
+    for (const [fullMonth, count] of Object.entries(backendData)) {
+      const short = shortMonth(fullMonth);
+      formattedBackend[short] = count;
     }
 
-    // Update your state (dates)
-    setDates(prevDates =>
-        prevDates.map(entry => ({
-          ...entry,
-          tools: (formattedBackend[entry.month] || 0)
-        }))
-    );
+    // Get relevant months based on range
+    const activeMonths = getMonthLabels(sortRange);
+
+    // Set state with only relevant months
+    const updated = activeMonths.map((month) => ({
+      month,
+      tools: formattedBackend[month] || 0,
+    }));
+
+    setDates(updated);
   }
+
 
 
 
@@ -235,7 +259,8 @@ const Dashboard = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Monthly Tool Borrowing</h3>
                   <div className="flex space-x-2">
-                    <select className="text-xs border border-gray-300 rounded-md px-2 py-1">
+                    <select className="text-xs border border-gray-300 rounded-md px-2 py-1"
+                    onChange={e => setSortRange(e.target.value)}>
                       <option>Last 6 months</option>
                       <option>Last year</option>
                       <option>All time</option>
