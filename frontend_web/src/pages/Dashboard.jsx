@@ -17,16 +17,22 @@ const Dashboard = () => {
   const[totalUsers, setTotalUsers] = useState(0);
   const[totalTools, setTotalTools] = useState(0);
   const[totalBorrowed, setTotalBorrowed] = useState(0);
+  const[sortRange, setSortRange] = useState("Last 6 months")
+  const[dates, setDates] = useState([
+    { month: "Jan", tools: 0 },
+    { month: "Feb", tools: 0 },
+    { month: "Mar", tools: 0 },
+    { month: "Apr", tools: 0 },
+    { month: "May", tools: 0 },
+    { month: "Jun", tools: 0 },
+    { month: "Jul", tools: 0 },
+    { month: "Aug", tools: 0 },
+    { month: "Sep", tools: 0 },
+    { month: "Oct", tools: 0 },
+    { month: "Nov", tools: 0 },
+    { month: "Dec", tools: 0 }
+  ]);
 
-  // Mock data for the dashboard
-  const mockBorrowingData = [
-    { month: "Jan", tools: 15 },
-    { month: "Feb", tools: 20 },
-    { month: "Mar", tools: 25 },
-    { month: "Apr", tools: 18 },
-    { month: "May", tools: 30 },
-    { month: "Jun", tools: 28 },
-  ];
 
   const mockRecentActivities = [
     { id: 1, user: "John Doe", action: "Borrowed", tool: "Power Drill", date: "2023-09-15" },
@@ -41,6 +47,7 @@ const Dashboard = () => {
   ];
 
   useEffect(() => {
+    console.log(sortRange)
     axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/getTotalTools",
         {
           headers: {
@@ -62,6 +69,66 @@ const Dashboard = () => {
         })
   }, []);
 
+  useEffect(() => {
+    const sortValue = sortRange.split(" ").join("");
+    console.log("sortValue", sortValue);
+    axios.get(`http://localhost:8080/transaction/getSortedDates/${sortValue}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }).then(result => {
+          if (result.status === 200) {
+            updateMonthlyTools(result.data.timestamps)
+          }
+    })
+  }, [sortRange]);
+
+
+  function getMonthLabels(range) {
+    const allMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    if (range === "Last 6 months") {
+      const now = new Date();
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthIndex = (now.getMonth() - i + 12) % 12;
+        months.push(allMonths[monthIndex]);
+      }
+      return months;
+    }
+
+    // Return full year for Last year / All time
+    return allMonths;
+  }
+
+
+  function updateMonthlyTools(backendData) {
+    const shortMonth = (month) =>
+        month.charAt(0).toUpperCase() + month.slice(1, 3).toLowerCase();
+
+    // Format backend data into short month → count
+    const formattedBackend = {};
+    for (const [fullMonth, count] of Object.entries(backendData)) {
+      const short = shortMonth(fullMonth);
+      formattedBackend[short] = count;
+    }
+
+    // Get relevant months based on range
+    const activeMonths = getMonthLabels(sortRange);
+
+    // Set state with only relevant months
+    const updated = activeMonths.map((month) => ({
+      month,
+      tools: formattedBackend[month] || 0,
+    }));
+
+    setDates(updated);
+  }
+
+
+
 
   // For future implementation:
   // 1. Fetch dashboard data from API
@@ -74,6 +141,9 @@ const Dashboard = () => {
     // Here you would fetch data based on the selected tab
     setLoading(true);
     // Simulate loading for UI demonstration
+
+
+
     setTimeout(() => {
       setLoading(false);
     }, 300);
@@ -189,7 +259,8 @@ const Dashboard = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-sm font-medium text-gray-600">Monthly Tool Borrowing</h3>
                   <div className="flex space-x-2">
-                    <select className="text-xs border border-gray-300 rounded-md px-2 py-1">
+                    <select className="text-xs border border-gray-300 rounded-md px-2 py-1"
+                    onChange={e => setSortRange(e.target.value)}>
                       <option>Last 6 months</option>
                       <option>Last year</option>
                       <option>All time</option>
@@ -198,7 +269,7 @@ const Dashboard = () => {
                 </div>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={mockBorrowingData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart data={dates} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />

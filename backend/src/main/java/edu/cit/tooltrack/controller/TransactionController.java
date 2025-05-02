@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,4 +50,13 @@ public class TransactionController {
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/getSortedDates/{sortedBy}")
+    public ResponseEntity<?> getDate(@PathVariable String sortedBy){
+        Map<Month, Long> timestamps = toolTransactionService.getFormatedDatesSortedBy(sortedBy);
+        if(timestamps.isEmpty()){
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+        }else{
+            return ResponseEntity.ok(Map.of("timestamps", timestamps));
+        }
+    }
 }
