@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, ChevronDown, Search, Calendar, Check, X, ArrowDown, ArrowUp } from 'lucide-react';
 import SidebarLayout from "../components/SidebarLayout";
+import axios from 'axios'
 
 const ActivityLog = () => {
     const [transactions, setTransactions] = useState([]);
@@ -76,8 +77,21 @@ const ActivityLog = () => {
 
     useEffect(() => {
         // Simulating API fetch
+        axios.get('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllProcessed', {
+                headers: {
+                    Authorization: 'Bearer ' + localStorage.getItem('token')
+                }
+            }
+        ).then(res => {
+            if (res.status === 200) {
+                console.log(res.data.transactions)
+                setTransactions(res.data.transactions);
+            }
+        }).catch(err => {
+            console.error('Error fetching transactions:', err);
+        });
+
         setTimeout(() => {
-            setTransactions(mockTransactions);
             setLoading(false);
         }, 800);
     }, []);
@@ -111,11 +125,13 @@ const ActivityLog = () => {
 
         // Apply search filter
         const searchLower = searchQuery.toLowerCase();
+        console.log(transaction.user_firstName)
         return (
-            transaction.user_id.name.toLowerCase().includes(searchLower) ||
-            transaction.tool_id.name.toLowerCase().includes(searchLower) ||
+            transaction.user_firstName.toLowerCase().includes(searchLower) ||
+            transaction.user_lastName.toLowerCase().includes(searchLower) ||
+            transaction.tool_name.toLowerCase().includes(searchLower) ||
             transaction.reason?.toLowerCase().includes(searchLower) ||
-            transaction.tool_id.tool_id.toLowerCase().includes(searchLower)
+            transaction.tool_id.toLowerCase().includes(searchLower)
         );
     });
 
@@ -221,7 +237,7 @@ const ActivityLog = () => {
                                 >
                                     <div className="flex items-center">
                                         User
-                                        {renderSortIcon('user_id.name')}
+                                        {renderSortIcon('user_firstName')}
                                     </div>
                                 </th>
                                 <th
@@ -309,11 +325,11 @@ const ActivityLog = () => {
                                             #{transaction.transaction_id}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <div>{transaction.user_id.name}</div>
+                                            <div>{transaction.user_firstName + ' '+ transaction.user_lastName}</div>
 
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <div>{transaction.tool_id.name}</div>
+                                            <div>{transaction.tool_name}</div>
                                             <div className="text-xs text-gray-400">{transaction.tool_id.tool_id}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
