@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import SettingsPage from "./pages/SettingsPage";
 import { AuthProvider } from "./components/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ActivityLog from "./pages/ActivityLog.jsx";
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
         <Route path="/toolmanagement" element={<ProtectedRoute><ToolManagement /></ProtectedRoute>} />
         <Route path="/user-management" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/activity-log" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
+
         <Route path="/ChunkUploader" element={<ProtectedRoute><ChunkUploader/></ProtectedRoute>}/>
       </Routes>
     </Router>

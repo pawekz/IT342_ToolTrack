@@ -54,7 +54,7 @@ const LogoutModal = ({ isOpen, onClose, onLogout }) => {
   );
 };
 
-// Modified Sidebar Component with Logout Modal Integration
+//Sidebar Component
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -70,7 +70,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: "/dashboard", icon: "mdi:view-dashboard", label: "Dashboard" },
     { path: "/toolmanagement", icon: "mdi:tools", label: "Tool Management" },
     { path: "/user-management", icon: "mdi:account-group", label: "Borrowing" },
-    { path: "/tools", icon: "mdi:toolbox-outline", label: "Report" }
+    { path: "/activity-log", icon: "mdi:toolbox-outline", label: "Activity Log" }
   ];
 
   const bottomNavItems = [
