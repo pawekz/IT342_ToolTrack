@@ -54,7 +54,7 @@ public class UserService {
            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
                throw new BadCredentialsException("Invalid email or password");
            }
-           return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
+           return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name(), user.getIsGoogle());
        }else{
            return null;
        }
@@ -66,7 +66,7 @@ public class UserService {
             if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
                 throw new BadCredentialsException("Invalid email or password");
             }
-            return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
+            return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name(), user.getIsGoogle());
         }else{
             return null; //means its a user
         }
@@ -93,7 +93,7 @@ public class UserService {
         }
 
         User savedUser = userRepository.save(user);
-        return new UserResponseDTO(savedUser.getEmail(), savedUser.getRole() ,savedUser.getFirst_name(), savedUser.getLast_name());
+        return new UserResponseDTO(savedUser.getEmail(), savedUser.getRole() ,savedUser.getFirst_name(), savedUser.getLast_name(), savedUser.getIsGoogle());
     }
 
 
@@ -107,7 +107,7 @@ public class UserService {
 
     public UserResponseDTO getUserData(String email){
         User user = userRepository.findByEmail(email);
-        return new UserResponseDTO(user.getEmail(),user.getRole(),user.getFirst_name(), user.getLast_name());
+        return new UserResponseDTO(user.getEmail(),user.getRole(),user.getFirst_name(), user.getLast_name(), user.getIsGoogle());
     }
 
     public User getUserFullDetails(String email){
@@ -118,7 +118,7 @@ public class UserService {
         user.setRole("staff");
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
         userRepository.save(user);
-        return new UserResponseDTO(user.getEmail(), user.getRole() ,user.getFirst_name(), user.getLast_name());
+        return new UserResponseDTO(user.getEmail(), user.getRole() ,user.getFirst_name(), user.getLast_name(), user.getIsGoogle());
     }
 
 
@@ -127,7 +127,7 @@ public class UserService {
         user.setIs_active(1);
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
          register(user,"Staff");
-         return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
+         return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name(), user.getIsGoogle());
     }
 
     @SuppressWarnings("finally")
@@ -144,7 +144,7 @@ public class UserService {
             return null;
         } finally {
              userRepository.save(user);
-             return new UserResponseDTO(user.getEmail(), user.getRole() ,user.getFirst_name(), user.getLast_name());
+             return new UserResponseDTO(user.getEmail(), user.getRole() ,user.getFirst_name(), user.getLast_name(), user.getIsGoogle());
         }
     }
 

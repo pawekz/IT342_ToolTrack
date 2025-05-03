@@ -55,11 +55,11 @@ public class UserAuthController {
         UserResponseDTO userDetails = null;
         if (userService.isUserExist(user.getEmail())) {
             userDetails = userService.getUserData(user.getEmail());
-            if(userDetails.getRole().equals("Staff")){
+            if(userDetails.getRole().equals("Staff") && userDetails.getIsGoogle()){
                 return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
             }else{
                 //means admin
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credentials not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Credentials not found"));
             }
         } else {
             userDetails = userService.register(user, "Staff");
@@ -72,11 +72,11 @@ public class UserAuthController {
         UserResponseDTO userDetails = null;
         if (userService.isUserExist(user.getEmail())) {
             userDetails = userService.getUserData(user.getEmail());
-            if(userDetails.getRole().equals("Admin")){
+            if(userDetails.getRole().equals("Admin") && userDetails.getIsGoogle()){
                 return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
             }else{
                 //means its a user
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User is not an admin"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User is not an admin"));
             }
         } else {
             userDetails = userService.register(user, "Admin");
@@ -109,7 +109,7 @@ public class UserAuthController {
             UserResponseDTO userDetails = userService.verifyUser(loginRequest);
             if(userDetails == null){
                 //means its an admin
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credentials not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Credentials not found"));
             }
             return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
         } catch (Exception e) {
@@ -124,7 +124,7 @@ public class UserAuthController {
             UserResponseDTO userDetails = userService.verifyAdmin(loginRequest);
             if(userDetails == null){
                 //means its a user
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credentials not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Credentials not found"));
             }
             return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
         } catch (Exception e) {
