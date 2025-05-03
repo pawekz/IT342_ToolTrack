@@ -86,6 +86,10 @@ public class ToolTransactionService {
                 user.getEmail(),
                 item.getTool_id(),
                 item.getName(),
+                transaction.getBorrow_date(),
+                transaction.getDue_date(),
+                transaction.getReturn_date(),
+                transaction.getTransaction_type(),
                 transaction.getStatus());
     }
 
