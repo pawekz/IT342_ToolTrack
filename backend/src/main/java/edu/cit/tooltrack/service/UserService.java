@@ -50,17 +50,39 @@ public class UserService {
 
     public UserResponseDTO verifyUser(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail());
-        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
-            throw new BadCredentialsException("Invalid email or password");
-        }
-        return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
+       if(user != null && user.getRole().equals("Staff")){
+           if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
+               throw new BadCredentialsException("Invalid email or password");
+           }
+           return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
+       }else{
+           return null;
+       }
     }
 
-    public UserResponseDTO register(User user) {
-        user.setIs_active(1);
-        user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
-        user.setRole("Staff");
+    public UserResponseDTO verifyAdmin(LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail());
+        if(user.getRole().equals("Admin")){
+            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
+                throw new BadCredentialsException("Invalid email or password");
+            }
+            return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
+        }else{
+            return null; //means its a user
+        }
+    }
 
+    public UserResponseDTO register(User user, String userType) {
+        //check for userRole
+        if(userType.equals("Staff")){
+            user.setIs_active(1);
+            user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
+            user.setRole("Staff");
+        }else{
+            user.setIs_active(1);
+            user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
+            user.setRole("Admin");
+        }
         //check if data has a password, hash it, else, it's a google registration skip the hash
         if(user.getPassword_hash() != null){
             String encodedPassword = passwordEncoder.encode(user.getPassword_hash());
@@ -69,7 +91,6 @@ public class UserService {
         }else{
             user.setIsGoogle(true);
         }
-
 
         User savedUser = userRepository.save(user);
         return new UserResponseDTO(savedUser.getEmail(), savedUser.getRole() ,savedUser.getFirst_name(), savedUser.getLast_name());
@@ -105,7 +126,7 @@ public class UserService {
         //no checking for if user already existed
         user.setIs_active(1);
         user.setCreated_at(Timestamp.valueOf(LocalDateTime.now()));
-         register(user);
+         register(user,"Staff");
          return new UserResponseDTO(user.getEmail(), user.getRole(), user.getFirst_name(), user.getLast_name());
     }
 

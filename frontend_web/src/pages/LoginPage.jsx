@@ -36,7 +36,7 @@ const LoginPage = () => {
 
     try {
       // Always use Azure backend for login
-      const response = await fetch("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/login", {
+      const response = await fetch("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -167,7 +167,7 @@ const LoginPage = () => {
                   password_hash: null,
                   isGoogle: true
                 };
-                axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/register`, userData).then(response => {
+                axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/admin/register`, userData).then(response => {
                   setJWTtoken(response.data);
                   // Show success message
                   setShowSuccessSnackbar(true);

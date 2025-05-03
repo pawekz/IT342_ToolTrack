@@ -38,7 +38,6 @@ public class UserAuthController {
 
     @Autowired
     private UserService userService;
-
     private Map<String, Object> data;
 
     @GetMapping("/checkUser")
@@ -51,19 +50,40 @@ public class UserAuthController {
     }
 
 
-    @PostMapping("/googleLogin")
-    public ResponseEntity<?> googleLogin(@RequestBody User user) {
+    @PostMapping("/user/googleLogin") //user googlelogin
+    public ResponseEntity<?> googleUserLogin(@RequestBody User user) {
         UserResponseDTO userDetails = null;
         if (userService.isUserExist(user.getEmail())) {
             userDetails = userService.getUserData(user.getEmail());
-            System.out.println("generating token for google login");
-            System.out.println("user details: "+ userDetails.getEmail()+ " " +userDetails.getFirst_name() + " " + userDetails.getLast_name());
-            return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
+            if(userDetails.getRole().equals("Staff")){
+                return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
+            }else{
+                //means admin
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credentials not found"));
+            }
         } else {
-            userDetails = userService.register(user);
+            userDetails = userService.register(user, "Staff");
             return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userDetails));
         }
     }
+
+    @PostMapping("/admin/googleLogin") //user googlelogin
+    public ResponseEntity<?> googleAdminLogin(@RequestBody User user) {
+        UserResponseDTO userDetails = null;
+        if (userService.isUserExist(user.getEmail())) {
+            userDetails = userService.getUserData(user.getEmail());
+            if(userDetails.getRole().equals("Admin")){
+                return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
+            }else{
+                //means its a user
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "User is not an admin"));
+            }
+        } else {
+            userDetails = userService.register(user, "Admin");
+            return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userDetails));
+        }
+    }
+
 
     @Operation(
             summary = "Normal login",
@@ -81,28 +101,55 @@ public class UserAuthController {
                                     schema = @Schema(example = "{ \"error\": \"Incorrect Credentials\" }")))
             }
     )
-    @PostMapping("/login")
-    public ResponseEntity<?> login(
-            @RequestBody LoginRequest loginRequest) {
+
+    @PostMapping("/user/login")  //user login
+    public ResponseEntity<?> userLogin(@RequestBody LoginRequest loginRequest) {
         // Check if user exists
         try {
             UserResponseDTO userDetails = userService.verifyUser(loginRequest);
-            System.out.println("generating token for normal login");
+            if(userDetails == null){
+                //means its an admin
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credentials not found"));
+            }
             return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Credentials"));
         }
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
+    @PostMapping("/admin/login")  //user login
+    public ResponseEntity<?> adminLogin(@RequestBody LoginRequest loginRequest) {
+        // Check if user exists
         try {
-            UserResponseDTO userResponse = userService.register(user);
+            UserResponseDTO userDetails = userService.verifyAdmin(loginRequest);
+            if(userDetails == null){
+                //means its a user
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credentials not found"));
+            }
+            return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Credentials"));
+        }
+    }
+
+    @PostMapping("/user/register") //user register
+    public ResponseEntity<String> userRegister(@RequestBody User user) {
+        try {
+            UserResponseDTO userResponse = userService.register(user,"Staff");
             return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userResponse));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + e.getMessage());
         }
     }
 
+    @PostMapping("/admin/register") //user register
+    public ResponseEntity<String> adminRegister(@RequestBody User user) {
+        try {
+            UserResponseDTO userResponse = userService.register(user,"Admin");
+            return ResponseEntity.status(HttpStatus.CREATED).body(JwtService.generateToken(userResponse));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + e.getMessage());
+        }
+    }
 
 }

@@ -59,7 +59,7 @@ const Register = () => {
           .then( response => {
             if(response.data.msg === ("User does not exist")){
               //proceed to registration
-              axios.post("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/register", {
+              axios.post("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/admin/register", {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
                 email: formData.email,
