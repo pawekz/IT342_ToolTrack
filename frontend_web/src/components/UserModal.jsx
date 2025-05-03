@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { X, Info, ChevronRight } from 'lucide-react';
+import axios from 'axios'
 
 // Mock tool data - in a real implementation, this would be passed as props or fetched
 const toolDetails = [
@@ -51,11 +52,35 @@ const UserModal = ({ user, isOpen, onClose }) => {
     if (!isOpen || !user) return null;
 
     // Find the tool details that match the user's requested tool
-    const toolDetail = toolDetails.find(tool => tool.name === user.tool);
+    // const toolDetail = toolDetails.find(tool => tool.name === user.tool);
 
+    const toolDetail = toolDetails[0];
     const toggleToolDetails = () => {
-        setShowToolDetails(!showToolDetails);
+        setShowToolDetails(prev => !prev);
     };
+
+    // useEffect(() => {
+    //     // fetch the details of a tool
+    //     if (user){
+    //         axios.get(`http://localhost:8080/toolitem/borrow/${user.tool_id}`, {
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'Authorization': `Bearer ${localStorage.getItem('token')}`
+    //             }
+    //         })
+    //             .then(response => {
+    //                 if (response.status === 200) {
+    //                     console.log(response.data);
+    //                     setToolDetail(response.data)
+    //                 }
+    //
+    //                 console.log(user);
+    //             })
+    //             .catch(error => {
+    //                 console.error('Error fetching tool details:', error);
+    //             });
+    //     }
+    // }, []);
 
     return (
         <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto">
@@ -89,7 +114,7 @@ const UserModal = ({ user, isOpen, onClose }) => {
                                     <p className="text-sm text-gray-500">Tool Requested</p>
                                     <div className="mt-1">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-100">
-                      {user.tool}
+                      {user.tool_name}
                     </span>
                                     </div>
                                 </div>
@@ -146,7 +171,7 @@ const UserModal = ({ user, isOpen, onClose }) => {
 
                         <div className="bg-gray-50 p-3 rounded-lg">
                             <p className="text-sm text-gray-500">Request Status</p>
-                            <p className="text-gray-800 font-medium">Pending Approval</p>
+                            <p className="text-gray-800 font-medium">{user.status}</p>
                         </div>
                     </div>
                 </div>

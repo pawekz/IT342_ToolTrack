@@ -16,6 +16,8 @@ public class TransactionsDTO {
     private int user_id;
     private String user_firstName;
     private String user_lastName;
+    private String email;
     private int tool_id;
     private String tool_name;
+    private Status status;
 }

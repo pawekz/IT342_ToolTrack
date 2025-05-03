@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import SidebarLayout from "../components/SidebarLayout";
 import { CheckCircle, XCircle, Pencil, MoreVertical, Eye, User } from 'lucide-react';
 import UserModal from '../components/UserModal';
+import axios from 'axios';
 
 // Mock data for testing – to be replaced with dynamic data from the backend
 const users = [
@@ -35,6 +36,20 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
+  const [users, setUsers] = useState([])
+
+  useEffect(() => {
+      axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllTransactions", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(response => {
+          if (response.status === 200) {
+            console.log(response.data)
+            setUsers(response.data.transactions)
+          }
+      })
+  }, []);
 
   const openUserModal = (user) => {
     setSelectedUser(user);
@@ -107,19 +122,19 @@ const UserManagement = () => {
             <div className="divide-y divide-gray-100">
               {users.map((user) => (
                   <div
-                      key={user.id}
+                      key={user.transaction_id}
                       className="grid grid-cols-3 items-center px-6 py-4 hover:bg-teal-50 transition-colors duration-200"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden shadow-sm border border-gray-200">
                         <User className="w-6 h-6 text-teal-600" />
                       </div>
-                      <span className="text-gray-800 font-medium">{user.name}</span>
+                      <span className="text-gray-800 font-medium">{user.user_firstName + ' ' + user.user_lastName}</span>
                     </div>
 
                     <div className="text-gray-700 flex items-center">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {user.tool}
+                    {user.tool_name}
                   </span>
                     </div>
 
@@ -136,7 +151,7 @@ const UserManagement = () => {
                         <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleMenu(user.id);
+                              toggleMenu(user.transaction_id);
                             }}
                             className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
                         >
@@ -144,7 +159,7 @@ const UserManagement = () => {
                         </button>
 
                         {/* Dropdown menu */}
-                        {menuOpen === user.id && (
+                        {menuOpen === user.transaction_id && (
                             <div className="absolute right-0 mt-1 w-36 bg-white rounded-md shadow-lg border border-gray-100 z-10">
                               <button
                                   onClick={(e) => {
