@@ -77,7 +77,7 @@ const ActivityLog = () => {
 
     useEffect(() => {
         // Simulating API fetch
-        axios.get('http://localhost:8080/transaction/getAllProcessed', {
+        axios.get('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllProcessed', {
                 headers: {
                     Authorization: 'Bearer ' + localStorage.getItem('token')
                 }
