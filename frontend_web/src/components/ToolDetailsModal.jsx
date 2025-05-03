@@ -190,7 +190,7 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
                 {tool.qr_code && (
                     <div className="mt-8 text-center">
                         <h3 className="text-md font-semibold mb-2">QR Code</h3>
-                        <div className="flex justify-center">
+                        {/*<div className="flex justify-center">
                             <div className="relative w-40 h-40 border rounded-lg flex items-center justify-center bg-gray-50">
                                 {qrLoading && (
                                     <svg className="animate-spin h-8 w-8 text-teal-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -205,7 +205,7 @@ const ToolDetailsModal = ({ show, onClose, tool }) => {
                                     onLoad={() => setQrLoading(false)}
                                 />
                             </div>
-                        </div>
+                        </div>*/}
 
                         {/* Print Preview */}
                         <div className="mt-4 border border-gray-200 rounded-lg p-2 inline-block bg-gray-50">
