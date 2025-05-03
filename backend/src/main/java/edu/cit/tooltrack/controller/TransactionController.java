@@ -32,6 +32,30 @@ public class TransactionController {
         return ResponseEntity.ok(Map.of("transactions", transactions));
     }
 
+    @GetMapping("/getAllPendings")
+    public ResponseEntity<?> getAllPendingsTransactions() {
+        List<TransactionsDTO> transactions = toolTransactionService.getAllTransactions();
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+        }
+        transactions.removeIf(transaction ->
+                transaction.getStatus().equals(ToolTransaction.Status.approved) ||
+                transaction.getStatus().equals(ToolTransaction.Status.rejected));
+        return ResponseEntity.ok(Map.of("transactions", transactions));
+    }
+
+    @GetMapping("/getAllProcessed")
+    public ResponseEntity<?> getAllProcessedTransactions() {
+        List<TransactionsDTO> transactions = toolTransactionService.getAllTransactions();
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+        }
+        transactions.removeIf(transaction ->
+                transaction.getStatus().equals(ToolTransaction.Status.pending));
+        return ResponseEntity.ok(Map.of("transactions", transactions));
+    }
+
+
     @PutMapping("/approval/validate")
     public ResponseEntity<?> validateTransaction(@RequestBody TransactionApproval approval) {
         ToolTransaction transaction = toolTransactionService.approval(approval.getTransactionId(), approval.getApprovalStatus());
