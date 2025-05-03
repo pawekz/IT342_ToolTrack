@@ -4,33 +4,6 @@ import { CheckCircle, XCircle, Pencil, MoreVertical, Eye, User } from 'lucide-re
 import UserModal from '../components/UserModal';
 import axios from 'axios';
 
-// Mock data for testing – to be replaced with dynamic data from the backend
-const users = [
-  {
-    id: 1,
-    name: 'Nathaniel Salvoro',
-    tool: 'Hammer',
-    email: 'nathaniel.s@example.com',
-  },
-  {
-    id: 2,
-    name: 'Maggie Johnson',
-    tool: 'Ballpen',
-    email: 'maggie.j@example.com',
-  },
-  {
-    id: 3,
-    name: 'Gael Harry',
-    tool: 'Wireless Drill',
-    email: 'gael.h@example.com',
-  },
-  {
-    id: 4,
-    name: 'Jenna Sullivan',
-    tool: 'Laptop',
-    email: 'jenna.s@example.com',
-  },
-];
 
 const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -39,7 +12,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([])
 
   useEffect(() => {
-      axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllTransactions", {
+      axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllPendings", {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
@@ -50,6 +23,47 @@ const UserManagement = () => {
           }
       })
   }, []);
+
+  const action = function(transactionId,isApprove) {
+    if (isApprove === "approve") {
+      axios.put("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/approval/validate",{
+        transactionId:transactionId,
+        approvalStatus: true
+      },{
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(response => {
+          if (response.status === 200) {
+            console.log(response.data.transaction)
+            setUsers((prevUsers) => {
+              return prevUsers.filter((user) => user.transaction_id !== transactionId);
+            });
+          }
+      }).catch(error => {
+        console.log("error")
+      })
+      console.log("approve");
+    }else if(isApprove === "reject") {
+      console.log("reject");
+      axios.put("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/approval/validate",{
+        transactionId:transactionId,
+        approvalStatus: false
+      },{
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(response => {
+        if (response.status === 200) {
+          setUsers((prevUsers) => {
+            return prevUsers.filter((user) => user.transaction_id !== transactionId);
+          });
+        }
+      }).catch(error => {
+        console.log("error")
+      })
+    }
+  };
 
   const openUserModal = (user) => {
     setSelectedUser(user);
@@ -139,11 +153,13 @@ const UserManagement = () => {
                     </div>
 
                     <div className="flex items-center justify-end gap-1">
-                      <button className="cursor-pointer flex items-center justify-center rounded-md bg-green-50 hover:bg-green-100 text-green-600 px-3 py-1.5 text-xs font-medium transition-colors">
+                      <button className="cursor-pointer flex items-center justify-center rounded-md bg-green-50 hover:bg-green-100 text-green-600 px-3 py-1.5 text-xs font-medium transition-colors"
+                        onClick={()=> action(user.transaction_id,"approve")}>
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Approve
                       </button>
-                      <button className="cursor-pointer flex items-center justify-center rounded-md bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 text-xs font-medium transition-colors">
+                      <button className="cursor-pointer flex items-center justify-center rounded-md bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 text-xs font-medium transition-colors"
+                        onClick={()=> action(user.transaction_id,"reject")}>
                         <XCircle className="w-4 h-4 mr-1" />
                         Decline
                       </button>
@@ -169,7 +185,7 @@ const UserManagement = () => {
                                   className="cursor-pointer flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 transition-colors"
                               >
                                 <Eye className="w-4 h-4 mr-2 text-teal-600" />
-                                View Profile
+                      -          View Profile
                               </button>
                             </div>
                         )}

@@ -50,6 +50,7 @@ public class ToolTransactionService {
         ToolItems item = null;
         try {
             transaction = toolTransactionRepo.findById(transaction_id).orElse(null);
+            System.out.println(transaction);
             item = transaction.getTool_id();
             if (isApproved) {
                 transaction.setDue_date(Timestamp.valueOf(LocalDateTime.now().plusDays(2)));
@@ -62,6 +63,7 @@ public class ToolTransactionService {
                 return toolTransactionRepo.save(transaction);
             }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return null;
         }
     }
