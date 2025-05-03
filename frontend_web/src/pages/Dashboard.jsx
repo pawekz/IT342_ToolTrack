@@ -72,7 +72,7 @@ const Dashboard = () => {
   useEffect(() => {
     const sortValue = sortRange.split(" ").join("");
     console.log("sortValue", sortValue);
-    axios.get(`http://localhost:8080/transaction/getSortedDates/${sortValue}`,
+    axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getSortedDates/${sortValue}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`

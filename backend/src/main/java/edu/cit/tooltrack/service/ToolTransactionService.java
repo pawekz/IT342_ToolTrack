@@ -81,8 +81,10 @@ public class ToolTransactionService {
                 user.getUser_id(),
                 user.getFirst_name(),
                 user.getLast_name(),
+                user.getEmail(),
                 item.getTool_id(),
-                item.getName());
+                item.getName(),
+                transaction.getStatus());
     }
 
     public  Map<Month, Long> getFormatedDatesSortedBy(String sortBy) {
