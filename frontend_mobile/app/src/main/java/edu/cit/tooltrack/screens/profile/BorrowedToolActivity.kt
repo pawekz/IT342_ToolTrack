@@ -2,6 +2,7 @@ package edu.cit.tooltrack.screens.profile
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
@@ -40,9 +42,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import edu.cit.tooltrack.LoginActivity
 import edu.cit.tooltrack.R
 import edu.cit.tooltrack.ui.theme.LightTeal
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
+import edu.cit.tooltrack.utils.SessionManager
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -110,19 +115,19 @@ class BorrowedToolViewModel : ViewModel() {
             status = "overdue"
         )
     )
-    
+
     val borrowedTools: List<BorrowedTool> = _borrowedTools
-    
+
     var searchQuery by mutableStateOf("")
         private set
-    
+
     val filteredTools: List<BorrowedTool>
         get() = if (searchQuery.isEmpty()) {
             borrowedTools
         } else {
             borrowedTools.filter { it.name.contains(searchQuery, ignoreCase = true) }
         }
-    
+
     fun updateSearchQuery(query: String) {
         searchQuery = query
     }
@@ -135,7 +140,34 @@ fun BorrowedToolScreen(
 ) {
     val filteredTools = viewModel.filteredTools
     val searchQuery = viewModel.searchQuery
-    
+
+    // Get the current context and session manager
+    val context = LocalContext.current
+    val activity = LocalActivity.current
+    val sessionManager = remember { SessionManager(context) }
+
+    // State for showing the snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Check if token is expired
+    if (sessionManager.isTokenExpired()) {
+        // Show snackbar and navigate to login
+        LaunchedEffect(key1 = true) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "Your session has expired. Please log in again.",
+                    duration = SnackbarDuration.Short
+                )
+                // Navigate to login screen after showing snackbar
+                val intent = Intent(context, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                context.startActivity(intent)
+                activity?.finish()
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -151,13 +183,21 @@ fun BorrowedToolScreen(
                 searchQuery = searchQuery,
                 onQueryChange = { viewModel.updateSearchQuery(it) }
             )
-            
+
             // Tabs for filtering (Active, Overdue, Returned)
             BorrowedToolTabs()
-            
+
             // List of borrowed tools
             BorrowedToolList(tools = filteredTools)
         }
+
+        // Snackbar host for showing messages
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
     }
 }
 
@@ -184,7 +224,7 @@ fun BorrowedToolHeader(
                 .padding(vertical = 8.dp)
         ) {
             BackButton(context)
-            
+
             // Title
             Text(
                 text = "Borrowed Tools",
@@ -194,9 +234,9 @@ fun BorrowedToolHeader(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Search Bar
         TextField(
             value = searchQuery,
@@ -222,7 +262,7 @@ fun BorrowedToolHeader(
                 cursorColor = Color(0xFF3366FF)
             )
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
     }
 }
@@ -256,7 +296,7 @@ private fun BackButton(context: Context) {
 fun BorrowedToolTabs() {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Active", "Overdue", "Returned")
-    
+
     TabRow(
         selectedTabIndex = selectedTabIndex,
         containerColor = Color.White,
@@ -290,7 +330,7 @@ fun BorrowedToolTabs() {
             )
         }
     }
-    
+
     Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
 }
 
@@ -326,7 +366,7 @@ fun BorrowedToolList(tools: List<BorrowedTool>) {
 @Composable
 fun BorrowedToolItem(tool: BorrowedTool) {
     val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -373,9 +413,9 @@ fun BorrowedToolItem(tool: BorrowedTool) {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             // Tool info
             Column(
                 modifier = Modifier.weight(1f)
@@ -388,9 +428,9 @@ fun BorrowedToolItem(tool: BorrowedTool) {
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 // Status
                 Box(
                     modifier = Modifier
@@ -414,9 +454,9 @@ fun BorrowedToolItem(tool: BorrowedTool) {
                         color = Color.White
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 // Dates
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -435,10 +475,10 @@ fun BorrowedToolItem(tool: BorrowedTool) {
                     )
                 }
             }
-            
+
             // Arrow icon
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "View Details",
                 tint = Color(0xFF8F9BB3)
             )

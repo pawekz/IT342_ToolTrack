@@ -22,15 +22,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import edu.cit.tooltrack.screens.about.AboutScreen
+import edu.cit.tooltrack.screens.home.HomeScreen
+import edu.cit.tooltrack.screens.profile.ProfileScreen
+import edu.cit.tooltrack.screens.profile.ProfileSettings
+import edu.cit.tooltrack.screens.scan.BorrowRequestToolScreen
+import edu.cit.tooltrack.screens.scan.ScanScreen
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,10 +49,11 @@ class MainActivity : ComponentActivity() {
                 Surface(color = Color.White) {
                     Scaffold(
                         bottomBar = {
-                            BottomNavItem(navController = navController)
+                            // Remove the unnecessary Column and Spacer that's pushing the navigation bar up
+                            BottomNavItem(navController)
                         },
                         content = { padding ->
-                            NavHostContainer(navController = navController, padding = padding)
+                            NavHostContainer(navController, padding)
                         }
                     )
                 }
@@ -64,20 +72,19 @@ fun NavHostContainer(
         startDestination = "home",
         modifier = Modifier.padding(padding)
     ) {
-        composable("home") {
-            edu.cit.tooltrack.screens.home.HomeScreen()
-        }
-        composable("scan") {
-            edu.cit.tooltrack.screens.scan.ScanScreen(navController)
-        }
-        composable("profile") {
-            edu.cit.tooltrack.screens.profile.ProfileScreen(navController)
-        }
-        composable("profile_settings") {
-            edu.cit.tooltrack.screens.profile.ProfileSettings(navController)
-        }
-        composable("about") {
-            edu.cit.tooltrack.screens.about.AboutScreen(navController)
+        composable("home") { HomeScreen() }
+        composable("scan") { ScanScreen(navController) }
+        composable("profile") { ProfileScreen(navController) }
+        composable("profile_settings") { ProfileSettings(navController) }
+        composable("about") { AboutScreen(navController) }
+
+        // Add this route for the borrow request screen
+        composable(
+            route = "borrowRequest/{toolId}",
+            arguments = listOf(navArgument("toolId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val toolId = backStackEntry.arguments?.getString("toolId") ?: ""
+            BorrowRequestToolScreen(navController = navController, toolId = toolId)
         }
     }
 }
@@ -91,7 +98,7 @@ fun BottomNavItem(navController: NavHostController) {
         color = Color(0xFFFFFFFF)
     ) {
         NavigationBar(
-            containerColor = Color.Transparent // Use transparent to let Surface color show
+            containerColor = Color.Transparent
         ) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
@@ -99,25 +106,16 @@ fun BottomNavItem(navController: NavHostController) {
             Constants.BottomNavItem.forEach { navItem ->
                 NavigationBarItem(
                     selected = currentRoute == navItem.route,
-                    onClick = {
-                        navController.navigate(navItem.route)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = navItem.icon,
-                            contentDescription = navItem.label
-                        )
-                    },
-                    label = {
-                        Text(text = navItem.label)
-                    },
+                    onClick = { navController.navigate(navItem.route) },
+                    icon = { Icon(imageVector = navItem.icon, contentDescription = navItem.label) },
+                    label = { Text(text = navItem.label) },
                     alwaysShowLabel = false,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
                         unselectedIconColor = Color.Black,
                         selectedTextColor = Color.Black,
                         indicatorColor = Color(0xFF2EA69E), // green indicator
-                        unselectedTextColor = Color.Gray // softer for unselected (optional)
+                        unselectedTextColor = Color.Gray
                     )
                 )
             }
@@ -132,18 +130,16 @@ fun PreviewMainActivityContent() {
         val navController = rememberNavController()
         Surface(color = Color.White) {
             Scaffold(
-                bottomBar = {
-                    BottomNavItem(navController = navController)
-                },
+                bottomBar = { BottomNavItem(navController) },
                 content = { padding ->
-                    // Use a simplified version for preview
+                    // Directly display HomeScreen instead of a placeholder.
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Home Screen Placeholder")
+                        HomeScreen()
                     }
                 }
             )

@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.debugImplementation
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -26,7 +27,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
+        kotlinCompilerExtensionVersion = "2.1.0"
     }
 
     buildTypes {
@@ -70,19 +71,25 @@ dependencies {
     implementation(libs.accompanist.pager)
     implementation(libs.accompanist.pager.indicators)
     debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.material)
+// or material3
+    implementation(libs.androidx.ui.text)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    implementation("androidx.navigation:navigation-compose:2.8.9")
+    implementation(libs.compose.activity)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons)
+    implementation(libs.compose.navigation)
     //test implementation
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.7.8")
-    androidTestImplementation("androidx.navigation:navigation-testing:2.8.9")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.7.8")
+    //noinspection UseTomlInstead
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.8.0")
+    androidTestImplementation(libs.androidx.navigation.testing)
+    debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(kotlin("test"))
 
     // for the http request, Retrofit is used to communicate with the server, similar to Axios
@@ -92,9 +99,15 @@ dependencies {
     implementation(libs.logging.interceptor)
 
     //for QR Code
-    implementation ("com.google.android.gms:play-services-code-scanner:16.1.0")
+    implementation (libs.play.services.code.scanner)
 
     //for image library
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.coil.compose)
 
+    //for skeleton loading
+    implementation("com.faltenreich:skeletonlayout:6.0.0")
+
+    //swipe refresh
+    // https://mvnrepository.com/artifact/com.google.accompanist/accompanist-swiperefresh
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
 }
