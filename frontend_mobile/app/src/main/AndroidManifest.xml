@@ -54,6 +54,10 @@
         android:name=".screens.profile.BorrowedToolActivity"
         android:exported="false" />
 
+        <activity
+        android:name=".screens.home.ToolDetailsActivity"
+        android:exported="false" />
+
         <!-- Metadata -->
         <meta-data
                 android:name="preloaded_fonts"

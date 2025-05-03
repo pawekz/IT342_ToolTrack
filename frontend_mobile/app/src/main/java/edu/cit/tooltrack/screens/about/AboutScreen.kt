@@ -172,7 +172,7 @@ private fun DeveloperCard(name: String, role: String, imageResId: Int) {
             .fillMaxWidth()
             .height(90.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFD9D9D9)),
+            .background(Color(0xB3E7F6F4)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Developer Image

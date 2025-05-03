@@ -42,6 +42,7 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
+import edu.cit.tooltrack.utils.SessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -197,6 +198,7 @@ fun ScanScreen(navController: NavHostController) {
 }
 
 // Moved outside the ScanScreen composable as a top-level function
+// In startScanning function of ScanScreen.kt
 fun startScanning(
     scope: CoroutineScope,
     context: Context,
@@ -209,15 +211,51 @@ fun startScanning(
             scanner.startScan()
                 .addOnSuccessListener { barcode ->
                     barcode.rawValue?.let { value ->
-                        onResult(value)
+                        // Extract the tool ID from the QR code result
+                        // Expected format: "Tool_id: XX" (case-insensitive)
+                        val toolIdPattern = "(?i)tool_id:\\s*(\\d+)".toRegex()
+                        val matchResult = toolIdPattern.find(value)
+
+                        if (matchResult != null) {
+                            val toolId = matchResult.groupValues[1]
+
+                            // Get session manager and token
+                            val sessionManager = SessionManager(context)
+                            val token = sessionManager.fetchAuthToken()
+
+                            if (token.isNullOrEmpty()) {
+                                Toast.makeText(context, "Please log in first", Toast.LENGTH_SHORT).show()
+                                onResult("Login required to borrow tools")
+                                return@addOnSuccessListener
+                            }
+
+                            // Show loading message
+                            onResult("Loading tool #$toolId...")
+
+                            // Try to navigate - if you've fixed your navigation graph
+                            try {
+                                navController.navigate("borrowRequest/$toolId")
+                            } catch (e: Exception) {
+                                // Fallback if navigation fails
+                                Toast.makeText(context, "Navigation error: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                                // Return to home screen
+                                navController.navigate("home") {
+                                    popUpTo("home") { inclusive = true }
+                                }
+                            }
+                        } else {
+                            // If format doesn't match, show the raw scan result
+                            onResult(value)
+                            Toast.makeText(context, "Invalid QR code format", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
                 .addOnFailureListener { e ->
                     if (e.message?.contains("16") == true) {
-                        // User canceled the scan - navigate to home
+                        // User canceled the scan
                         Toast.makeText(context, "Scan canceled", Toast.LENGTH_SHORT).show()
                         navController.navigate("home") {
-                            // Pop up to home and clear back stack
                             popUpTo("home") { inclusive = true }
                         }
                     } else {
@@ -226,9 +264,7 @@ fun startScanning(
                 }
                 .addOnCanceledListener {
                     Toast.makeText(context, "Scan canceled", Toast.LENGTH_SHORT).show()
-                    // Navigate to home when canceled
                     navController.navigate("home") {
-                        // Pop up to home and clear back stack
                         popUpTo("home") { inclusive = true }
                     }
                 }
@@ -237,7 +273,6 @@ fun startScanning(
         }
     }
 }
-
 // Moved to top-level as required for Preview
 @Preview(showBackground = true)
 @Composable
