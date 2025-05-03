@@ -14,4 +14,5 @@ public class UserResponseDTO {
     private String role;
     private String first_name;
     private String last_name;
+    private Boolean isGoogle;
 }

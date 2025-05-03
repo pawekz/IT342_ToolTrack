@@ -59,11 +59,11 @@ public class ToolTransactionService {
                 return toolTransactionRepo.save(transaction);
             } else {
                 transaction.setStatus(ToolTransaction.Status.rejected);
+                return toolTransactionRepo.save(transaction);
             }
         } catch (Exception e) {
             return null;
         }
-        return transaction;
     }
 
     public List<TransactionsDTO> getAllTransactions() {
