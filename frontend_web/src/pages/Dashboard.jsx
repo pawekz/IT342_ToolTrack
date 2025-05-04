@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import SidebarLayout from "../components/SidebarLayout";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
@@ -201,12 +201,12 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <button className="text-sm text-teal-500 mt-4 inline-flex items-center">
+                <Link to="/activity-log" className="text-sm text-teal-500 mt-4 inline-flex items-center cursor-pointer">
                   User Report 
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                   </svg>
-                </button>
+                </Link>
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow transition-shadow">
@@ -222,12 +222,12 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <button className="text-sm text-blue-500 mt-4 inline-flex items-center">
+                <Link to="/toolmanagement" className="text-sm text-blue-500 mt-4 inline-flex items-center">
                   All Tools 
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                   </svg>
-                </button>
+                </Link>
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow transition-shadow">
@@ -243,12 +243,12 @@ const Dashboard = () => {
                     </svg>
                   </div>
                 </div>
-                <button className="text-sm text-yellow-500 mt-4 inline-flex items-center">
-                  View Borrowed Tools 
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </button>
+                {/*<button className="text-sm text-yellow-500 mt-4 inline-flex items-center">*/}
+                {/*  View Borrowed Tools */}
+                {/*  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">*/}
+                {/*    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>*/}
+                {/*  </svg>*/}
+                {/*</button>*/}
               </div>
             </div>
 
@@ -257,7 +257,7 @@ const Dashboard = () => {
               {/* Graph Section */}
               <div className="bg-white rounded-xl p-6 shadow-sm lg:col-span-2">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-sm font-medium text-gray-600">Monthly Tool Borrowing</h3>
+                  <h3 className="text-sm font-medium text-gray-600">Monthly Tool Borrowing (2025)</h3>
                   <div className="flex space-x-2">
                     <select className="text-xs border border-gray-300 rounded-md px-2 py-1"
                     onChange={e => setSortRange(e.target.value)}>
@@ -305,12 +305,12 @@ const Dashboard = () => {
                     </div>
                   ))}
                 </div>
-                <button className="mt-4 text-sm text-teal-500 inline-flex items-center">
+                <Link to="/toolmanagement" className="mt-4 text-sm text-teal-500 inline-flex items-center">
                   View All Tools 
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                   </svg>
-                </button>
+                </Link>
               </div>
             </div>
 
