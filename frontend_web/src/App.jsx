@@ -23,7 +23,7 @@ function App() {
         {/*To access these endpoints the user must be authenticated*/}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/toolmanagement" element={<ProtectedRoute><ToolManagement /></ProtectedRoute>} />
-        <Route path="/user-management" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
+        <Route path="/borrowing-management" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/activity-log" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
 
