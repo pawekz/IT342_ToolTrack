@@ -60,6 +60,29 @@ public class UserService {
        }
     }
 
+
+    public UserResponseDTO verifyBothUsers(LoginRequest loginRequest) {
+        User user = getUserFullDetails(loginRequest.getEmail());
+
+        if (user == null) {
+            throw new BadCredentialsException("User not found");
+        }
+
+        if (user.getPassword_hash() != null &&
+                !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword_hash())) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+
+        return new UserResponseDTO(
+                user.getEmail(),
+                user.getRole(),
+                user.getFirst_name(),
+                user.getLast_name(),
+                user.getIsGoogle()
+        );
+    }
+
+
     public UserResponseDTO verifyAdmin(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail());
         if(user.getRole().equals("Admin")){

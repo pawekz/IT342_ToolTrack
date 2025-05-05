@@ -30,7 +30,7 @@ public class JwtService {
                 .claim("lastName", user.getLast_name())
                 .subject(user.getEmail())
                 .claim("role", user.getRole())
-                .issuer("Spring-boot")
+                .issuer("ToolTrack")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(generateKeyFromBase64())

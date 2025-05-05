@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Getter
@@ -66,12 +67,12 @@ public class ToolTransaction {
 
     @PrePersist
     protected void onCreate() {
-        this.created_at = Timestamp.valueOf(LocalDateTime.now());
+        this.created_at = Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updated_at = Timestamp.valueOf(LocalDateTime.now());
+        this.updated_at = Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC));
     }
 
 

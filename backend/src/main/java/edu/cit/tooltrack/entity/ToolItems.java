@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Getter
@@ -51,12 +52,12 @@ public class ToolItems {
 
     @PrePersist //before it save to db this will run first to ensue the variables will not be empty
     protected void onCreate() {
-        this.created_at = Timestamp.valueOf(LocalDateTime.now());
+        this.created_at = Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updated_at = Timestamp.valueOf(LocalDateTime.now());
+        this.updated_at = Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     public enum Condition {

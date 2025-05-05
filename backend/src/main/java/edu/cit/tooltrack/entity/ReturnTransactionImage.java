@@ -15,11 +15,12 @@ public class ReturnTransactionImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int return_id;
     private String image_url;
+    private String image_name;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_user")
-    @JsonBackReference("returnTransaction")
-    private User user_id;
+//    @ManyToOne
+//    @JoinColumn(name = "fk_user")
+//    @JsonBackReference("returnTransaction")
+//    private User user_id;
 
     @JsonBackReference("return_images")
     @ManyToOne
