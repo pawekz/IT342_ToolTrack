@@ -23,6 +23,8 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     image_url: '',
     category: 'Power Tools',
   });
+
+  const [initialImage, setInitialImage] = useState(null);
   const fileInputRef = useRef(null);
 
   // Predefined locations
@@ -260,47 +262,77 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     }
 
     setIsLoading(true);
+  if(!initialData) {
+      try {
+        const {imageUrl, image_name} = await uploadImageInChunks(form.image);
+        const updatedForm = {
+          ...form,
+          image_name: image_name,
+          image_url: imageUrl,
+        };
+        setForm(updatedForm);
 
+        const response = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 201) {
+          setToolId(response.data.toolId);
+
+          const qrResponse = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + response.data.toolId, {}, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            responseType: 'blob'
+          });
+
+          if (qrResponse.status === 200) {
+            const blobUrl = URL.createObjectURL(qrResponse.data);
+            setQrImage(blobUrl);
+            setStep(2);
+          }
+        } else {
+          setError("Failed to create tool");
+        }
+      } catch (error) {
+        console.error("Error during tool creation:", error);
+        setError("An error occurred while creating the tool");
+      } finally {
+        setIsLoading(false);
+      }
+    }else{
+    console.log("initialData is existed");
     try {
-      const {imageUrl, image_name} = await uploadImageInChunks(form.image);
-      const updatedForm = {
-        ...form,
-        image_name: image_name,
-        image_url: imageUrl,
-      };
-      setForm(updatedForm);
+      let formWithUpdatedImage = null;
+      if (form.image){ //check if user put a new image on it
+        const {imageUrl, image_name} = await uploadImageInChunks(form.image);
+        formWithUpdatedImage = {
+          ...form,
+          image_name: image_name,
+          image_url: imageUrl,
+        };
+      }
 
-      const response = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
+      axios.post('http://localhost:8080/toolitem/editTool', formWithUpdatedImage?formWithUpdatedImage:form, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
-      });
+      }).then(res => {
+        console.log(res.data)
+      }).catch(err => {
+        setError("An error occurred while creating the tool")
+      })
 
-      if (response.status === 201) {
-        setToolId(response.data.toolId);
-
-        const qrResponse = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + response.data.toolId, {}, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          responseType: 'blob'
-        });
-
-        if (qrResponse.status === 200) {
-          const blobUrl = URL.createObjectURL(qrResponse.data);
-          setQrImage(blobUrl);
-          setStep(2);
-        }
-      } else {
-        setError("Failed to create tool");
-      }
-    } catch (error) {
-      console.error("Error during tool creation:", error);
-      setError("An error occurred while creating the tool");
-    } finally {
       setIsLoading(false);
+    }catch(error){
+      setError("An error occurred while editing the tool");
+      console.log(error);
     }
+  }
   };
 
   const prevStep = () => {

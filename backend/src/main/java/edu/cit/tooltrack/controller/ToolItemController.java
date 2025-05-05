@@ -61,6 +61,17 @@ public class ToolItemController {
         }
     }
 
+    //Edit Tool
+    @PostMapping("/editTool")
+    public ResponseEntity<?> editTool(@RequestBody ToolItems toolItems) {
+        ToolItems latestToolId = toolItemService.updateToolItem(toolItems);
+        if (latestToolId != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("tool", latestToolId));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item Addition Unsuccessful"));
+        }
+    }
+
     //getting a specific tool
     @GetMapping("/getTool")
     public ResponseEntity<?> getToolItem(@RequestParam("tool_id") int toolId){

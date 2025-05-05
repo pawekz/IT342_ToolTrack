@@ -58,22 +58,18 @@ public class ToolItemService {
         }
     }
 
-    public ToolItems updateToolItem(ToolItems newToolData, int toolId) {
+    public ToolItems updateToolItem(ToolItems newToolData) {
         try {
-            ToolItems old_tool = toolItemRepository.findById(toolId).orElse(null);
+            ToolItems old_tool = toolItemRepository.findById(newToolData.getTool_id()).orElse(null);
 
             if (old_tool != null) {
                 old_tool.setName(newToolData.getName());
                 old_tool.setCategory(newToolData.getCategory());
-                old_tool.setQr_code(newToolData.getQr_code());
                 old_tool.setLocation(newToolData.getLocation());
                 old_tool.setDescription(newToolData.getDescription());
-                old_tool.setUpdated_at(newToolData.getUpdated_at());
+                old_tool.setDate_acquired(newToolData.getDate_acquired());
                 old_tool.setImage_url(newToolData.getImage_url());
                 old_tool.setImage_name(newToolData.getImage_name());
-                old_tool.setTool_condition(newToolData.getTool_condition());
-                old_tool.setStatus(newToolData.getStatus());
-                old_tool.setUpdated_at(Timestamp.valueOf(LocalDateTime.now()));
                 toolItemRepository.save(old_tool);
                 return old_tool;
             } else {

@@ -20,6 +20,7 @@ const ToolManagement = () => {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(response => {
+      console.log(response.data);
       setToolItems(response.data);
     }).catch(error => {
       console.error("Error fetching tool items:", error);// <--- set error here
