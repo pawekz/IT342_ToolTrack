@@ -5,15 +5,15 @@ import edu.cit.tooltrack.dto.TransactionApproval;
 import edu.cit.tooltrack.dto.TransactionsDTO;
 import edu.cit.tooltrack.entity.ToolTransaction;
 import edu.cit.tooltrack.service.ToolTransactionService;
+import jakarta.transaction.Transaction;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/transaction")
@@ -21,6 +21,8 @@ import java.util.Map;
 public class TransactionController {
     @Autowired
     private ToolTransactionService toolTransactionService;
+    @Autowired
+    private TransactionDefinition transactionDefinition;
 
 
     @GetMapping("/getAllTransactions")
@@ -55,6 +57,54 @@ public class TransactionController {
         return ResponseEntity.ok(Map.of("transactions", transactions));
     }
 
+    @GetMapping("/getAllBorrowed")
+    public ResponseEntity<?> getBorrowed(){
+        List<TransactionsDTO> transactions = toolTransactionService.getAllTransactions();
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+        }
+        transactions.removeIf(transaction ->
+                transaction.getStatus().equals(ToolTransaction.TransactionType.returned));
+        return ResponseEntity.ok(Map.of("transactions", transactions));
+    }
+
+        @GetMapping("/getAllPopularTool")
+    public ResponseEntity<?> getPopularTool() {
+        List<TransactionsDTO> transactions = toolTransactionService.getAllTransactions();
+        if (transactions.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+        }
+        HashMap<String, Integer> popularTool = new HashMap<>();
+
+        for (TransactionsDTO transaction : transactions) {
+            if (transaction.getStatus() == ToolTransaction.Status.approved &&
+                    transaction.getTransaction_type() == ToolTransaction.TransactionType.borrow) {
+                popularTool.put(transaction.getTool_name(), popularTool.getOrDefault(transaction.getTool_name(), 0) + 1);
+            }
+        }
+
+        PriorityQueue<Map.Entry<String, Integer>> minHeap =
+                new PriorityQueue<>(Map.Entry.comparingByValue());
+
+        for (Map.Entry<String, Integer> entry : popularTool.entrySet()) {
+            minHeap.offer(entry);
+            if (minHeap.size() > 5) {
+                minHeap.poll(); // Remove the smallest
+            }
+        }
+
+        // Extract, sort in descending order, and convert to Map
+        List<Map.Entry<String, Integer>> result = new ArrayList<>(minHeap);
+        result.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+
+        Map<String, Integer> topPopularTools = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> entry : result) {
+            topPopularTools.put(entry.getKey(), entry.getValue());
+        }
+
+        return ResponseEntity.ok(Map.of("popularTool", topPopularTools));
+    }
+
 
     @PutMapping("/approval/validate")
     public ResponseEntity<?> validateTransaction(@RequestBody TransactionApproval approval) {
@@ -83,4 +133,5 @@ public class TransactionController {
             return ResponseEntity.ok(Map.of("timestamps", timestamps));
         }
     }
+
 }

@@ -67,6 +67,16 @@ const Dashboard = () => {
         .then(result => {
           setTotalUsers(result.data)
         })
+
+    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllBorrowed",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        .then(result => {
+          setTotalBorrowed(result.data.transactions.length)
+        })
   }, []);
 
   useEffect(() => {
