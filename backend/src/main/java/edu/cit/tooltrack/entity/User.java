@@ -26,9 +26,9 @@ public class User {
     @OneToMany(mappedBy = "user_id")
     private List<Notifications> notifications;
 
-    @JsonManagedReference("returnTransaction")
-    @OneToMany(mappedBy = "user_id")
-    private List<ReturnTransactionImage> returnTransaction_Image_image;
+//    @JsonManagedReference("returnTransaction")
+//    @OneToMany(mappedBy = "user_id")
+//    private List<ReturnTransactionImage> returnTransaction_Image_image;
 
     private String first_name;
     private String last_name;
