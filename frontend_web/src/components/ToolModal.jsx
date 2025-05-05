@@ -316,7 +316,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         };
       }
 
-      axios.post('http://localhost:8080/toolitem/editTool', formWithUpdatedImage?formWithUpdatedImage:form, {
+      axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/editTool', formWithUpdatedImage?formWithUpdatedImage:form, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
