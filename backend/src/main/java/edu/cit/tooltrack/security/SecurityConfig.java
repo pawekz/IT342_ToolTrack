@@ -63,7 +63,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/googlelogin").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/test/**", "/auth/user/**","/auth/admin/**").permitAll()
+                        .requestMatchers("/test/**", "/auth/user/**","/auth/v2/login","/auth/admin/**").permitAll()
                         .requestMatchers("/qrcode/**").authenticated()
                         .requestMatchers("/toolitem/**").authenticated()
                         .requestMatchers("/transaction/**").authenticated()

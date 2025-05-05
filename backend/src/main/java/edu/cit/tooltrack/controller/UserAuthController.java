@@ -117,6 +117,17 @@ public class UserAuthController {
         }
     }
 
+    @PostMapping("/v2/login")  //user login
+    public ResponseEntity<?> userAndAdminLogin(@RequestBody LoginRequest loginRequest) {
+        // Check if user exists
+        try {
+            UserResponseDTO userDetails = userService.verifyBothUsers(loginRequest);
+            return ResponseEntity.ok().body(Map.of("token", JwtService.generateToken(userDetails)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/admin/login")  //user login
     public ResponseEntity<?> adminLogin(@RequestBody LoginRequest loginRequest) {
         // Check if user exists
