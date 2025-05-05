@@ -69,7 +69,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navItems = [
     { path: "/dashboard", icon: "mdi:view-dashboard", label: "Dashboard" },
     { path: "/toolmanagement", icon: "mdi:tools", label: "Tool Management" },
-    { path: "/user-management", icon: "mdi:account-group", label: "Borrowing" },
+    { path: "/borrowing-management", icon: "mdi:account-group", label: "Borrowing" },
     { path: "/activity-log", icon: "mdi:toolbox-outline", label: "Activity Log" }
   ];
 
