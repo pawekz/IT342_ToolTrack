@@ -172,23 +172,23 @@ const Dashboard = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="flex space-x-6">
-            <button 
-              onClick={() => handleTabChange("overview")}
-              className={`pb-2 text-sm font-medium ${activeTab === "overview" ? "border-b-2 border-teal-500 text-teal-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              Overview
-            </button>
+        {/*<div className="mb-6 border-b border-gray-200">*/}
+        {/*  <nav className="flex space-x-6">*/}
+        {/*    <button */}
+        {/*      onClick={() => handleTabChange("overview")}*/}
+        {/*      className={`pb-2 text-sm font-medium ${activeTab === "overview" ? "border-b-2 border-teal-500 text-teal-600" : "text-gray-500 hover:text-gray-700"}`}*/}
+        {/*    >*/}
+        {/*      Overview*/}
+        {/*    </button>*/}
 
-            <button 
-              onClick={() => handleTabChange("users")}
-              className={`pb-2 text-sm font-medium ${activeTab === "users" ? "border-b-2 border-teal-500 text-teal-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              Users
-            </button>
-          </nav>
-        </div>
+        {/*    <button */}
+        {/*      onClick={() => handleTabChange("users")}*/}
+        {/*      className={`pb-2 text-sm font-medium ${activeTab === "users" ? "border-b-2 border-teal-500 text-teal-600" : "text-gray-500 hover:text-gray-700"}`}*/}
+        {/*    >*/}
+        {/*      Users*/}
+        {/*    </button>*/}
+        {/*  </nav>*/}
+        {/*</div>*/}
 
         {loading ? (
           <div className="flex justify-center items-center h-40">

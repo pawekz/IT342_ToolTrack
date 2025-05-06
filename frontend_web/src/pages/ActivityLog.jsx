@@ -367,28 +367,28 @@ const ActivityLog = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-between items-center mt-6">
-                    <div>
-                        <p className="text-sm text-gray-700">
-                            Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedTransactions.length}</span> of{" "}
-                            <span className="font-medium">{sortedTransactions.length}</span> results
-                        </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">
-                            Previous
-                        </button>
-                        <button className="px-3 py-1 bg-[#2EA69E] text-white rounded-md text-sm">
-                            1
-                        </button>
-                        <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
-                            2
-                        </button>
-                        <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">
-                            Next
-                        </button>
-                    </div>
-                </div>
+                {/*<div className="flex justify-between items-center mt-6">*/}
+                {/*    <div>*/}
+                {/*        <p className="text-sm text-gray-700">*/}
+                {/*            Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedTransactions.length}</span> of{" "}*/}
+                {/*            <span className="font-medium">{sortedTransactions.length}</span> results*/}
+                {/*        </p>*/}
+                {/*    </div>*/}
+                {/*    <div className="flex items-center space-x-2">*/}
+                {/*        <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">*/}
+                {/*            Previous*/}
+                {/*        </button>*/}
+                {/*        <button className="px-3 py-1 bg-[#2EA69E] text-white rounded-md text-sm">*/}
+                {/*            1*/}
+                {/*        </button>*/}
+                {/*        <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">*/}
+                {/*            2*/}
+                {/*        </button>*/}
+                {/*        <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">*/}
+                {/*            Next*/}
+                {/*        </button>*/}
+                {/*    </div>*/}
+                {/*</div>*/}
             </div>
         </div>
     );

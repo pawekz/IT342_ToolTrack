@@ -186,6 +186,52 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     }
   };
 
+  // This function handles the edit tool submission
+  const handleEditSubmit = async () => {
+    // Validate form before proceeding
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      let formWithUpdatedImage = form;
+      if (form.image) { // check if user put a new image on it
+        const {imageUrl, image_name} = await uploadImageInChunks(form.image);
+        formWithUpdatedImage = {
+          ...form,
+          image_name: image_name,
+          image_url: imageUrl,
+        };
+      }
+
+      await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/editTool',
+          formWithUpdatedImage,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          }
+      );
+
+      // Remove properties that shouldn't be passed back to the parent
+      const submissionData = {...formWithUpdatedImage};
+      delete submissionData.image;
+      delete submissionData.image_preview;
+
+      // Pass the cleaned data back to the parent
+      onSubmit(submissionData);
+      onClose();
+    } catch (error) {
+      console.error('Error updating tool:', error);
+      setError('An error occurred while editing the tool');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   //this will upload image byte per byte, in this way it can accomodate
   //large image size
   const uploadImageInChunks = async (image) => {
@@ -262,77 +308,46 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
     }
 
     setIsLoading(true);
-  if(!initialData) {
-      try {
-        const {imageUrl, image_name} = await uploadImageInChunks(form.image);
-        const updatedForm = {
-          ...form,
-          image_name: image_name,
-          image_url: imageUrl,
-        };
-        setForm(updatedForm);
-
-        const response = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 201) {
-          setToolId(response.data.toolId);
-
-          const qrResponse = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + response.data.toolId, {}, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            responseType: 'blob'
-          });
-
-          if (qrResponse.status === 200) {
-            const blobUrl = URL.createObjectURL(qrResponse.data);
-            setQrImage(blobUrl);
-            setStep(2);
-          }
-        } else {
-          setError("Failed to create tool");
-        }
-      } catch (error) {
-        console.error("Error during tool creation:", error);
-        setError("An error occurred while creating the tool");
-      } finally {
-        setIsLoading(false);
-      }
-    }else{
-    console.log("initialData is existed");
     try {
-      let formWithUpdatedImage = null;
-      if (form.image){ //check if user put a new image on it
-        const {imageUrl, image_name} = await uploadImageInChunks(form.image);
-        formWithUpdatedImage = {
-          ...form,
-          image_name: image_name,
-          image_url: imageUrl,
-        };
-      }
+      const {imageUrl, image_name} = await uploadImageInChunks(form.image);
+      const updatedForm = {
+        ...form,
+        image_name: image_name,
+        image_url: imageUrl,
+      };
+      setForm(updatedForm);
 
-      axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/editTool', formWithUpdatedImage?formWithUpdatedImage:form, {
+      const response = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/addTool', updatedForm, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
-      }).then(res => {
-        console.log(res.data)
-      }).catch(err => {
-        setError("An error occurred while creating the tool")
-      })
+      });
 
+      if (response.status === 201) {
+        setToolId(response.data.toolId);
+
+        const qrResponse = await axios.post('https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/qrcode/create/' + response.data.toolId, {}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          responseType: 'blob'
+        });
+
+        if (qrResponse.status === 200) {
+          const blobUrl = URL.createObjectURL(qrResponse.data);
+          setQrImage(blobUrl);
+          setStep(2);
+        }
+      } else {
+        setError("Failed to create tool");
+      }
+    } catch (error) {
+      console.error("Error during tool creation:", error);
+      setError("An error occurred while creating the tool");
+    } finally {
       setIsLoading(false);
-    }catch(error){
-      setError("An error occurred while editing the tool");
-      console.log(error);
     }
-  }
   };
 
   const prevStep = () => {
@@ -498,9 +513,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6 animate-fade-in">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-800">
-              {isEditing
-                  ? (step === 1 ? "Edit Tool" : "Update QR Code")
-                  : (step === 1 ? "Add New Tool" : "Generate QR Code")}
+              {isEditing ? "Edit Tool" : (step === 1 ? "Add New Tool" : "Generate QR Code")}
             </h2>
             <button
                 onClick={onClose}
@@ -512,27 +525,37 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
             </button>
           </div>
 
-          {/* Step indicator */}
-          <div className="mb-6">
-            <div className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 1 ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-500'} font-medium text-sm`}>
-                1
+          {/* Step indicator - Only show for new tool creation */}
+          {!isEditing && (
+              <div className="mb-6">
+                <div className="flex items-center">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 1 ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-500'} font-medium text-sm`}>
+                    1
+                  </div>
+                  <div className={`flex-1 h-1 mx-2 ${step === 2 ? 'bg-teal-500' : 'bg-teal-100'}`}></div>
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 2 ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-500'} font-medium text-sm`}>
+                    2
+                  </div>
+                </div>
+                <div className="flex justify-between mt-1 text-xs text-gray-500">
+                  <span>Tool Details</span>
+                  <span>QR Code</span>
+                </div>
               </div>
-              <div className={`flex-1 h-1 mx-2 ${step === 2 ? 'bg-teal-500' : 'bg-teal-100'}`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step === 2 ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-500'} font-medium text-sm`}>
-                2
-              </div>
-            </div>
-            <div className="flex justify-between mt-1 text-xs text-gray-500">
-              <span>Tool Details</span>
-              <span>QR Code</span>
-            </div>
-          </div>
+          )}
 
-          {step === 1 ? renderForm() : renderQRCodeStep()}
+          {/* Form content */}
+          {(isEditing || step === 1) ? renderForm() : renderQRCodeStep()}
+
+          {/* Error message display */}
+          {error && (
+              <div className="mt-3 text-red-500 text-sm">
+                {error}
+              </div>
+          )}
 
           <div className="mt-6 flex justify-end gap-3">
-            {step === 2 && (
+            {!isEditing && step === 2 && (
                 <button
                     onClick={prevStep}
                     disabled={isSaving}
@@ -542,9 +565,9 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
                 </button>
             )}
 
-            {step === 1 ? (
+            {isEditing ? (
                 <button
-                    onClick={nextStep}
+                    onClick={handleEditSubmit}
                     disabled={isLoading}
                     className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm flex items-center justify-center min-w-24"
                 >
@@ -554,26 +577,44 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Processing...
+                        Updating...
                       </>
-                  ) : "Next"}
+                  ) : "Update Tool"}
                 </button>
             ) : (
-                <button
-                    onClick={handleSubmit}
-                    disabled={isSaving}
-                    className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm flex items-center justify-center min-w-24"
-                >
-                  {isSaving ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                      </>
-                  ) : (isEditing ? "Update Tool" : "Save Tool")}
-                </button>
+                step === 1 ? (
+                    <button
+                        onClick={nextStep}
+                        disabled={isLoading}
+                        className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm flex items-center justify-center min-w-24"
+                    >
+                      {isLoading ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </>
+                      ) : "Next"}
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isSaving}
+                        className="cursor-pointer bg-teal-500 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-600 shadow-sm flex items-center justify-center min-w-24"
+                    >
+                      {isSaving ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                          </>
+                      ) : "Save Tool"}
+                    </button>
+                )
             )}
           </div>
         </div>
