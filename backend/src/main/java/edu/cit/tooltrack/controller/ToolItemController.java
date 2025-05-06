@@ -132,7 +132,7 @@ public class ToolItemController {
     public ResponseEntity<?> borrow(@PathVariable int toolId){
         ToolItems toolItem = toolItemService.getToolItem(toolId);
         if(toolItem != null){
-            return ResponseEntity.ok(Map.of("toolItem", new ToolBorrowDTO(toolItem)));
+            return ResponseEntity.ok(Map.of("toolItem", toolItem));
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Tool Item not found"));
         }
