@@ -62,16 +62,7 @@ public class DraftController {
 
     @GetMapping("/test-notify")
     public ResponseEntity<?> testNotify() {
-        NotificationMessageDTO test = new NotificationMessageDTO(
-                "Test Tool",
-                "This is a test notification",
-                "INFO",
-                null,
-                null,
-                "admin@email.com"
-        );
         notificationService.sendNotification(
-                "admin@email.com",
                 NotificationMessageDTO.builder()
                         .toolName("Hammer")
                         .message("Your Requested Tool Hammer is approved")

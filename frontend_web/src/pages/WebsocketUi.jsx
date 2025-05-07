@@ -1,45 +1,56 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-
-
-const WebsocketUi = () => {
-    const stompClientRef = useRef(null);
+const NotificationListener = () => {
+    const [notifications, setNotifications] = useState([]);
+    const clientRef = useRef(null); // Hold reference to STOMP client
 
     useEffect(() => {
-        if (!stompClientRef.current) {
-            const socket = new SockJS('http://localhost:8080/ws/tooltrack?userId=admin@email.com');
-            const stompClient = new Client({
-                webSocketFactory: () => socket,
-                reconnectDelay: 5000,
-                onConnect: () => {
-                    console.log('WebSocket connected');
-                    stompClient.subscribe('/user/notifications', (message) => {
-                        console.log("yawa")
-                        console.log('Received Notification:', JSON.parse(message.body));
-                    });
-                },
-                onStompError: (frame) => {
-                    console.error('STOMP error:', frame.headers['message']);
-                },
-            });
+        const socket = new SockJS('http://localhost:8080/ws/tooltrack'); // Update to your correct endpoint
+        const stompClient = new Client({
+            webSocketFactory: () => socket,
+            reconnectDelay: 5000, // Retry every 5s if disconnected
+            onConnect: () => {
+                console.log('Connected to WebSocket');
+                stompClient.subscribe('/topic/notifications', (message) => {
+                    try {
+                        const payload = JSON.parse(message.body);
+                        setNotifications(prev => [
+                            ...prev,
+                            payload.message || payload.content || '[Empty Notification]'
+                        ]);
+                    } catch (e) {
+                        console.error('Error parsing message', e);
+                    }
+                });
+            },
+            onStompError: (frame) => {
+                console.error('STOMP error: ' + frame.headers['message']);
+                console.error(frame.body);
+            },
+        });
 
-            stompClient.activate();
-            stompClientRef.current = stompClient;
-        }
+        stompClient.activate();
+        clientRef.current = stompClient;
 
-        // Cleanup logic to avoid stale WebSocket connections
         return () => {
-            if (stompClientRef.current) {
-                console.log('Deactivating WebSocket connection...');
-                stompClientRef.current.deactivate();
-                stompClientRef.current = null;
+            if (clientRef.current && clientRef.current.active) {
+                clientRef.current.deactivate();
             }
         };
-    }, []); // Empty dependency array ensures this runs only once
+    }, []);
 
-    return <div>WebSocket Component</div>;
+    return (
+        <div style={{ padding: '20px' }}>
+            <h3>🔔 Notifications</h3>
+            <ul>
+                {notifications.map((notif, index) => (
+                    <li key={index}>{notif}</li>
+                ))}
+            </ul>
+        </div>
+    );
 };
 
-export default WebsocketUi;
+export default NotificationListener;

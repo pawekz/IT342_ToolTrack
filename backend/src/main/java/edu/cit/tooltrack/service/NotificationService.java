@@ -11,18 +11,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class NotificationService {
 
-//    @Autowired
-//    private NotificationSocketController notificationSocketController;
+    @Autowired
+    private NotificationSocketController notificationSocketController;
 @Autowired
 private SimpMessagingTemplate messagingTemplate;
 
-    public void sendNotification(String userId, NotificationMessageDTO payload) {
-        log.info("Sending notification to " + userId);
-        messagingTemplate.convertAndSendToUser(
-                userId,
-                "/notifications",
-                payload
-        );
+    public void sendNotification(NotificationMessageDTO payload) {
+        log.info("Sending notification to websocket");
+        messagingTemplate.convertAndSend("/topic/notifications", payload);
     }
 
 }

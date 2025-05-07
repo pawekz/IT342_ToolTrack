@@ -14,10 +14,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +32,9 @@ public class ToolTransactionService {
     public ToolTransaction addTransation(int toolId, String email) {
 
         //checker for existing transaction
+        List<TransactionsDTO>transactions = getAllTransactions();
+        transactions.removeIf(entry -> !Objects.equals(entry.getEmail(), email));
+
         User user = null;
         ToolItems item = null;
         try {
@@ -65,12 +65,10 @@ public class ToolTransactionService {
                 transaction.setStatus(ToolTransaction.Status.approved);
                 item.setStatus(ToolItems.Status.BORROWED);
 
-
                 notificationService.sendNotification(
-                        transaction.getUser_id().getEmail(),
                         NotificationMessageDTO.builder()
                                 .toolName(item.getName())
-                                .message("Your Requested Tool " + item.getName()+"is approved")
+                                .message("Your Requested Tool " + item.getName()+"is Approved")
                                 .status(transaction.getStatus().toString())
                                 .borrow_date(transaction.getBorrow_date())
                                 .due_date(transaction.getDue_date())
@@ -78,18 +76,22 @@ public class ToolTransactionService {
                                 .build()
                 );
 
-//                notificationService.sendNotification(new NotificationMessageDTO(
-//                        item.getName(),
-//                        "Your Requested Tool " + item.getName()+"is approved",
-//                        transaction.getStatus().toString(),
-//                        transaction.getBorrow_date(),
-//                        transaction.getDue_date(),
-//                        transaction.getUser_id().getEmail()
-//                ));
-
                 return toolTransactionRepo.save(transaction);
             } else {
                 transaction.setStatus(ToolTransaction.Status.rejected);
+
+                notificationService.sendNotification(
+                        NotificationMessageDTO.builder()
+                                .toolName(item.getName())
+                                .message("Your Requested Tool " + item.getName()+"is declined")
+                                .status(transaction.getStatus().toString())
+                                .borrow_date(transaction.getBorrow_date())
+                                .due_date(transaction.getDue_date())
+                                .user_email(transaction.getUser_id().getEmail())
+                                .build()
+                );
+
+
                 return toolTransactionRepo.save(transaction);
             }
         } catch (Exception e) {

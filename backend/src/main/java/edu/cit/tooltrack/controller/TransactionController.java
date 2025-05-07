@@ -135,4 +135,14 @@ public class TransactionController {
         }
     }
 
+    @GetMapping("/myTransactions/{email}")
+    public ResponseEntity<?> getMyTransactions(@PathVariable String email){
+        List<TransactionsDTO> transactionsDTOS = toolTransactionService.getAllTransactions();
+        if(!transactionsDTOS.isEmpty()){
+            transactionsDTOS.removeIf(transaction -> !transaction.getEmail().equals(email));
+            return ResponseEntity.ok(Map.of("transactions", transactionsDTOS));
+        }else
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+    }
+
 }
