@@ -67,6 +67,8 @@ public class SecurityConfig {
                         .requestMatchers("/qrcode/**").authenticated()
                         .requestMatchers("/toolitem/**").authenticated()
                         .requestMatchers("/transaction/**").authenticated()
+                        .requestMatchers("/ws/tooltrack/**").permitAll()
+                        .requestMatchers("/notification/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
