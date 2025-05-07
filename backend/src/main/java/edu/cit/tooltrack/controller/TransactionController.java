@@ -115,6 +115,7 @@ public class TransactionController {
         return ResponseEntity.notFound().build();
     }
 
+
     @PostMapping("/addTransaction")
     public ResponseEntity<?> addTransction(@RequestBody BorrowToolDTO borrowToolDTO){
         ToolTransaction transaction = toolTransactionService.addTransation(borrowToolDTO.getToolId(),borrowToolDTO.getEmail());
@@ -132,6 +133,16 @@ public class TransactionController {
         }else{
             return ResponseEntity.ok(Map.of("timestamps", timestamps));
         }
+    }
+
+    @GetMapping("/myTransactions/{email}")
+    public ResponseEntity<?> getMyTransactions(@PathVariable String email){
+        List<TransactionsDTO> transactionsDTOS = toolTransactionService.getAllTransactions();
+        if(!transactionsDTOS.isEmpty()){
+            transactionsDTOS.removeIf(transaction -> !transaction.getEmail().equals(email));
+            return ResponseEntity.ok(Map.of("transactions", transactionsDTOS));
+        }else
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
     }
 
 }

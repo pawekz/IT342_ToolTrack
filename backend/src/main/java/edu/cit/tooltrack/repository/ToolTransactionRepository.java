@@ -24,4 +24,7 @@ public interface ToolTransactionRepository extends JpaRepository<ToolTransaction
     @Query(value = "SELECT borrow_date FROM tool_transactions", nativeQuery = true)
     List<Timestamp> getAllYear();
 
+    @Query(value = "SELECT * FROM tool_transactions tt JOIN users u ON tt.fk_tool_transactions_user = u.user_id WHERE u.email = :email", nativeQuery = true)
+    List<ToolTransaction> findTransactionsByEmail(@Param("email") String email);
+
 } 
