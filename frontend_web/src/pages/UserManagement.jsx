@@ -26,7 +26,8 @@ const UserManagement = () => {
 
   const action = function(transactionId,isApprove) {
     if (isApprove === "approve") {
-      axios.put("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/approval/validate",{
+      // axios.put("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/approval/validate",{
+      axios.put("http://localhost:8080/transaction/approval/validate",{
         transactionId:transactionId,
         approvalStatus: true
       },{

@@ -1,5 +1,6 @@
 package edu.cit.tooltrack.service;
 
+import edu.cit.tooltrack.dto.NotificationMessageDTO;
 import edu.cit.tooltrack.dto.TransactionsDTO;
 import edu.cit.tooltrack.entity.ToolItems;
 import edu.cit.tooltrack.entity.ToolTransaction;
@@ -28,7 +29,12 @@ public class ToolTransactionService {
     @Autowired
     private ToolItemService toolItemService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public ToolTransaction addTransation(int toolId, String email) {
+
+        //checker for existing transaction
         User user = null;
         ToolItems item = null;
         try {
@@ -39,6 +45,7 @@ public class ToolTransactionService {
             transaction.setTool_id(item);
             transaction.setUser_id(user);
             transaction.setBorrow_date(Timestamp.valueOf(LocalDateTime.now()));
+            transaction.setStatus(ToolTransaction.Status.pending);
             return toolTransactionRepo.save(transaction);
         } catch (Exception e) {
             return null;
@@ -57,6 +64,29 @@ public class ToolTransactionService {
                 transaction.setTransaction_type(ToolTransaction.TransactionType.borrow);
                 transaction.setStatus(ToolTransaction.Status.approved);
                 item.setStatus(ToolItems.Status.BORROWED);
+
+
+                notificationService.sendNotification(
+                        transaction.getUser_id().getEmail(),
+                        NotificationMessageDTO.builder()
+                                .toolName(item.getName())
+                                .message("Your Requested Tool " + item.getName()+"is approved")
+                                .status(transaction.getStatus().toString())
+                                .borrow_date(transaction.getBorrow_date())
+                                .due_date(transaction.getDue_date())
+                                .user_email(transaction.getUser_id().getEmail())
+                                .build()
+                );
+
+//                notificationService.sendNotification(new NotificationMessageDTO(
+//                        item.getName(),
+//                        "Your Requested Tool " + item.getName()+"is approved",
+//                        transaction.getStatus().toString(),
+//                        transaction.getBorrow_date(),
+//                        transaction.getDue_date(),
+//                        transaction.getUser_id().getEmail()
+//                ));
+
                 return toolTransactionRepo.save(transaction);
             } else {
                 transaction.setStatus(ToolTransaction.Status.rejected);

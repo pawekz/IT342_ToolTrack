@@ -12,5 +12,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 4173,
     allowedHosts: ['tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net']
+  },
+  define: {
+    global: 'window', // this line fixes `global is not defined`
   }
 })

@@ -1,10 +1,8 @@
     package edu.cit.tooltrack.controller;
 
+import edu.cit.tooltrack.dto.NotificationMessageDTO;
 import edu.cit.tooltrack.entity.User;
-import edu.cit.tooltrack.service.ImageChunkUploader;
-import edu.cit.tooltrack.service.QRcodeService;
-import edu.cit.tooltrack.service.ToolItemService;
-import edu.cit.tooltrack.service.UserService;
+import edu.cit.tooltrack.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,9 @@ public class DraftController {
     private ImageChunkUploader chunkUploadService;
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping("/test")
     public String getDrafts() {
@@ -56,6 +58,30 @@ public class DraftController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
+    }
+
+    @GetMapping("/test-notify")
+    public ResponseEntity<?> testNotify() {
+        NotificationMessageDTO test = new NotificationMessageDTO(
+                "Test Tool",
+                "This is a test notification",
+                "INFO",
+                null,
+                null,
+                "admin@email.com"
+        );
+        notificationService.sendNotification(
+                "admin@email.com",
+                NotificationMessageDTO.builder()
+                        .toolName("Hammer")
+                        .message("Your Requested Tool Hammer is approved")
+                        .status("Approved")
+                        .borrow_date(null)
+                        .due_date(null)
+                        .user_email("admin@email.com")
+                        .build()
+        );
+        return ResponseEntity.ok("sent");
     }
 
 

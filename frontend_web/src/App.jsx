@@ -11,6 +11,8 @@ import { AuthProvider } from "./components/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ActivityLog from "./pages/ActivityLog.jsx";
 
+import NotificationListener from "./pages/WebsocketUi";
+
 function App() {
   return (
     <AuthProvider>
@@ -28,6 +30,7 @@ function App() {
         <Route path="/activity-log" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
 
         <Route path="/ChunkUploader" element={<ProtectedRoute><ChunkUploader/></ProtectedRoute>}/>
+        <Route path="/Websocket" element={<NotificationListener/>}/>
       </Routes>
     </Router>
     </AuthProvider>
