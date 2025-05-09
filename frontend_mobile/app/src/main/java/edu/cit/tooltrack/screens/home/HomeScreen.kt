@@ -144,7 +144,7 @@ fun HomeScreen() {
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
-                    
+
                     // Add search bar inside the header
                     Box(
                         modifier = Modifier
@@ -158,7 +158,7 @@ fun HomeScreen() {
                             placeholder = "Search in ${viewModel.selectedCategory?.name}..."
                         )
                     }
-                    
+
                     // Add some padding at the bottom of the header
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -198,16 +198,15 @@ fun HomeScreen() {
                     searchQuery = viewModel.searchQuery,
                     onQueryChange = { query ->
                         viewModel.updateSearchQuery(query)
-                        if (query.isNotBlank()) {
-                            viewModel.searchToolByName(query)
-                        } else {
-                            viewModel.clearSearchResult()
-                        }
+                        // No need to call searchToolByName here as performSearch will handle it
+                        // if the search endpoint returns a 403 Forbidden response
                     },
                     isLoading = isLoading,
                     onSearch = { query ->
                         if (query.isNotBlank()) {
-                            viewModel.searchToolByName(query)
+                            viewModel.updateSearchQuery(query)
+                            // No need to call searchToolByName here as performSearch will handle it
+                            // if the search endpoint returns a 403 Forbidden response
                         } else {
                             viewModel.clearSearchResult()
                         }
@@ -885,7 +884,7 @@ fun ToolItem(tool: ToolItem, onClick: () -> Unit = {}) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
                             .background(
-                                when (tool.status) {
+                                when (tool.status.lowercase()) {
                                     "available" -> Color(0xFF00E096)
                                     "in_use" -> Color(0xFFFF3D71)
                                     else -> Color(0xFFFFAA00)
@@ -894,9 +893,10 @@ fun ToolItem(tool: ToolItem, onClick: () -> Unit = {}) {
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = when (tool.status) {
+                            text = when (tool.status.lowercase()) {
                                 "available" -> "Available"
                                 "in_use" -> "In Use"
+                                "borrowed" -> "Borrowed"
                                 else -> "Maintenance"
                             },
                             fontSize = 12.sp,
@@ -995,4 +995,3 @@ private fun HomePreviewContent() {
         }
     }
 }
-

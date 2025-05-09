@@ -36,10 +36,10 @@ data class LoginRequest(
 )
 
 interface ToolTrackApi {
-    @POST("auth/register")
+    @POST("auth/user/register")
     suspend fun registerUser(@Body request: RegistrationRequest): Response<String>
 
-    @POST("auth/login")
+    @POST("auth/v2/login")
     suspend fun loginUser(@Body request: LoginRequest): Response<TokenResponse>
 
     companion object {

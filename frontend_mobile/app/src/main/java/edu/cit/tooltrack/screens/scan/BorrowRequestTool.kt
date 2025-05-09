@@ -15,8 +15,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.StarHalf
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -24,6 +34,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,6 +68,10 @@ import edu.cit.tooltrack.api.ToolBorrowApi
 import edu.cit.tooltrack.api.ToolBorrowItem
 import edu.cit.tooltrack.api.ToolItem
 import edu.cit.tooltrack.api.ToolTrackApi
+import edu.cit.tooltrack.api.TransactionService
+import edu.cit.tooltrack.api.TransactionRequest
+import edu.cit.tooltrack.api.TransactionResponse
+import edu.cit.tooltrack.api.Transaction
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 import edu.cit.tooltrack.utils.SessionManager
 import kotlinx.coroutines.launch
@@ -75,6 +92,22 @@ private val sampleTool = ToolItem(
     imageUrl = "",
     categoryId = 1,
     categoryName = "Power Tools"
+)
+
+// Sample data for preview with tool condition and status
+private val sampleToolBorrowItem = ToolBorrowItem(
+    tool_id = 123,
+    category = "Power Tools",
+    name = "Power Drill",
+    qr_code = "",
+    location = "Tool Area A",
+    description = "Heavy duty cordless power drill with variable speed settings. Perfect for drilling holes in wood, metal, and plastic materials. Comes with a set of drill bits and a carrying case.",
+    date_acquired = "2025-05-01T00:00:00.000+00:00",
+    image_url = "",
+    created_at = "2025-05-03T05:49:40.505+00:00",
+    updated_at = "2025-05-03T05:49:48.235+00:00",
+    tool_condition = "GOOD",
+    status = "AVAILABLE"
 )
 
 // Data classes for the borrow request
@@ -101,7 +134,7 @@ interface BorrowRequestApi {
         @Path("toolId") toolId: Int,
         @Body request: BorrowRequest
     ): Response<BorrowResponse>
-    
+
     companion object {
         fun create(): BorrowRequestApi {
             return ToolTrackApi.retrofitInstance().create(BorrowRequestApi::class.java)
@@ -113,6 +146,7 @@ interface BorrowRequestApi {
 class BorrowRequestViewModel : ViewModel() {
     private val toolBorrowApi = ToolBorrowApi.create()
     private val borrowRequestApi = BorrowRequestApi.create()
+    private val transactionService = TransactionService.create()
 
     var toolDetails by mutableStateOf<ToolBorrowItem?>(null)
         private set
@@ -120,10 +154,19 @@ class BorrowRequestViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
         private set
 
+    var isRefreshing by mutableStateOf(false)
+        private set
+
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
     var requestSuccess by mutableStateOf(false)
+        private set
+
+    var transactionStatus by mutableStateOf<String?>(null)
+        private set
+
+    var transaction by mutableStateOf<Transaction?>(null)
         private set
 
     fun loadToolDetails(toolId: String, sessionManager: SessionManager) {
@@ -160,24 +203,41 @@ class BorrowRequestViewModel : ViewModel() {
         }
     }
 
-    fun requestBorrow(token: String, expectedReturnDate: String, notes: String? = null) {
+    fun requestBorrow(token: String, expectedReturnDate: String, notes: String? = null, email: String) {
         toolDetails?.let { tool ->
             viewModelScope.launch {
                 isLoading = true
                 errorMessage = null
+                transactionStatus = null
+                transaction = null
 
                 try {
-                    val request = BorrowRequest(
+                    // First, make the original borrow request
+                    val borrowRequest = BorrowRequest(
                         tool_id = tool.tool_id,
                         expected_return_date = expectedReturnDate,
                         notes = notes
                     )
 
-                    val response = borrowRequestApi.requestTool("Bearer $token", tool.tool_id, request)
-                    if (response.isSuccessful) {
+                    val borrowResponse = borrowRequestApi.requestTool("Bearer $token", tool.tool_id, borrowRequest)
+
+                    // Then, make the transaction request
+                    val transactionRequest = TransactionRequest(
+                        toolId = tool.tool_id,
+                        email = email
+                    )
+
+                    val transactionResponse = transactionService.addTransaction(
+                        token = "Bearer $token",
+                        request = transactionRequest
+                    )
+
+                    if (transactionResponse.isSuccessful) {
+                        transaction = transactionResponse.body()?.transaction
+                        transactionStatus = transaction?.status
                         requestSuccess = true
                     } else {
-                        errorMessage = "Failed to request tool: ${response.message()}"
+                        errorMessage = "Failed to create transaction: ${transactionResponse.message()}"
                     }
                 } catch (e: Exception) {
                     errorMessage = "Error: ${e.message}"
@@ -187,8 +247,33 @@ class BorrowRequestViewModel : ViewModel() {
             }
         }
     }
+
+    fun refreshTransaction(token: String, transactionId: Int) {
+        viewModelScope.launch {
+            isRefreshing = true
+            errorMessage = null
+
+            try {
+                val response = transactionService.getTransaction(
+                    token = "Bearer $token",
+                    transactionId = transactionId
+                )
+
+                if (response.isSuccessful) {
+                    transaction = response.body()?.transaction
+                    transactionStatus = transaction?.status
+                } else {
+                    errorMessage = "Failed to refresh transaction: ${response.message()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error refreshing: ${e.message}"
+            } finally {
+                isRefreshing = false
+            }
+        }
+    }
 }
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun BorrowRequestToolScreen(
     navController: NavHostController,
@@ -202,17 +287,66 @@ fun BorrowRequestToolScreen(
         LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE)
     ) }
 
+    // Add SnackbarHostState for showing messages
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Track if button should be disabled after request
+    var isButtonDisabled by remember { mutableStateOf(false) }
+
+    // Setup pull-to-refresh with debugging
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = viewModel.isRefreshing,
+        onRefresh = {
+            // Add a clear debug message if no transaction exists
+            if (viewModel.transaction == null) {
+                // You could show a Toast or SnackBar here
+                // Toast.makeText(context, "No transaction to refresh", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.transaction?.let { transaction ->
+                    val token = sessionManager.fetchAuthToken()
+                    if (token != null) {
+                        viewModel.refreshTransaction(token, transaction.transaction_id)
+                    }
+                }
+            }
+        }
+    )
+
     // Load tool details when the screen is first displayed
     LaunchedEffect(toolId) {
         viewModel.loadToolDetails(toolId, sessionManager)
     }
 
-    // Handle navigation after successful request
-    LaunchedEffect(viewModel.requestSuccess) {
-        if (viewModel.requestSuccess) {
-            Toast.makeText(context, "Tool requested successfully", Toast.LENGTH_SHORT).show()
-            navController.navigate("home") {
-                popUpTo("home") { inclusive = true }
+    // Handle transaction status changes
+    LaunchedEffect(viewModel.transactionStatus, viewModel.transaction) {
+        viewModel.transaction?.let { transaction ->
+            val transactionId = transaction.transaction_id
+            val status = transaction.status.lowercase()
+
+            isButtonDisabled = status != "available"
+
+            when (status) {
+                "pending" -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Your transaction is pending with Transaction # $transactionId, go back later",
+                        duration = SnackbarDuration.Long
+                    )
+                }
+                "approved" -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Your Transaction # $transactionId is approved, please get the tool",
+                        duration = SnackbarDuration.Long
+                    )
+                }
+                "declined" -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Your transaction is declined with Transaction # $transactionId, please try later",
+                        duration = SnackbarDuration.Long
+                    )
+                }
+                "borrowed" -> {
+                    // Already handled by disabling the button
+                }
             }
         }
     }
@@ -220,12 +354,18 @@ fun BorrowRequestToolScreen(
     // Handle error messages
     LaunchedEffect(viewModel.errorMessage) {
         viewModel.errorMessage?.let { error ->
-            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            snackbarHostState.showSnackbar(
+                message = error,
+                duration = SnackbarDuration.Long
+            )
         }
     }
 
+    // Always enable pull-to-refresh
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState)
     ) {
         if (viewModel.isLoading) {
             CircularProgressIndicator(
@@ -233,6 +373,32 @@ fun BorrowRequestToolScreen(
                 color = Color(0xFF2EA69E)
             )
         } else {
+            // Add SnackbarHost at the bottom of the screen
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                // Custom snackbar with light blue background for pending status
+                snackbar = { data ->
+                    val backgroundColor = when {
+                        viewModel.transactionStatus?.lowercase() == "pending" -> Color(0xFF90CAF9) // Light blue color
+                        viewModel.transactionStatus?.lowercase() == "declined" -> Color(0xFFF44336) // Red color
+                        else -> Color(0xFF2EA69E) // Default teal color
+                    }
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = data.visuals.message,
+                            modifier = Modifier.padding(16.dp),
+                            color = Color.White
+                        )
+                    }
+                }
+            )
             viewModel.toolDetails?.let { tool ->
                 Column(
                     modifier = Modifier
@@ -375,64 +541,56 @@ fun BorrowRequestToolScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start
                                 ) {
-                                    // Good condition button
-                                    Card(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(50.dp),
-                                        shape = RoundedCornerShape(15.dp),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = Color.White
-                                        ),
-                                        elevation = CardDefaults.cardElevation(
-                                            defaultElevation = 4.dp
-                                        ),
-                                        onClick = { selectedCondition = true }
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(horizontal = 16.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.ic_good_condition),
-                                                contentDescription = "Good Condition",
-                                                tint = if (selectedCondition == true) Color(0xFF2EA69E) else Color.Black,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
+                                    // Display the tool condition with appropriate icon
+                                    val conditionIcon = when (tool.tool_condition?.uppercase()) {
+                                        "NEW" -> Icons.Filled.Star
+                                        "GOOD" -> Icons.Filled.ThumbUp
+                                        "FAIR" -> Icons.Filled.StarHalf
+                                        "WORN" -> Icons.Filled.Cloud
+                                        "DAMAGED" -> Icons.Filled.Warning
+                                        "BROKEN" -> Icons.Filled.LinkOff
+                                        else -> Icons.Filled.Star // Default to NEW if condition is null or unknown
                                     }
 
-                                    // Bad condition button
+                                    val conditionColor = when (tool.tool_condition?.uppercase()) {
+                                        "NEW" -> Color(0xFF4CAF50) // Green
+                                        "GOOD" -> Color(0xFF8BC34A) // Light Green
+                                        "FAIR" -> Color(0xFFFFC107) // Amber
+                                        "WORN" -> Color(0xFFFF9800) // Orange
+                                        "DAMAGED" -> Color(0xFFFF5722) // Deep Orange
+                                        "BROKEN" -> Color(0xFFF44336) // Red
+                                        else -> Color(0xFF4CAF50) // Default to Green if condition is null or unknown
+                                    }
+
                                     Card(
                                         modifier = Modifier
-                                            .weight(1f)
-                                            .height(50.dp),
-                                        shape = RoundedCornerShape(15.dp),
+                                            .padding(end = 16.dp),
+                                        shape = RoundedCornerShape(8.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = Color.White
-                                        ),
-                                        elevation = CardDefaults.cardElevation(
-                                            defaultElevation = 4.dp
-                                        ),
-                                        onClick = { selectedCondition = false }
+                                            containerColor = conditionColor.copy(alpha = 0.1f)
+                                        )
                                     ) {
                                         Row(
                                             modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(horizontal = 16.dp),
+                                                .padding(horizontal = 12.dp, vertical = 8.dp),
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
                                             Icon(
-                                                painter = painterResource(id = R.drawable.ic_bad_condition),
-                                                contentDescription = "Bad Condition",
-                                                tint = if (selectedCondition == false) Color.Black else Color.Black,
+                                                imageVector = conditionIcon,
+                                                contentDescription = "Tool Condition",
+                                                tint = conditionColor,
                                                 modifier = Modifier.size(24.dp)
+                                            )
+
+                                            Text(
+                                                text = tool.tool_condition ?: "NEW",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = conditionColor
                                             )
                                         }
                                     }
@@ -440,18 +598,27 @@ fun BorrowRequestToolScreen(
 
                                 Spacer(modifier = Modifier.weight(1f))
 
+                                // Check if the tool is available
+                                val isToolAvailable = tool.status?.uppercase() == "AVAILABLE"
+
                                 // Request button
                                 Button(
                                     onClick = {
-                                        val token = sessionManager.fetchAuthToken()
-                                        if (token != null) {
-                                            viewModel.requestBorrow(
-                                                token = token,
-                                                expectedReturnDate = expectedReturnDate,
-                                                notes = if (selectedCondition == false) "Tool in bad condition" else null
-                                            )
+                                        if (!isToolAvailable) {
+                                            // Show popup that the tool is currently borrowed
+                                            Toast.makeText(context, "This tool is currently borrowed", Toast.LENGTH_SHORT).show()
                                         } else {
-                                            Toast.makeText(context, "Please log in first", Toast.LENGTH_SHORT).show()
+                                            val token = sessionManager.fetchAuthToken()
+                                            if (token != null) {
+                                                viewModel.requestBorrow(
+                                                    token = token,
+                                                    expectedReturnDate = expectedReturnDate,
+                                                    notes = if (selectedCondition == false) "Tool in bad condition" else null,
+                                                    email = sessionManager.getUserEmail()
+                                                )
+                                            } else {
+                                                Toast.makeText(context, "Please log in first", Toast.LENGTH_SHORT).show()
+                                            }
                                         }
                                     },
                                     modifier = Modifier
@@ -459,15 +626,33 @@ fun BorrowRequestToolScreen(
                                         .height(60.dp),
                                     shape = RoundedCornerShape(10.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF2EA69E),
+                                        containerColor = when {
+                                            isButtonDisabled -> Color.Gray
+                                            isToolAvailable -> Color(0xFF2EA69E)
+                                            else -> Color.Gray
+                                        },
                                         contentColor = Color.White
                                     ),
-                                    enabled = !viewModel.isLoading
+                                    enabled = !viewModel.isLoading && isToolAvailable && !isButtonDisabled
                                 ) {
                                     Text(
-                                        text = "Request Item",
+                                        text = "Request Tool",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Show message if tool is not available
+                                if (!isToolAvailable) {
+                                    Text(
+                                        text = "This tool is currently borrowed",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color.Gray,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp)
                                     )
                                 }
                             }
@@ -485,6 +670,16 @@ fun BorrowRequestToolScreen(
                 )
             }
         }
+        
+        // IMPORTANT: Make sure the PullRefreshIndicator is the LAST element in the Box
+        // This ensures it appears on top of other content
+        PullRefreshIndicator(
+            refreshing = viewModel.isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            backgroundColor = Color(0xFF90CAF9),
+            contentColor = Color(0xFF1976D2) // Darker blue for better contrast
+        )
     }
 }
 
@@ -499,7 +694,7 @@ fun BorrowRequestToolScreenWithSampleData(
     var expectedReturnDate by remember { mutableStateOf(
         LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE)
     ) }
-    
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -514,7 +709,7 @@ fun BorrowRequestToolScreenWithSampleData(
                     LocalConfiguration.current.screenHeightDp.dp * 0.45f
                 })
         )
-        
+
         // Custom TopBar with transparent background that overlays the image
         Box(
             modifier = Modifier
@@ -550,7 +745,7 @@ fun BorrowRequestToolScreenWithSampleData(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
-        
+
         // Tool details card - positioned to partially overlay the image
         Card(
             modifier = Modifier
@@ -581,7 +776,7 @@ fun BorrowRequestToolScreenWithSampleData(
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black
                     )
-                    
+
                     Text(
                         //it should be fetching the location
                         text = "ST#${sampleTool.id}",
@@ -590,7 +785,7 @@ fun BorrowRequestToolScreenWithSampleData(
                         color = Color.Gray
                     )
                 }
-                
+
                 // Availability
                 Text(
                     text = "3 item/s left",
@@ -599,9 +794,9 @@ fun BorrowRequestToolScreenWithSampleData(
                     color = Color(0xFFFFC14D),
                     modifier = Modifier.padding(top = 4.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Description section
                 Text(
                     text = "Description",
@@ -609,7 +804,7 @@ fun BorrowRequestToolScreenWithSampleData(
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black
                 )
-                
+
                 Text(
                     text = sampleTool.description,
                     fontSize = 13.sp,
@@ -617,9 +812,9 @@ fun BorrowRequestToolScreenWithSampleData(
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Condition section
                 Text(
                     text = "Condition",
@@ -627,92 +822,107 @@ fun BorrowRequestToolScreenWithSampleData(
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black
                 )
-                
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
                 ) {
-                    // Good condition button
+                    // Display the tool condition with appropriate icon
+                    val conditionIcon = when (sampleToolBorrowItem.tool_condition?.uppercase()) {
+                        "NEW" -> Icons.Filled.Star
+                        "GOOD" -> Icons.Filled.ThumbUp
+                        "FAIR" -> Icons.Filled.StarHalf
+                        "WORN" -> Icons.Filled.Cloud
+                        "DAMAGED" -> Icons.Filled.Warning
+                        "BROKEN" -> Icons.Filled.LinkOff
+                        else -> Icons.Filled.Star // Default to NEW if condition is null or unknown
+                    }
+
+                    val conditionColor = when (sampleToolBorrowItem.tool_condition?.uppercase()) {
+                        "NEW" -> Color(0xFF4CAF50) // Green
+                        "GOOD" -> Color(0xFF8BC34A) // Light Green
+                        "FAIR" -> Color(0xFFFFC107) // Amber
+                        "WORN" -> Color(0xFFFF9800) // Orange
+                        "DAMAGED" -> Color(0xFFFF5722) // Deep Orange
+                        "BROKEN" -> Color(0xFFF44336) // Red
+                        else -> Color(0xFF4CAF50) // Default to Green if condition is null or unknown
+                    }
+
                     Card(
                         modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(15.dp),
+                            .padding(end = 16.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 4.dp
-                        ),
-                        onClick = { selectedCondition = true }
+                            containerColor = conditionColor.copy(alpha = 0.1f)
+                        )
                     ) {
                         Row(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_good_condition),
-                                contentDescription = "Good Condition",
-                                tint = if (selectedCondition == true) Color(0xFF2EA69E) else Color.Black,
+                                imageVector = conditionIcon,
+                                contentDescription = "Tool Condition",
+                                tint = conditionColor,
                                 modifier = Modifier.size(24.dp)
                             )
-                        }
-                    }
-                    
-                    // Bad condition button
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(15.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 4.dp
-                        ),
-                        onClick = { selectedCondition = false }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_bad_condition),
-                                contentDescription = "Bad Condition",
-                                tint = if (selectedCondition == false) Color.Black else Color.Black,
-                                modifier = Modifier.size(24.dp)
+
+                            Text(
+                                text = sampleToolBorrowItem.tool_condition ?: "NEW",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = conditionColor
                             )
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.weight(1f))
-                
+
+                // Check if the tool is available
+                val isToolAvailable = sampleToolBorrowItem.status?.uppercase() == "AVAILABLE"
+
                 // Request button
                 Button(
-                    onClick = { /* No-op in preview */ },
+                    onClick = { 
+                        if (!isToolAvailable) {
+                            // Show popup that the tool is currently borrowed
+                            Toast.makeText(context, "This tool is currently borrowed", Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2EA69E),
+                        containerColor = if (isToolAvailable) Color(0xFF2EA69E) else Color.Gray,
                         contentColor = Color.White
-                    )
+                    ),
+                    enabled = isToolAvailable
                 ) {
                     Text(
                         text = "Request Item",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Show message if tool is not available
+                if (!isToolAvailable) {
+                    Text(
+                        text = "This tool is currently borrowed",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
                     )
                 }
             }
@@ -728,4 +938,3 @@ fun PreviewBorrowRequestToolScreen() {
         BorrowRequestToolScreenWithSampleData(previewNavController)
     }
 }
-

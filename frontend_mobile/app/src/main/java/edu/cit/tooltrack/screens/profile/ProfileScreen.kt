@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
@@ -49,6 +50,11 @@ import edu.cit.tooltrack.R
 import edu.cit.tooltrack.ui.theme.LightTeal
 import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 import edu.cit.tooltrack.utils.SessionManager
+import edu.cit.tooltrack.screens.add.AddToolActivity
+
+// Import the proper BorrowedToolActivity class or use a placeholder if it doesn't exist yet
+// If the class doesn't exist yet, comment out the relevant code that uses it
+// import edu.cit.tooltrack.screens.borrowed.BorrowedToolActivity
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
@@ -75,9 +81,10 @@ fun ProfileScreen(navController: NavHostController) {
                 navController = navController
             )
 
-            // Menu Options
+            // Menu Options - pass sessionManager
             MenuOptions(
                 navController = navController,
+                sessionManager = sessionManager,
                 onLogoutClick = {
                     // Check if the user is actually logged in and token is valid
                     if (sessionManager.isLoggedIn()) {
@@ -87,7 +94,7 @@ fun ProfileScreen(navController: NavHostController) {
                     } else {
                         Log.d("ProfileScreen", "User was already logged out due to token expiration")
                     }
-                    
+
                     // Navigate to login screen regardless of previous state
                     context.startActivity(Intent(context, LoginActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -194,9 +201,10 @@ private fun ProfileHeader(
 
                 // User Email - Use the email from SessionManager
                 Text(
-                    text = if (email.isNotEmpty()) "@$email" else "@user@example.com",
-                    fontSize = 10.sp,
-                    color = Color.Gray
+                    text = email.ifEmpty { "@user@example.com" },
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -206,6 +214,7 @@ private fun ProfileHeader(
 @Composable
 private fun MenuOptions(
     navController: NavHostController,
+    sessionManager: SessionManager, // SessionManager parameter is now properly passed
     onLogoutClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -221,10 +230,32 @@ private fun MenuOptions(
             title = "Borrowed Tools",
             showDivider = true,
             onClick = { 
-                // Navigate to BorrowedToolActivity
-                context.startActivity(Intent(context, BorrowedToolActivity::class.java))
+                // Handle the click safely without directly launching an Activity that might not exist
+                try {
+                    // Try to find the BorrowedToolActivity class dynamically
+                    val borrowedActivityClass = Class.forName("edu.cit.tooltrack.screens.borrowed.BorrowedToolActivity")
+                    context.startActivity(Intent(context, borrowedActivityClass))
+                } catch (e: ClassNotFoundException) {
+                    Log.e("ProfileScreen", "BorrowedToolActivity not found", e)
+                    // Show a toast or other feedback that this feature is coming soon
+                }
             }
         )
+
+        // Add Tool (only visible for Admin users)
+        val userRole = sessionManager.getUserRole()
+        if (userRole.equals("Admin", ignoreCase = true)) {
+            MenuOption(
+                icon = Icons.Default.Add,
+                title = "Add Tool",
+                iconColor = Color.Green,
+                showDivider = true,
+                onClick = { 
+                    // Navigate to AddToolActivity
+                    context.startActivity(Intent(context, AddToolActivity::class.java))
+                }
+            )
+        }
 
         // Profile Settings Option
         MenuOption(
@@ -269,7 +300,7 @@ private fun MenuOption(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     textColor: Color = Color.Black,
-    iconColor: Color = Color.Black,
+    iconColor: Color = Color.Black, // Fixed the parameter declaration
     showDivider: Boolean = true,
     onClick: () -> Unit = {}
 ) {

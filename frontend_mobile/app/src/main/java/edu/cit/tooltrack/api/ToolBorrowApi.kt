@@ -19,7 +19,9 @@ data class ToolBorrowItem(
     val date_acquired: String,
     val image_url: String,
     val created_at: String,
-    val updated_at: String
+    val updated_at: String,
+    val tool_condition: String? = null,
+    val status: String? = null
 )
 
 interface ToolBorrowApi {

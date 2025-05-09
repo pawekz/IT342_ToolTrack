@@ -45,13 +45,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     var selectedCategory by mutableStateOf<ToolCategory?>(null)
         private set
-        
+
     // Original list of tools for the selected category (unfiltered)
     private var _allCategoryTools: List<ToolItem> = emptyList()
 
+    // Store all tools fetched from the API for local search
+    private var _allTools: List<ToolItem> = emptyList()
+
     var categoryTools by mutableStateOf<List<ToolItem>>(emptyList())
         private set
-        
+
     // Search query for category filtering
     var categorySearchQuery by mutableStateOf("")
         private set
@@ -103,17 +106,38 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             errorMessage = null
 
             try {
-                val response = toolSearchService.searchTools(query)
-                if (response.isSuccessful) {
-                    searchResults = response.body()?.items ?: emptyList()
+                // If _allTools is empty, try to load tools first
+                if (_allTools.isEmpty()) {
+                    loadPopularTools()
+                    // Wait for loading to complete
+                    delay(500)
+                    // If still empty after loading, show error
+                    if (_allTools.isEmpty()) {
+                        errorMessage = "No tools available. Please try again later."
+                        searchResults = emptyList()
+                        isLoading = false
+                        return@launch
+                    }
+                }
+
+                // Filter tools locally based on the query
+                val filteredTools = _allTools.filter { tool ->
+                    tool.name.contains(query, ignoreCase = true) ||
+                    tool.description.contains(query, ignoreCase = true) ||
+                    tool.categoryName.contains(query, ignoreCase = true)
+                }
+
+                if (filteredTools.isNotEmpty()) {
+                    searchResults = filteredTools
+                    Log.d("HomeViewModel", "Found ${filteredTools.size} tools matching '$query'")
                 } else {
-                    /*errorMessage = "Failed to search: ${response.message()}"*/
-                    errorMessage = "No tools found"
+                    errorMessage = "No tools found matching '$query'"
                     searchResults = emptyList()
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.message}"
                 searchResults = emptyList()
+                Log.e("HomeViewModel", "Error during search", e)
             } finally {
                 isLoading = false
             }
@@ -126,16 +150,36 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             errorMessage = null
 
             try {
-                val response = toolSearchService.searchTools("", category.name)
-                if (response.isSuccessful) {
-                    searchResults = response.body()?.items ?: emptyList()
+                // If _allTools is empty, try to load tools first
+                if (_allTools.isEmpty()) {
+                    loadPopularTools()
+                    // Wait for loading to complete
+                    delay(500)
+                    // If still empty after loading, show error
+                    if (_allTools.isEmpty()) {
+                        errorMessage = "No tools available. Please try again later."
+                        searchResults = emptyList()
+                        isLoading = false
+                        return@launch
+                    }
+                }
+
+                // Filter tools locally based on the category
+                val filteredTools = _allTools.filter { tool ->
+                    tool.categoryName.equals(category.name, ignoreCase = true)
+                }
+
+                if (filteredTools.isNotEmpty()) {
+                    searchResults = filteredTools
+                    Log.d("HomeViewModel", "Found ${filteredTools.size} tools in category '${category.name}'")
                 } else {
-                    errorMessage = "Failed to load category items: ${response.message()}"
+                    errorMessage = "No tools found in category '${category.name}'"
                     searchResults = emptyList()
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.message}"
                 searchResults = emptyList()
+                Log.e("HomeViewModel", "Error during category search", e)
             } finally {
                 isLoading = false
             }
@@ -167,27 +211,78 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             isLoading = true
             errorMessage = null
             searchResultTool = null
+
             try {
-                val sessionManager = SessionManager(getApplication<Application>().applicationContext)
-                val token = sessionManager.fetchAuthToken()
-                if (token.isNullOrEmpty()) {
-                    errorMessage = "Session expired. Please log in again."
-                    isLoading = false
-                    return@launch
+                // If _allTools is empty, try to load tools first
+                if (_allTools.isEmpty()) {
+                    loadPopularTools()
+                    // Wait for loading to complete
+                    delay(500)
+                    // If still empty after loading, show error
+                    if (_allTools.isEmpty()) {
+                        errorMessage = "No tools available. Please try again later."
+                        isLoading = false
+                        return@launch
+                    }
                 }
-                val response = ToolSearchService.create().searchToolByName(
-                    token = "Bearer $token",
-                    name = query
-                )
-                if (response.isSuccessful) {
-                    searchResultTool = response.body()?.toolItem
+
+                // First try to find an exact match in the local data
+                val exactMatch = _allTools.firstOrNull { 
+                    it.name.equals(query, ignoreCase = true) 
+                }
+
+                if (exactMatch != null) {
+                    // Convert ToolItem to ApiToolItem for compatibility
+                    val apiToolItem = ApiToolItem(
+                        tool_id = exactMatch.id,
+                        toolTransaction = emptyList(),
+                        tool_condition = "UNKNOWN", // Not available in ToolItem
+                        status = exactMatch.status.uppercase(),
+                        category = exactMatch.categoryName,
+                        name = exactMatch.name,
+                        qr_code = null, // Not available in ToolItem
+                        qr_code_name = null, // Not available in ToolItem
+                        location = "Unknown", // Not available in ToolItem
+                        description = exactMatch.description,
+                        date_acquired = "", // Not available in ToolItem
+                        image_url = exactMatch.imageUrl,
+                        image_name = null, // Not available in ToolItem
+                        created_at = "", // Not available in ToolItem
+                        updated_at = null // Not available in ToolItem
+                    )
+                    searchResultTool = apiToolItem
+                    Log.d("HomeViewModel", "Found exact match for '$query': ${exactMatch.name}")
                 } else {
-                    errorMessage = "No tool found."
+                    // If no exact match, try API call as fallback
+                    try {
+                        val sessionManager = SessionManager(getApplication<Application>().applicationContext)
+                        val token = sessionManager.fetchAuthToken()
+                        if (token.isNullOrEmpty()) {
+                            errorMessage = "Session expired. Please log in again."
+                            isLoading = false
+                            return@launch
+                        }
+                        val response = ToolSearchService.create().searchToolByName(
+                            token = "Bearer $token",
+                            name = query
+                        )
+                        if (response.isSuccessful) {
+                            searchResultTool = response.body()?.toolItem
+                            Log.d("HomeViewModel", "Found tool via API: ${searchResultTool?.name}")
+                        } else {
+                            errorMessage = "No tool found matching '$query'"
+                        }
+                    } catch (e: Exception) {
+                        errorMessage = "Error: ${e.localizedMessage}"
+                        Log.e("HomeViewModel", "Error searching for tool by name", e)
+                    }
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.localizedMessage}"
+                Log.e("HomeViewModel", "Error in searchToolByName", e)
+            } finally {
+                isLoading = false
             }
-            isLoading = false
         }
     }
     fun refreshPopularTools() {
@@ -197,7 +292,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun clearSearchResult() {
         searchResultTool = null
         errorMessage = null
-        loadPopularTools()
+
+        // If _allTools is not empty, use it directly instead of reloading
+        if (_allTools.isNotEmpty()) {
+            searchResults = _allTools
+            isLoading = false
+        } else {
+            // Otherwise, reload from API
+            loadPopularTools()
+        }
     }
 
     // Function to load popular tools from the API
@@ -247,7 +350,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     // Convert ApiToolItem to ToolItem for display
-                    searchResults = sortedTools.map { apiTool ->
+                    _allTools = sortedTools.map { apiTool ->
                         ToolItem(
                             id = apiTool.tool_id,
                             name = apiTool.name,
@@ -259,7 +362,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
 
-                    Log.d("HomeViewModel", "Processed ${searchResults.size} tools for display")
+                    // Set search results to all tools initially
+                    searchResults = _allTools
+
+                    Log.d("HomeViewModel", "Processed ${_allTools.size} tools for display")
                 } else {
                     errorMessage = "Failed to load tools: ${response.message()}"
                     searchResults = emptyList()
@@ -354,7 +460,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         categorySearchQuery = query
         filterCategoryTools()
     }
-    
+
     // Filter category tools based on search query
     private fun filterCategoryTools() {
         categoryTools = if (categorySearchQuery.isBlank()) {

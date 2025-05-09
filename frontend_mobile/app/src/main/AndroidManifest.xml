@@ -58,6 +58,11 @@
         android:name=".screens.home.ToolDetailsActivity"
         android:exported="false" />
 
+        <activity android:name=".screens.add.AddToolActivity" android:exported="false" />
+
+        <activity android:name=".screens.add.ConfirmAddToolActivity" android:exported="false" />
+
+
         <!-- Metadata -->
         <meta-data
                 android:name="preloaded_fonts"

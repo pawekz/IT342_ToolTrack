@@ -70,7 +70,7 @@ fun ToolDetailsScreen(
     onBackClick: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
-    
+
     Scaffold(
         topBar = {
             Surface(
@@ -141,7 +141,7 @@ fun ToolDetailsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                
+
                 // Status indicator
                 Box(
                     modifier = Modifier
@@ -161,6 +161,7 @@ fun ToolDetailsScreen(
                         text = when (toolStatus) {
                             "available" -> "Available"
                             "in_use" -> "In Use"
+                            "borrowed" -> "Borrowed"
                             else -> "Maintenance"
                         },
                         color = Color.White,
@@ -169,7 +170,7 @@ fun ToolDetailsScreen(
                     )
                 }
             }
-            
+
             // Tool details
             Column(
                 modifier = Modifier
@@ -184,18 +185,18 @@ fun ToolDetailsScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2E3A59)
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 // Tool category
                 Text(
                     text = "Category: $toolCategory",
                     fontSize = 16.sp,
                     color = Color(0xFF8F9BB3)
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Tool description
                 Text(
                     text = "Description",
@@ -203,18 +204,18 @@ fun ToolDetailsScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2E3A59)
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Text(
                     text = toolDescription,
                     fontSize = 16.sp,
                     color = Color(0xFF2E3A59),
                     lineHeight = 24.sp
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Tool ID
                 Text(
                     text = "Tool ID: $toolId",
