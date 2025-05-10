@@ -145,4 +145,14 @@ public class TransactionController {
             return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
     }
 
+    @GetMapping("/getPopularTools")
+    public ResponseEntity<?> getPopularTools(){
+        Map<String, Integer> getPopularTools = toolTransactionService.countAllTools();
+
+        if(getPopularTools == null || getPopularTools.isEmpty()){
+            return ResponseEntity.status(404).body(Map.of("message", "No transactions found"));
+        }
+        return ResponseEntity.ok(Map.of("popularTools", getPopularTools));
+    }
+
 }
