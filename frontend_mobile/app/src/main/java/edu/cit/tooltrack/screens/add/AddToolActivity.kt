@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,6 +27,9 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +37,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +55,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Objects
 
 class AddToolActivity : ComponentActivity() {
     lateinit var photoFile: File
@@ -147,7 +147,6 @@ class AddToolActivity : ComponentActivity() {
                             putExtra("TOOL_DESCRIPTION", toolData.description)
                             putExtra("TOOL_CATEGORY", toolData.category)
                             putExtra("TOOL_LOCATION", toolData.location)
-                            putExtra("TOOL_CONDITION", toolData.condition)
                             putExtra("TOOL_IMAGE_URI", toolData.imageUri?.toString())
                             putExtra("DATE_ACQUIRED", toolData.dateAcquired)
                         }
@@ -167,7 +166,6 @@ data class ToolData(
     val description: String,
     val category: String,
     val location: String,
-    val condition: String,
     val imageUri: Uri?,
     val dateAcquired: String
 )
@@ -315,6 +313,8 @@ fun AddToolScreen(
     // Function to take picture
     fun takePicture() {
         try {
+            // Create the image file first to initialize photoFile
+            createImageFile()
             val uri = getPhotoUri()
             imageUri = uri
             takePictureLauncher.launch(uri)
@@ -585,6 +585,17 @@ fun AddToolScreen(
                 onOptionSelected = { selectedLocation = it }
             )
 
+            /*// Condition Dropdown
+            CustomDropdownField(
+                selectedValue = selectedCondition,
+                label = "Condition",
+                placeholder = "Select condition",
+                expanded = expandedCondition,
+                onExpandedChange = { expandedCondition = it },
+                options = conditions,
+                onOptionSelected = { selectedCondition = it }
+            )*/
+
             // Date Acquired Picker
             CustomDateField(
                 label = "Date Acquired",
@@ -609,10 +620,10 @@ fun AddToolScreen(
                         return@Button
                     }
 
-                    if (selectedCondition.isBlank()) {
+                    /*if (selectedCondition.isBlank()) {
                         // Show error for condition
                         return@Button
-                    }
+                    }*/
 
                     if (selectedLocation.isBlank()) {
                         // Show error for location
@@ -625,7 +636,6 @@ fun AddToolScreen(
                         description = description,
                         category = selectedCategory,
                         location = selectedLocation,
-                        condition = selectedCondition,
                         imageUri = imageUri,
                         dateAcquired = selectedDate.format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
                     )
@@ -665,17 +675,23 @@ fun AddToolScreen(
 
             // Date Picker Dialog
             if (showDatePicker) {
+                // Use a more explicit date picker state initialization
                 val datePickerState = rememberDatePickerState(
-                    initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
+                    initialSelectedDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
                 )
 
+                // Use a dialog to ensure proper display
                 DatePickerDialog(
                     onDismissRequest = { showDatePicker = false },
                     confirmButton = {
                         TextButton(onClick = {
+                            // Handle the selected date more explicitly
                             datePickerState.selectedDateMillis?.let { millis ->
-                                val days = millis / (24 * 60 * 60 * 1000)
-                                selectedDate = LocalDate.ofEpochDay(days)
+                                val instant = java.time.Instant.ofEpochMilli(millis)
+                                val localDate = instant.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                                // Update the selected date
+                                selectedDate = localDate
+                                Log.d("DatePicker", "Selected date: $localDate")
                             }
                             showDatePicker = false
                         }) {
@@ -840,6 +856,7 @@ fun CustomDateField(
     onDateClick: () -> Unit
 ) {
     val formattedDate = date.format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
+    val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -850,35 +867,48 @@ fun CustomDateField(
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        TextField(
-            value = formattedDate,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                Icon(
-                    Icons.Default.CalendarMonth,
-                    contentDescription = "Select Date",
-                    tint = MediumGrey
-                )
-            },
+        // Use a Box to ensure the clickable area covers the entire field
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .border(
-                    width = 1.dp,
-                    color = BorderGrey,
-                    shape = RoundedCornerShape(16.dp)
+                .clickable { 
+                    Log.d("DateField", "Date field clicked")
+                    onDateClick() 
+                }
+        ) {
+            TextField(
+                value = formattedDate,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    Icon(
+                        Icons.Default.CalendarMonth,
+                        contentDescription = "Select Date",
+                        tint = MediumGrey,
+                        modifier = Modifier.clickable { 
+                            Log.d("DateField", "Calendar icon clicked")
+                            onDateClick() 
+                        }
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .border(
+                        width = 1.dp,
+                        color = BorderGrey,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    cursorColor = TealPrimary,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
-                .clickable(onClick = onDateClick),
-            shape = RoundedCornerShape(16.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White,
-                cursorColor = TealPrimary,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
             )
-        )
+        }
     }
 }

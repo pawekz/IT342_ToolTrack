@@ -31,6 +31,25 @@ data class TransactionResponse(
     val transaction: Transaction
 )
 
+data class MyTransactionItem(
+    val transaction_id: Int,
+    val user_id: Int,
+    val user_firstName: String,
+    val user_lastName: String,
+    val email: String,
+    val tool_id: Int,
+    val tool_name: String,
+    val borrow_date: String,
+    val due_date: String?,
+    val return_date: String?,
+    val transaction_type: String?,
+    val status: String
+)
+
+data class MyTransactionsResponse(
+    val transactions: List<MyTransactionItem>
+)
+
 interface TransactionService {
     @POST("transaction/addTransaction")
     suspend fun addTransaction(
@@ -43,6 +62,12 @@ interface TransactionService {
         @Header("Authorization") token: String,
         @Path("transactionId") transactionId: Int
     ): Response<TransactionResponse>
+
+    @GET("transaction/myTransactions/{email}")
+    suspend fun getMyTransactions(
+        @Header("Authorization") token: String,
+        @Path("email") email: String
+    ): Response<MyTransactionsResponse>
 
     companion object {
         fun create(): TransactionService {

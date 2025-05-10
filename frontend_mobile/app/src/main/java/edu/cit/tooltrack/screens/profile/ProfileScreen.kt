@@ -52,9 +52,8 @@ import edu.cit.tooltrack.ui.theme.ToolTrackTheme
 import edu.cit.tooltrack.utils.SessionManager
 import edu.cit.tooltrack.screens.add.AddToolActivity
 
-// Import the proper BorrowedToolActivity class or use a placeholder if it doesn't exist yet
-// If the class doesn't exist yet, comment out the relevant code that uses it
-// import edu.cit.tooltrack.screens.borrowed.BorrowedToolActivity
+// Import the BorrowedToolActivity class
+import edu.cit.tooltrack.screens.profile.BorrowedToolActivity
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
@@ -230,15 +229,8 @@ private fun MenuOptions(
             title = "Borrowed Tools",
             showDivider = true,
             onClick = { 
-                // Handle the click safely without directly launching an Activity that might not exist
-                try {
-                    // Try to find the BorrowedToolActivity class dynamically
-                    val borrowedActivityClass = Class.forName("edu.cit.tooltrack.screens.borrowed.BorrowedToolActivity")
-                    context.startActivity(Intent(context, borrowedActivityClass))
-                } catch (e: ClassNotFoundException) {
-                    Log.e("ProfileScreen", "BorrowedToolActivity not found", e)
-                    // Show a toast or other feedback that this feature is coming soon
-                }
+                // Launch the BorrowedToolActivity
+                context.startActivity(Intent(context, BorrowedToolActivity::class.java))
             }
         )
 

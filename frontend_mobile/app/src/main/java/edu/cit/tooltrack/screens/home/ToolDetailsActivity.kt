@@ -41,6 +41,10 @@ class ToolDetailsActivity : ComponentActivity() {
         val toolImageUrl = intent.getStringExtra("TOOL_IMAGE_URL") ?: ""
         val toolStatus = intent.getStringExtra("TOOL_STATUS") ?: ""
         val toolCategory = intent.getStringExtra("TOOL_CATEGORY") ?: ""
+        
+        // Get borrow and due date information if available
+        val toolBorrowDate = intent.getStringExtra("TOOL_BORROW_DATE")
+        val toolDueDate = intent.getStringExtra("TOOL_DUE_DATE")
 
         setContent {
             ToolTrackTheme {
@@ -51,6 +55,8 @@ class ToolDetailsActivity : ComponentActivity() {
                     toolImageUrl = toolImageUrl,
                     toolStatus = toolStatus,
                     toolCategory = toolCategory,
+                    toolBorrowDate = toolBorrowDate,
+                    toolDueDate = toolDueDate,
                     onBackClick = { finish() }
                 )
             }
@@ -67,6 +73,8 @@ fun ToolDetailsScreen(
     toolImageUrl: String = "",
     toolStatus: String = "available",
     toolCategory: String = "General",
+    toolBorrowDate: String? = null,
+    toolDueDate: String? = null,
     onBackClick: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
@@ -213,6 +221,20 @@ fun ToolDetailsScreen(
                     color = Color(0xFF2E3A59),
                     lineHeight = 24.sp
                 )
+
+                // Display borrow and due date information if available and tool is borrowed
+                if ((toolStatus == "borrowed" || toolStatus == "in_use") && 
+                    toolBorrowDate != null && toolDueDate != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Borrowed on $toolBorrowDate, due on $toolDueDate",
+                        fontSize = 16.sp,
+                        color = Color(0xFF2E3A59),
+                        lineHeight = 24.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 

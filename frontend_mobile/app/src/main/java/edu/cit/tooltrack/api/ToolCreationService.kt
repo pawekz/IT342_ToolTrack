@@ -16,6 +16,10 @@ import java.util.*
 
 // Data classes for requests and responses
 data class AddToolRequest(
+    val tool_id: Int = 0,
+    val toolTransaction: List<Any> = emptyList(),
+    val tool_condition: String,
+    val status: String = "AVAILABLE",
     val category: String,
     val name: String,
     val qr_code: String = "",
@@ -25,6 +29,7 @@ data class AddToolRequest(
     val date_acquired: Map<String, Int> = emptyMap(), // Changed to Map to match API
     val image_url: String = "",
     val image_name: String = "",
+    val serial_number: String = "", // Added optional serial number field
     val created_at: Map<String, Int> = emptyMap(),
     val updated_at: Map<String, Int> = emptyMap(),
     val is_active: Boolean = true
@@ -57,14 +62,14 @@ data class AddQrResponse(
 
 // API interface for tool creation
 interface ToolCreationApi {
-    @FormUrlEncoded
     @POST("toolitem/upload")
+    @Multipart
     suspend fun uploadImage(
         @Header("Authorization") token: String,
-        @Field("name") name: String,
-        @Field("size") size: String,
-        @Field("currentChunkIndex") currentChunkIndex: String,
-        @Field("totalChunks") totalChunks: String,
+        @Query("name") name: String,
+        @Query("size") size: String,
+        @Query("currentChunkIndex") currentChunkIndex: String,
+        @Query("totalChunks") totalChunks: String,
         @Part file: MultipartBody.Part
     ): Response<ImageUploadResponse>
 
@@ -81,21 +86,20 @@ interface ToolCreationApi {
         @Body request: QrCodeCreateRequest
     ): Response<QrCodeUploadResponse>
 
-    @FormUrlEncoded
     @POST("qrcode/uploadImage")
+    @Multipart
     suspend fun uploadQrImage(
         @Header("Authorization") token: String,
-        @Field("file") file: String,
-        @Field("toolId") toolId: String
+        @Part file: MultipartBody.Part,
+        @Query("toolId") toolId: String
     ): Response<QrCodeUploadResponse>
 
-    @FormUrlEncoded
     @PUT("toolitem/addQr")
     suspend fun addQrToTool(
         @Header("Authorization") token: String,
-        @Field("image_url") imageUrl: String,
-        @Field("tool_id") toolId: Int,
-        @Field("qr_code_name") qrCodeName: String
+        @Query("image_url") imageUrl: String,
+        @Query("tool_id") toolId: Int,
+        @Query("qr_code_name") qrCodeName: String
     ): Response<AddQrResponse>
 
     companion object {
@@ -109,19 +113,60 @@ interface ToolCreationApi {
 class ToolCreationService private constructor(private val api: ToolCreationApi) {
 
     suspend fun addTool(token: String, toolRequest: AddToolRequest): Response<AddToolResponse> {
-        return api.addTool(token, toolRequest)
+        val authToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+        return api.addTool(authToken, toolRequest)
+    }
+
+    suspend fun addTool(sessionManager: edu.cit.tooltrack.utils.SessionManager, toolRequest: AddToolRequest): Response<AddToolResponse> {
+        val token = sessionManager.fetchAuthToken()
+        if (token.isNullOrEmpty()) {
+            throw Exception("Authentication token is expired or missing. Please log in again.")
+        }
+        return addTool(token, toolRequest)
     }
 
     suspend fun generateQrCode(token: String, toolId: Int): Response<QrCodeUploadResponse> {
         val request = QrCodeCreateRequest(toolId = toolId)
-        return api.createQrCode(token, toolId, request)
+        val authToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+        return api.createQrCode(authToken, toolId, request)
     }
 
-    suspend fun uploadQrCodeImage(token: String, filePart: MultipartBody.Part): Response<QrCodeUploadResponse> {
-        // This method needs to be updated to match the API's requirements
-        // For now, returning a placeholder implementation
-        val fileName = filePart.headers?.get("Content-Disposition")?.substringAfter("filename=")?.trim('"') ?: "unknown"
-        return api.uploadQrImage(token, fileName, "0")
+    suspend fun generateQrCode(sessionManager: edu.cit.tooltrack.utils.SessionManager, toolId: Int): Response<QrCodeUploadResponse> {
+        val token = sessionManager.fetchAuthToken()
+        if (token.isNullOrEmpty()) {
+            throw Exception("Authentication token is expired or missing. Please log in again.")
+        }
+        return generateQrCode(token, toolId)
+    }
+
+    suspend fun uploadQrCodeImage(token: String, file: File, toolId: String): Response<QrCodeUploadResponse> {
+        // Check if file exists and is readable
+        if (!file.exists() || !file.canRead()) {
+            Log.e("ToolCreationService", "QR code file does not exist or is not readable: ${file.absolutePath}")
+            throw Exception("QR code file cannot be accessed")
+        }
+
+        // Create request body from file
+        val requestBody = file.asRequestBody("image/png".toMediaTypeOrNull())
+
+        // Create MultipartBody.Part from request body
+        val filePart = MultipartBody.Part.createFormData(
+            "file",
+            file.name,
+            requestBody
+        )
+
+        // Call the API with the MultipartBody.Part
+        val authToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+        return api.uploadQrImage(authToken, filePart, toolId)
+    }
+
+    suspend fun uploadQrCodeImage(sessionManager: edu.cit.tooltrack.utils.SessionManager, file: File, toolId: String): Response<QrCodeUploadResponse> {
+        val token = sessionManager.fetchAuthToken()
+        if (token.isNullOrEmpty()) {
+            throw Exception("Authentication token is expired or missing. Please log in again.")
+        }
+        return uploadQrCodeImage(token, file, toolId)
     }
 
     suspend fun associateQrWithTool(token: String, params: Map<String, Any>): Response<AddQrResponse> {
@@ -129,7 +174,16 @@ class ToolCreationService private constructor(private val api: ToolCreationApi) 
         val toolId = params["tool_id"] as? Int ?: 0
         val qrCodeName = params["qr_code_name"] as? String ?: ""
 
-        return api.addQrToTool(token, imageUrl, toolId, qrCodeName)
+        val authToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
+        return api.addQrToTool(authToken, imageUrl, toolId, qrCodeName)
+    }
+
+    suspend fun associateQrWithTool(sessionManager: edu.cit.tooltrack.utils.SessionManager, params: Map<String, Any>): Response<AddQrResponse> {
+        val token = sessionManager.fetchAuthToken()
+        if (token.isNullOrEmpty()) {
+            throw Exception("Authentication token is expired or missing. Please log in again.")
+        }
+        return associateQrWithTool(token, params)
     }
 
     companion object {
@@ -157,13 +211,28 @@ suspend fun uploadImageInChunks(
     val totalChunks = (fileSize / chunkSize).toInt() + if (fileSize % chunkSize > 0) 1 else 0
 
     try {
+        // Verify file exists and is readable
+        if (!file.exists() || !file.canRead()) {
+            Log.e("ToolCreationService", "File does not exist or is not readable: ${file.absolutePath}")
+            throw Exception("Image file cannot be accessed")
+        }
+
         // For simplicity, we're not actually chunking the file in this implementation
         // In a real implementation, you would read the file in chunks and upload each chunk
-        val requestFile = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
-        val filePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
+        val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
 
+        // Create MultipartBody.Part from request body
+        val filePart = MultipartBody.Part.createFormData(
+            "file",
+            file.name,
+            requestBody
+        )
+
+        Log.d("ToolCreationService", "Uploading image: ${file.name}, size: $fileSize bytes")
+
+        val authToken = if (token.startsWith("Bearer ")) token else "Bearer $token"
         val response = api.uploadImage(
-            token = token,
+            token = authToken,
             name = file.name,
             size = fileSize.toString(),
             currentChunkIndex = "0",
@@ -172,14 +241,16 @@ suspend fun uploadImageInChunks(
         )
 
         if (response.isSuccessful) {
+            Log.d("ToolCreationService", "Image upload successful")
             return response.body()
         } else {
-            Log.e("ToolCreationService", "Error uploading image: ${response.errorBody()?.string()}")
-            return null
+            val errorBody = response.errorBody()?.string() ?: "Unknown error"
+            Log.e("ToolCreationService", "Error uploading image: $errorBody")
+            throw Exception("Server error uploading image: $errorBody")
         }
     } catch (e: Exception) {
         Log.e("ToolCreationService", "Exception uploading image", e)
-        return null
+        throw e
     }
 }
 
@@ -190,7 +261,10 @@ suspend fun uploadImageInChunks(
     chunkSize: Int = 5 * 1024 * 1024 // 5MB chunks
 ): ImageUploadResponse? {
     // Extract token from SessionManager
-    val token = sessionManager.fetchAuthToken() ?: ""
+    val token = sessionManager.fetchAuthToken()
+    if (token.isNullOrEmpty()) {
+        throw Exception("Authentication token is expired or missing. Please log in again.")
+    }
     return uploadImageInChunks(file, token, chunkSize)
 }
 

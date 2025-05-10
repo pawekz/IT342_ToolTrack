@@ -74,9 +74,21 @@ class SessionManager(context: Context) {
 
     /**
      * Function to fetch auth token
+     * Returns null if token is expired
      */
     fun fetchAuthToken(): String? {
-        return prefs.getString(USER_TOKEN, null)
+        val token = prefs.getString(USER_TOKEN, null)
+
+        // If no token, return null
+        if (token == null) return null
+
+        // Check if token is expired
+        if (isTokenExpired()) {
+            Log.d("SessionManager", "Token expired when fetching")
+            return null
+        }
+
+        return token
     }
 
     /**

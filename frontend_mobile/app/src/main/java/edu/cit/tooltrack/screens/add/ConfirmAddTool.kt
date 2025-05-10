@@ -79,6 +79,18 @@ class ConfirmAddToolActivity : ComponentActivity() {
 
         // Initialize SessionManager and API service
         sessionManager = SessionManager(this)
+
+        // Check if token is expired
+        if (sessionManager.isTokenExpired()) {
+            // Show error message and navigate to login
+            Log.e("ConfirmAddTool", "Token has expired, redirecting to login")
+            val intent = Intent(this, edu.cit.tooltrack.LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+            return
+        }
+
         // Modify the service creation to accept SessionManager
         toolCreationService = ToolCreationService.create(sessionManager)
 
@@ -92,6 +104,7 @@ class ConfirmAddToolActivity : ComponentActivity() {
         val toolImageUri = intent.getStringExtra("TOOL_IMAGE_URI")
         val dateAcquired = intent.getStringExtra("DATE_ACQUIRED") ?:
         LocalDate.now().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"))
+        val toolSerialNumber = intent.getStringExtra("TOOL_SERIAL_NUMBER") ?: ""
 
         setContent {
             ToolTrackTheme {
@@ -118,6 +131,7 @@ class ConfirmAddToolActivity : ComponentActivity() {
                     toolCondition = toolCondition,
                     toolImageUri = toolImageUri,
                     dateAcquired = dateAcquired,
+                    toolSerialNumber = toolSerialNumber, // Pass the serial number
                     onBackClick = { finish() },
                     onEditClick = { finish() }, // Go back to edit screen
                     onConfirmClick = {
@@ -126,130 +140,208 @@ class ConfirmAddToolActivity : ComponentActivity() {
 
                         lifecycleScope.launch {
                             try {
-                                // 1. Upload image if available
-                                var imageUrl: String? = null
-                                var imageName: String? = null
+                                // Check if we have QR image URL, name, and tool ID from intent extras
+                                val qrImageUrl = intent.getStringExtra("QR_IMAGE_URL")
+                                val qrImageName = intent.getStringExtra("QR_IMAGE_NAME")
+                                val passedToolId = intent.getIntExtra("TOOL_ID", 0)
 
-                                if (toolImageUri != null) {
-                                    val imageUri = Uri.parse(toolImageUri)
-                                    val imageFile = createTempFileFromUri(imageUri)
+                                // If we have all the necessary data from intent extras, only do step 5
+                                if (qrImageUrl != null && qrImageName != null && passedToolId != 0) {
+                                    Log.d("ConfirmAddTool", "Using passed tool ID and QR code data")
 
-                                    if (imageFile != null) {
-                                        // Compress the image
-                                        val compressedFile = compressImage(imageFile)
+                                    // Set the toolId from the intent extra
+                                    toolId = passedToolId
 
-                                        // Upload the image in chunks - now with sessionManager
-                                        val uploadResponse = uploadImageInChunks(
-                                            file = compressedFile,
-                                            sessionManager = sessionManager
-                                        )
+                                    // Get token from SessionManager
+                                    val token = sessionManager.fetchAuthToken() ?: ""
 
-                                        if (uploadResponse != null) {
-                                            imageUrl = uploadResponse.imageUrl
-                                            imageName = uploadResponse.image_name
-                                            Log.d("ConfirmAddTool", "Image uploaded: $imageUrl")
-                                        } else {
-                                            throw Exception("Failed to upload image")
-                                        }
-                                    }
-                                }
-
-                                // 2. Create tool
-                                val addToolRequest = AddToolRequest(
-                                    name = toolName,
-                                    description = toolDescription,
-                                    category = toolCategory,
-                                    location = toolLocation,
-                                    date_acquired = convertDateStringToMap(dateAcquired), // Convert string to date map
-                                    image_url = imageUrl ?: "",
-                                    image_name = imageName ?: ""
-                                )
-
-                                // Get token from SessionManager
-                                val token = sessionManager.fetchAuthToken() ?: ""
-                                
-                                // Add token parameter to addTool call
-                                val addToolResponse = toolCreationService.addTool(
-                                    token = token,
-                                    toolRequest = addToolRequest
-                                )
-
-                                if (addToolResponse.isSuccessful && addToolResponse.body() != null) {
-                                    val toolResponse = addToolResponse.body()!!
-                                    toolId = toolResponse.toolId
-                                    Log.d("ConfirmAddTool", "Tool added with ID: $toolId")
-
-                                    // 3. Generate QR code - add token parameter
-                                    val qrResponse = toolCreationService.generateQrCode(
-                                        token = token,
-                                        toolId = toolId!!
-                                    )
-
-                                    if (qrResponse.isSuccessful && qrResponse.body() != null) {
-                                        // Get QR code as blob
-                                        val qrCodeResponse = qrResponse.body()!!
-                                        qrCodeUrl = qrCodeResponse.imageUrl
+                                    // Get QR code URL from intent extras
+                                    val passedQrCodeUrl = intent.getStringExtra("QR_CODE_URL")
+                                    if (passedQrCodeUrl != null) {
+                                        // Set the qrCodeUrl from the intent extra
+                                        qrCodeUrl = passedQrCodeUrl
 
                                         // Download QR code as blob
                                         val qrBlob = downloadQrCode(qrCodeUrl!!)
                                         qrCodeBlob = qrBlob
+                                        Log.d("ConfirmAddTool", "QR code blob downloaded from passed URL")
+                                    }
 
-                                        // 4. Convert QR code blob to file and upload it
-                                        if (qrBlob != null) {
-                                            // Create a temporary file for the QR code
-                                            val qrCodeFile = File.createTempFile("qrcode_", ".png", cacheDir)
-                                            FileOutputStream(qrCodeFile).use { outputStream ->
-                                                outputStream.write(qrBlob)
-                                            }
+                                    // 5. Associate QR code with tool
+                                    val addQrRequest = mapOf(
+                                        "image_url" to qrImageUrl,
+                                        "tool_id" to toolId!!,
+                                        "qr_code_name" to qrImageName
+                                    )
 
-                                            // Upload QR code image - add token parameter
-                                            val requestFile = qrCodeFile.asRequestBody("image/png".toMediaTypeOrNull())
-                                            val filePart = MultipartBody.Part.createFormData("file", qrCodeFile.name, requestFile)
+                                    val associateResponse = toolCreationService.associateQrWithTool(
+                                        sessionManager = sessionManager,
+                                        params = addQrRequest
+                                    )
 
-                                            val uploadQrResponse = toolCreationService.uploadQrCodeImage(
-                                                token = token,
-                                                filePart = filePart
+                                    if (associateResponse.isSuccessful && associateResponse.body() != null) {
+                                        Log.d("ConfirmAddTool", "QR code associated with tool")
+                                    } else {
+                                        throw Exception("Failed to associate QR code: ${associateResponse.errorBody()?.string()}")
+                                    }
+
+                                    // Show success dialog
+                                    showSuccessDialog = true
+                                } else {
+                                    // If we don't have the necessary data, do all steps 1-5
+                                    Log.d("ConfirmAddTool", "Doing all steps 1-5")
+
+                                    // 1. Upload image if available
+                                    var imageUrl: String? = null
+                                    var imageName: String? = null
+
+                                    if (toolImageUri != null) {
+                                        val imageUri = Uri.parse(toolImageUri)
+                                        val imageFile = createTempFileFromUri(imageUri)
+
+                                        if (imageFile != null) {
+                                            // Compress the image
+                                            val compressedFile = compressImage(imageFile)
+
+                                            // Upload the image in chunks - now with sessionManager
+                                            val uploadResponse = uploadImageInChunks(
+                                                file = compressedFile,
+                                                sessionManager = sessionManager
                                             )
 
-                                            if (uploadQrResponse.isSuccessful && uploadQrResponse.body() != null) {
-                                                val uploadQrResult = uploadQrResponse.body()!!
-                                                val qrImageUrl = uploadQrResult.imageUrl
-                                                val qrImageName = uploadQrResult.image_name
-
-                                                Log.d("ConfirmAddTool", "QR code uploaded: $qrImageUrl")
-
-                                                // 5. Associate QR code with tool - add token parameter
-                                                val addQrRequest = mapOf(
-                                                    "image_url" to qrImageUrl,
-                                                    "tool_id" to toolId!!,
-                                                    "qr_code_name" to qrImageName
-                                                )
-
-                                                val associateResponse = toolCreationService.associateQrWithTool(
-                                                    token = token,
-                                                    params = addQrRequest
-                                                )
-
-                                                if (associateResponse.isSuccessful && associateResponse.body() != null) {
-                                                    Log.d("ConfirmAddTool", "QR code associated with tool")
-                                                } else {
-                                                    Log.w("ConfirmAddTool", "Failed to associate QR code: ${associateResponse.errorBody()?.string()}")
-                                                }
+                                            if (uploadResponse != null) {
+                                                imageUrl = uploadResponse.imageUrl
+                                                imageName = uploadResponse.image_name
+                                                Log.d("ConfirmAddTool", "Image uploaded: $imageUrl")
                                             } else {
-                                                Log.w("ConfirmAddTool", "Failed to upload QR code: ${uploadQrResponse.errorBody()?.string()}")
+                                                throw Exception("Failed to upload image")
                                             }
+                                        }
+                                    }
 
-                                            // Clean up temporary file
-                                            qrCodeFile.delete()
+                                    // 2. Create tool
+                                    val addToolRequest = AddToolRequest(
+                                        name = toolName,
+                                        description = toolDescription,
+                                        category = toolCategory,
+                                        location = toolLocation,
+                                        date_acquired = convertDateStringToMap(dateAcquired), // Convert string to date map
+                                        image_url = imageUrl ?: "",
+                                        image_name = imageName ?: "",
+                                        serial_number = toolSerialNumber, // Include the serial number
+                                        tool_condition = toolCondition,
+                                        status = "AVAILABLE"
+                                    )
+
+                                    // Get token from SessionManager for subsequent API calls
+                                    val token = sessionManager.fetchAuthToken()
+
+                                    if (token.isNullOrEmpty()) {
+                                        // Token is expired or missing, show error and redirect to login
+                                        Log.e("ConfirmAddTool", "Authentication token is expired or missing")
+                                        throw Exception("Your session has expired. Please log in again.")
+                                    }
+
+                                    // Use the overloaded addTool method that takes a SessionManager
+                                    // This ensures a fresh token is used for this specific API call
+                                    val addToolResponse = toolCreationService.addTool(
+                                        sessionManager = sessionManager,
+                                        toolRequest = addToolRequest
+                                    )
+
+                                    if (addToolResponse.isSuccessful && addToolResponse.body() != null) {
+                                        val toolResponse = addToolResponse.body()!!
+                                        toolId = toolResponse.toolId
+                                        Log.d("ConfirmAddTool", "Tool added with ID: $toolId")
+
+                                        // Check token again before generating QR code
+                                        if (token.isNullOrEmpty()) {
+                                            Log.e("ConfirmAddTool", "Authentication token is expired or missing")
+                                            throw Exception("Your session has expired. Please log in again.")
                                         }
 
-                                        // Show success dialog
-                                        showSuccessDialog = true
+                                        // 3. Generate QR code - use the overloaded method that takes a SessionManager
+                                        val qrResponse = toolCreationService.generateQrCode(
+                                            sessionManager = sessionManager,
+                                            toolId = toolId!!
+                                        )
+
+                                        if (qrResponse.isSuccessful && qrResponse.body() != null) {
+                                            // Get QR code as blob
+                                            val qrCodeResponse = qrResponse.body()!!
+                                            qrCodeUrl = qrCodeResponse.imageUrl
+
+                                            // Download QR code as blob
+                                            val qrBlob = downloadQrCode(qrCodeUrl!!)
+                                            qrCodeBlob = qrBlob
+
+                                            // 4. Convert QR code blob to file and upload it
+                                            if (qrBlob != null) {
+                                                // Create a temporary file for the QR code
+                                                val qrCodeFile = File.createTempFile("qrcode_", ".png", cacheDir)
+                                                FileOutputStream(qrCodeFile).use { outputStream ->
+                                                    outputStream.write(qrBlob)
+                                                }
+
+                                                // Check token again before uploading QR code
+                                                if (token.isNullOrEmpty()) {
+                                                    Log.e("ConfirmAddTool", "Authentication token is expired or missing")
+                                                    throw Exception("Your session has expired. Please log in again.")
+                                                }
+
+                                                // Upload QR code image - use the overloaded method that takes a SessionManager
+                                                val uploadQrResponse = toolCreationService.uploadQrCodeImage(
+                                                    sessionManager = sessionManager,
+                                                    file = qrCodeFile,
+                                                    toolId = toolId.toString()
+                                                )
+
+                                                if (uploadQrResponse.isSuccessful && uploadQrResponse.body() != null) {
+                                                    val uploadQrResult = uploadQrResponse.body()!!
+                                                    val qrImageUrl = uploadQrResult.imageUrl
+                                                    val qrImageName = uploadQrResult.image_name
+
+                                                    Log.d("ConfirmAddTool", "QR code uploaded: $qrImageUrl")
+
+                                                    // Check token again before associating QR code
+                                                    if (token.isNullOrEmpty()) {
+                                                        Log.e("ConfirmAddTool", "Authentication token is expired or missing")
+                                                        throw Exception("Your session has expired. Please log in again.")
+                                                    }
+
+                                                    // 5. Associate QR code with tool - use SessionManager
+                                                    val addQrRequest = mapOf(
+                                                        "image_url" to qrImageUrl,
+                                                        "tool_id" to toolId!!,
+                                                        "qr_code_name" to qrImageName
+                                                    )
+
+                                                    val associateResponse = toolCreationService.associateQrWithTool(
+                                                        sessionManager = sessionManager,
+                                                        params = addQrRequest
+                                                    )
+
+                                                    if (associateResponse.isSuccessful && associateResponse.body() != null) {
+                                                        Log.d("ConfirmAddTool", "QR code associated with tool")
+                                                    } else {
+                                                        Log.w("ConfirmAddTool", "Failed to associate QR code: ${associateResponse.errorBody()?.string()}")
+                                                    }
+                                                } else {
+                                                    Log.w("ConfirmAddTool", "Failed to upload QR code: ${uploadQrResponse.errorBody()?.string()}")
+                                                }
+
+                                                // Clean up temporary file
+                                                qrCodeFile.delete()
+                                            }
+
+                                            // Show success dialog
+                                            showSuccessDialog = true
+                                        } else {
+                                            throw Exception("Failed to generate QR code: ${qrResponse.errorBody()?.string()}")
+                                        }
                                     } else {
-                                        throw Exception("Failed to generate QR code: ${qrResponse.errorBody()?.string()}")
+                                        throw Exception("Failed to add tool: ${addToolResponse.errorBody()?.string()}")
                                     }
-                                } else {
-                                    throw Exception("Failed to add tool: ${addToolResponse.errorBody()?.string()}")
                                 }
                             } catch (e: Exception) {
                                 Log.e("ConfirmAddTool", "Error adding tool", e)
@@ -443,6 +535,7 @@ fun ConfirmAddToolScreen(
     toolCondition: String,
     toolImageUri: String? = null,
     dateAcquired: String,
+    toolSerialNumber: String = "", // Added optional serial number parameter
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
     onConfirmClick: () -> Unit
@@ -604,6 +697,11 @@ fun ConfirmAddToolScreen(
 
                     // Date Acquired
                     DetailItem(label = "Date Acquired", value = dateAcquired)
+
+                    // Serial Number (only if provided)
+                    if (toolSerialNumber.isNotBlank()) {
+                        DetailItem(label = "Serial Number", value = toolSerialNumber)
+                    }
                 }
             }
 
@@ -887,6 +985,7 @@ fun ConfirmAddToolScreenPreview() {
             toolLocation = "Storage Room B",
             toolCondition = "Excellent",
             dateAcquired = "05/15/2023",
+            toolSerialNumber = "SN12345", // Added serial number for preview
             onBackClick = {},
             onEditClick = {},
             onConfirmClick = {}
