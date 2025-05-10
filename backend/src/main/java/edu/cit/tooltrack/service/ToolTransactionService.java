@@ -147,4 +147,11 @@ public class ToolTransactionService {
                 .map(Timestamp::toLocalDateTime)
                 .collect(Collectors.groupingBy(LocalDateTime::getMonth, Collectors.counting()));
     }
+
+    public List<TransactionsDTO> getTranscationsByEmail(String email){
+        return toolTransactionRepo.getTransactionsByEmail(email)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
 }

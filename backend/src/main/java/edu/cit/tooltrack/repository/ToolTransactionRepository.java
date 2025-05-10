@@ -27,4 +27,7 @@ public interface ToolTransactionRepository extends JpaRepository<ToolTransaction
     @Query(value = "SELECT * FROM tool_transactions tt JOIN users u ON tt.fk_tool_transactions_user = u.user_id WHERE u.email = :email", nativeQuery = true)
     List<ToolTransaction> findTransactionsByEmail(@Param("email") String email);
 
+    @Query(value = "SELECT tt.* FROM tool_transactions tt JOIN users u ON tt.fk_tool_transactions_user = u.user_id WHERE u.email = :email", nativeQuery = true)
+    List<ToolTransaction> getTransactionsByEmail(@Param("email") String email);
+
 } 

@@ -137,7 +137,7 @@ public class TransactionController {
 
     @GetMapping("/myTransactions/{email}")
     public ResponseEntity<?> getMyTransactions(@PathVariable String email){
-        List<TransactionsDTO> transactionsDTOS = toolTransactionService.getAllTransactions();
+        List<TransactionsDTO> transactionsDTOS = toolTransactionService.getTranscationsByEmail(email);
         if(!transactionsDTOS.isEmpty()){
             transactionsDTOS.removeIf(transaction -> !transaction.getEmail().equals(email));
             return ResponseEntity.ok(Map.of("transactions", transactionsDTOS));
