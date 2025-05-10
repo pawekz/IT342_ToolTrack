@@ -1,6 +1,7 @@
 package edu.cit.tooltrack.service;
 
 import edu.cit.tooltrack.dto.NotificationMessageDTO;
+import edu.cit.tooltrack.dto.ToolBorrowDTO;
 import edu.cit.tooltrack.dto.TransactionsDTO;
 import edu.cit.tooltrack.entity.ToolItems;
 import edu.cit.tooltrack.entity.ToolTransaction;
@@ -146,5 +147,41 @@ public class ToolTransactionService {
         return timestamps.stream()
                 .map(Timestamp::toLocalDateTime)
                 .collect(Collectors.groupingBy(LocalDateTime::getMonth, Collectors.counting()));
+    }
+
+    public List<TransactionsDTO> getTranscationsByEmail(String email){
+        return toolTransactionRepo.getTransactionsByEmail(email)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, Integer> countAllTools(){
+        List<TransactionsDTO> toolTransactions = toolTransactionRepo.findAll()
+                .stream().map(this::mapToDTO)
+                .toList();
+        TreeMap<String, Integer> toolCounts = new TreeMap<>();
+
+        if(toolTransactions.size() > 0){
+            return null;
+        }
+
+        for (TransactionsDTO tool : toolTransactions) {
+            String toolName = tool.getTool_name();
+            toolCounts.put(toolName, toolCounts.getOrDefault(toolName, 0) + 1);
+        }
+
+        Map<String, Integer> sortedByCount = toolCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+
+        sortedByCount.forEach((tool, count) -> System.out.println(tool + " = " + count));
+
+        return sortedByCount;
     }
 }
