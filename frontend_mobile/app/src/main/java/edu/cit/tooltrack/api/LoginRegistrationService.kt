@@ -44,7 +44,7 @@ interface ToolTrackApi {
 
     companion object {
         private const val BASE_URL =
-            "https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/"
+            "https://backend-tooltrack-pe3u8.ondigitalocean.app/"
 
         private val retrofit by lazy {
             // Create logging interceptor
