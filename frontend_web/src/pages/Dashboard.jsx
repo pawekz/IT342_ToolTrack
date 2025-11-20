@@ -48,7 +48,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     console.log(sortRange)
-    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/toolitem/getTotalTools",
+    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/getTotalTools",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -58,7 +58,7 @@ const Dashboard = () => {
           setTotalTools(result.data.total)
         })
 
-    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/getTotalUsers",
+    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/test/getTotalUsers",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -68,7 +68,7 @@ const Dashboard = () => {
           setTotalUsers(result.data)
         })
 
-    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllBorrowed",
+    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/getAllBorrowed",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -82,7 +82,7 @@ const Dashboard = () => {
   useEffect(() => {
     const sortValue = sortRange.split(" ").join("");
     console.log("sortValue", sortValue);
-    axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getSortedDates/${sortValue}`,
+    axios.get(`https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/getSortedDates/${sortValue}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`

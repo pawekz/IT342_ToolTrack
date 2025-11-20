@@ -36,7 +36,7 @@ const LoginPage = () => {
 
     try {
       // Always use Azure backend for login
-      const response = await fetch("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/admin/login", {
+      const response = await fetch("https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -91,7 +91,7 @@ const LoginPage = () => {
     const testDbConnection = async () => {
       try {
         // Always use Azure backend for DB test
-        const apiUrl = 'https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/test/dbconnect';
+        const apiUrl = 'https://backend-tooltrack-pe3u8.ondigitalocean.app/test/dbconnect';
         const response = await axios.get(apiUrl);
         setTestUser(response.data);
       } catch (err) {
@@ -140,7 +140,7 @@ const LoginPage = () => {
             const profile = await profileResponse.json();
             console.log('Google Profile:', profile);
 
-            const checkUserResponse = await axios.get(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser`,
+            const checkUserResponse = await axios.get(`https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/checkUser`,
                 {params: { email: profile.email }},
             ).then(response => {
               console.log("Check User Response:", response.data);
@@ -167,7 +167,7 @@ const LoginPage = () => {
                   password_hash: null,
                   isGoogle: true
                 };
-                axios.post(`https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/admin/register`, userData).then(response => {
+                axios.post(`https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/admin/register`, userData).then(response => {
                   setJWTtoken(response.data);
                   // Show success message
                   setShowSuccessSnackbar(true);

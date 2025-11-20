@@ -55,11 +55,11 @@ const Register = () => {
 
     try {
       // Validate email first
-      axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/checkUser?email=" + formData.email)
+      axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/checkUser?email=" + formData.email)
           .then( response => {
             if(response.data.msg === ("User does not exist")){
               //proceed to registration
-              axios.post("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/auth/admin/register", {
+              axios.post("https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/admin/register", {
                   first_name: formData.first_name,
                   last_name: formData.last_name,
                   email: formData.email,

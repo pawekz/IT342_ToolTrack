@@ -8,7 +8,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([])
 
   useEffect(() => {
-    axios.get("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/getAllPendings", {
+    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/getAllPendings", {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
@@ -22,7 +22,7 @@ const UserManagement = () => {
 
   const action = function(transactionId, isApprove) {
     if (isApprove === "approve") {
-      axios.put("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/approval/validate",{
+      axios.put("https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/approval/validate",{
         transactionId:transactionId,
         approvalStatus: true
       }, {
@@ -42,7 +42,7 @@ const UserManagement = () => {
       console.log("approve");
     } else if(isApprove === "reject") {
       console.log("reject");
-      axios.put("https://tooltrack-backend-edbxg7crbfbuhha8.southeastasia-01.azurewebsites.net/transaction/approval/validate", {
+      axios.put("https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/approval/validate", {
         transactionId: transactionId,
         approvalStatus: false
       }, {
