@@ -19,8 +19,8 @@ import java.util.Base64;
 @Service
 public class S3Service {
 
-    private final String BUCKET_NAME = "academics-bucket"; // Change this
-    private final String BUCKET_KEY = "System-Integ/";
+    private final String BUCKET_NAME = "tooltrack-s3"; // Change this
+    private final String BUCKET_KEY = "tooltrack/";
     private S3Client s3;
 
     private S3Service() {
