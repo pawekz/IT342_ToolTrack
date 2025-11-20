@@ -21,7 +21,7 @@ import java.util.function.Function;
 public class JwtService {
 
     private static final long EXPIRATION_TIME = 2 * 60 * 60 * 1000; //2 hours
-    private static final String SECRET_KEY = "dacc38805188690486da9a74e03510f16ce0f81a966391d351a9f6928d2d85cae650b1daf140f7f29ae9b3423af142db146889c979f04dc70ad502f4d6c8074b";
+    private static final String SECRET_KEY = System.getenv("JWT_SECRET");
 
     public static String generateToken(UserResponseDTO user) {
         return Jwts
