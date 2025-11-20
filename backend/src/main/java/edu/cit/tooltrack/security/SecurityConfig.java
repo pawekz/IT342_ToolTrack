@@ -79,7 +79,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
             "http://localhost:5173", 
-            "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net"
+            "https://tooltrack-frontend-qybsm.ondigitalocean.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowCredentials(true);

@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/qrcode")
-@CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-qybsm.ondigitalocean.app"})
 public class QRController {
 
     @Autowired

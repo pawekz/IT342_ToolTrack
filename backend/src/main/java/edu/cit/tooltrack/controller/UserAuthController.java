@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @Tag(name = "User Authentication API", description = "Endpoints for user authentication")
-@CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://tooltrack-frontend-qybsm.ondigitalocean.app"})
 @RestController
 @RequestMapping("/auth")
 public class UserAuthController {

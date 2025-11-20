@@ -33,7 +33,7 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/tooltrack")
                 .setHandshakeHandler(new CustomHandshakeHandler())
-                .setAllowedOrigins("http://localhost:5173", "https://tooltrack-frontend-hteudjc6beaqhudr.southeastasia-01.azurewebsites.net/")
+                .setAllowedOrigins("http://localhost:5173", "https://tooltrack-frontend-qybsm.ondigitalocean.app/")
                 .withSockJS();
     }
 
