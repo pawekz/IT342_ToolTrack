@@ -72,7 +72,7 @@ const ChunkedImageUploader = () => {
       params.set('totalChunks', totalChunks);
   
       try {
-        const res = await axios.post(`http://localhost:8080/test/upload?${params.toString()}`, buffer, {
+        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/test/upload?${params.toString()}`, buffer, {
           headers: { 'Content-Type': 'application/octet-stream' },
         });
   
@@ -142,7 +142,7 @@ const ChunkedImageUploader = () => {
     };
   
     //upload the tool with image urls
-    const response = await axios.post("http://localhost:8080/test/addTool", {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/test/addTool`, {
       toolItem: toolPayload,
       images: uploadedUrls,
       toolCategory: "Hardware"

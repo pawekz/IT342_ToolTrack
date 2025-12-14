@@ -135,7 +135,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
 
       // Upload QR code image
       const qrUploadRes = await axios.post(
-          'https://backend-tooltrack-pe3u8.ondigitalocean.app/qrcode/uploadImage',
+          `${import.meta.env.VITE_BACKEND_URL}/qrcode/uploadImage`,
           formData,
           {
             headers: {
@@ -151,7 +151,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         params.append('qr_code_name', qrUploadRes.data.qr_code_name);
 
         // Add QR to tool
-        await axios.put('https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/addQr',
+        await axios.put(`${import.meta.env.VITE_BACKEND_URL}/toolitem/addQr`,
             params,
             {
               headers: {
@@ -206,7 +206,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
         };
       }
 
-      await axios.post('https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/editTool',
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/toolitem/editTool`,
           formWithUpdatedImage,
           {
             headers: {
@@ -251,7 +251,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
       params.set('totalChunks', totalChunks);
 
       try {
-        const res = await axios.post(`https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/upload?${params.toString()}`, buffer, {
+        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/toolitem/upload?${params.toString()}`, buffer, {
           headers: {
             'Content-Type': 'application/octet-stream',
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -317,7 +317,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
       };
       setForm(updatedForm);
 
-      const response = await axios.post('https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/addTool', updatedForm, {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/toolitem/addTool`, updatedForm, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -327,7 +327,7 @@ const ToolModal = ({ show, onClose, onSubmit, initialData, isEditing }) => {
       if (response.status === 201) {
         setToolId(response.data.toolId);
 
-        const qrResponse = await axios.post('https://backend-tooltrack-pe3u8.ondigitalocean.app/qrcode/create/' + response.data.toolId, {}, {
+        const qrResponse = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/qrcode/create/${response.data.toolId}`, {}, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },

@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     const loginAction = async (data, navigate) => {
         try {
             if (!data.isGoogle) {
-                const response = await axios.post(`https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/admin/login`, data, {
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/admin/login`, data, {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
                     return;
                 }
             } else {
-                const response = await axios.post(`https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/admin/googleLogin`, data, {
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/admin/googleLogin`, data, {
                     headers: { "Content-Type": "application/json" }
                 });
                 if (response.status === 200 || response.status === 201) {

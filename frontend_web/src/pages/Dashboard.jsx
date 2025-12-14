@@ -48,7 +48,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     console.log(sortRange)
-    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/getTotalTools",
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/toolitem/getTotalTools`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -58,7 +58,7 @@ const Dashboard = () => {
           setTotalTools(result.data.total)
         })
 
-    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/test/getTotalUsers",
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/test/getTotalUsers`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -68,7 +68,7 @@ const Dashboard = () => {
           setTotalUsers(result.data)
         })
 
-    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/getAllBorrowed",
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/transaction/getAllBorrowed`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -82,7 +82,7 @@ const Dashboard = () => {
   useEffect(() => {
     const sortValue = sortRange.split(" ").join("");
     console.log("sortValue", sortValue);
-    axios.get(`https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/getSortedDates/${sortValue}`,
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/transaction/getSortedDates/${sortValue}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
