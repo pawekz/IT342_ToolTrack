@@ -55,11 +55,11 @@ const Register = () => {
 
     try {
       // Validate email first
-      axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/checkUser?email=" + formData.email)
+      axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/checkUser?email=${formData.email}`)
           .then( response => {
             if(response.data.msg === ("User does not exist")){
               //proceed to registration
-              axios.post("https://backend-tooltrack-pe3u8.ondigitalocean.app/auth/admin/register", {
+              axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/admin/register`, {
                   first_name: formData.first_name,
                   last_name: formData.last_name,
                   email: formData.email,

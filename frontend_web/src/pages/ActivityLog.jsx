@@ -77,7 +77,7 @@ const ActivityLog = () => {
 
     useEffect(() => {
         // Simulating API fetch
-        axios.get('https://backend-tooltrack-pe3u8.ondigitalocean.app/transaction/getAllProcessed', {
+        axios.get(`${import.meta.env.VITE_BACKEND_URL}/transaction/getAllProcessed`, {
                 headers: {
                     Authorization: 'Bearer ' + localStorage.getItem('token')
                 }

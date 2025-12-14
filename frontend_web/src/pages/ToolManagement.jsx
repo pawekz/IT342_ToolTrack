@@ -15,7 +15,7 @@ const ToolManagement = () => {
 
 
   useEffect(() => {
-    axios.get("https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/getAllTool", {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/toolitem/getAllTool`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
@@ -50,7 +50,7 @@ const ToolManagement = () => {
     setToolItems(toolItems.filter((tool) => tool.tool_id !== toolId));
 
     console.log("deleting: "+toolId);
-    axios.delete("https://backend-tooltrack-pe3u8.ondigitalocean.app/toolitem/delete/" + toolId
+    axios.delete(`${import.meta.env.VITE_BACKEND_URL}/toolitem/delete/${toolId}`
         , {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
